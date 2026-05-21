@@ -1,0 +1,365 @@
+@model HP_Detailing.Models.Invoice
+@{ 
+    ViewData["Title"] = "Invoice Detail"; 
+    Layout = "_Layout"; 
+    
+    var ticket = Model.Ticket;
+    var customerName = ticket?.CustomerName ?? "Khách lẻ";
+    var customerPhone = ticket?.CustomerPhone ?? "";
+    var carInfo = (ticket?.CarModel ?? "") + " - " + (ticket?.Plate ?? "");
+    var isPaid = Model.Status == "PAID";
+    var statusCss = isPaid ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20";
+    var statusText = isPaid ? "Đã thanh toán" : "Chưa thanh toán";
+    var totalAmountStr = Model.TotalAmount.ToString("N0");
+    var paymentMethods = ViewBag.PaymentMethods as List<HP_Detailing.Models.PaymentMethod> ?? new();
+    var defaultMethodId = paymentMethods.FirstOrDefault(p => p.IsDefault)?.Id ?? paymentMethods.FirstOrDefault()?.Id ?? 0;
+}
+
+<div class="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = "Chi tiết Hóa Đơn",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> { 
+            new(){Label="Trang chủ",Path="/"}, 
+            new(){Label="Tài chính",Path="/financial"}, 
+            new(){Label="Chi tiết hóa đơn"} 
+        },
+        ActionsSlotHtml = @"<div class=""flex gap-2""><button onclick=""window.print()"" class=""bg-slate-900 hover:bg-slate-800 border border-slate-700 p-2.5 rounded-lg text-slate-400 hover:text-white transition-colors""><i data-lucide=""printer"" class=""w-5 h-5""></i></button><button onclick=""HPUI.toast('Đã sao chép liên kết hóa đơn!','success')"" class=""bg-slate-900 hover:bg-slate-800 border border-slate-700 p-2.5 rounded-lg text-slate-400 hover:text-white transition-colors""><i data-lucide=""share-2"" class=""w-5 h-5""></i></button></div>"
+    })
+
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+            <span id="invoiceStatusBadge" class="px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wider border @statusCss">@statusText</span>
+            <p class="text-sm font-mono text-slate-400">@Model.InvoiceCode • Lập từ phiếu: <a href="/tickets/@(ticket?.Id)" class="text-blue-400 hover:underline">@(ticket?.TicketCode)</a></p>
+        </div>
+    </div>
+
+    <div class="bg-[#122131] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="p-6 md:p-8 border-b border-slate-800 bg-[#1c2b3c]/20 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Thông tin khách hàng</h3>
+                <div class="text-lg font-medium text-white">@customerName</div>
+                <div class="text-sm text-slate-400 mt-1">@carInfo</div>
+            </div>
+            <div class="md:text-right">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Thông tin hóa đơn</h3>
+                <div class="text-slate-300 text-sm">Ngày lập: <span class="font-mono text-white ml-2">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span></div>
+            </div>
+        </div>
+        <div class="p-6 md:p-8">
+            <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4 pb-2 border-b border-slate-800">Dịch vụ & Phụ tùng</h3>
+            <div class="space-y-4">
+                @if (ticket != null)
+                {
+                    int index = 1;
+                    if (ticket.TicketServices != null)
+                    {
+                        foreach (var ts in ticket.TicketServices)
+                        {
+                            var serviceName = ts.Service?.Name ?? "Dịch vụ " + ts.ServiceId;
+                            var priceStr = ts.PriceSnapshot.ToString("N0");
+                            <div class="flex justify-between items-center group">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-6 h-6 rounded bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-mono group-hover:text-amber-400 group-hover:bg-amber-400/10 transition-colors">@index</span>
+                                    <span class="text-slate-300 font-medium group-hover:text-white transition-colors">@serviceName</span>
+                                </div>
+                                <span class="font-mono text-slate-300 font-medium">@priceStr đ</span>
+                            </div>
+                            index++;
+                        }
+                    }
+
+                    if (ticket.TicketMaterialUsages != null)
+                    {
+                        foreach (var tm in ticket.TicketMaterialUsages.Where(m => m.IsChargedToCustomer))
+                        {
+                            var matName = tm.Material?.Name ?? "Vật tư " + tm.MaterialId;
+                            var totalMatPrice = (tm.Quantity * tm.UnitPrice).ToString("N0");
+                            <div class="flex justify-between items-center group">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-6 h-6 rounded bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-mono group-hover:text-blue-400 group-hover:bg-blue-400/10 transition-colors">@index</span>
+                                    <div>
+                                        <span class="text-slate-300 font-medium group-hover:text-white transition-colors">@matName</span>
+                                        <span class="text-xs text-slate-500 font-mono ml-2">(@tm.Quantity @(tm.Material?.Unit ?? ""))</span>
+                                    </div>
+                                </div>
+                                <span class="font-mono text-slate-300 font-medium">@totalMatPrice đ</span>
+                            </div>
+                            index++;
+                        }
+                    }
+                }
+            </div>
+        </div>
+        <div class="p-6 md:p-8 bg-slate-900/50 border-t border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+            <div class="order-2 md:order-1" id="paymentAction">
+                @if (!isPaid)
+                {
+                    <div class="bg-amber-500/5 border border-amber-500/20 rounded-xl p-5 border-dashed">
+                        <div class="flex items-start gap-3 mb-4">
+                            <i data-lucide="clock" class="w-5 h-5 text-amber-500 flex-shrink-0"></i>
+                            <div>
+                                <div class="text-sm font-bold text-amber-500">Chờ thanh toán</div>
+                                <div class="text-[11px] text-slate-400 mt-1 leading-relaxed">Khách hàng cần thanh toán toàn bộ số tiền một lần để hoàn tất hóa đơn.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 bg-slate-900/50 p-3 rounded-xl border border-slate-800 mb-4">
+                            <div class="bg-white p-1.5 rounded-lg shrink-0 shadow-lg">
+                                <img id="invoiceQR" src="" alt="QR" class="w-20 h-20" />
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-200 uppercase tracking-widest">VietQR Chuyển khoản</p>
+                                <p class="text-[9px] text-slate-500 mt-1 leading-relaxed">Mã QR tự động chứa số tiền và nội dung hóa đơn.</p>
+                            </div>
+                        </div>
+
+                        <button id="btnConfirmPayment" type="button" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-sm shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="dollar-sign" class="w-4 h-4"></i> Xác nhận Thanh Toán Toàn Bộ
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="check-circle" class="w-6 h-6 text-emerald-500"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-emerald-400">Đã thanh toán thành công</div>
+                            <div class="text-xs text-slate-400 mt-0.5 space-y-0.5">
+                                @if (Model.PaidAt.HasValue) {
+                                    <span class="block">Thời gian: @Model.PaidAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                                @if (Model.PaymentMethod != null) {
+                                    <span class="block">PT thanh toán: @Model.PaymentMethod.BankShortName</span>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.PaymentNote)) {
+                                    <span class="block text-slate-500">Ghi chú: @Model.PaymentNote</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="order-1 md:order-2 space-y-3">
+                <div class="flex justify-between items-center text-sm"><span class="text-slate-400 uppercase tracking-widest text-[10px] font-bold">Thành tiền</span><span class="font-mono text-slate-300">@totalAmountStr đ</span></div>
+                <div class="flex justify-between items-center text-sm border-b border-slate-800 pb-3"><span class="text-slate-400 uppercase tracking-widest text-[10px] font-bold">Thuế VAT (10%)</span><span class="font-mono text-slate-300">0 đ</span></div>
+                <div class="flex justify-between items-end pt-2"><span class="text-slate-300 font-bold uppercase tracking-widest text-xs">Tổng Thanh Toán</span><span class="font-mono text-3xl font-bold text-white text-right leading-none">@totalAmountStr <span class="text-lg text-slate-500">VND</span></span></div>
+            </div>
+        </div>
+    </div>
+
+    @* Modal Xác nhận thanh toán *@
+    <div id="paymentConfirmModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+        <!-- Backdrop -->
+        <div id="paymentModalBackdrop" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity opacity-0"></div>
+        
+        <!-- Modal Content -->
+        <div id="paymentModalContent" class="relative w-full max-w-sm bg-[#122131] border border-slate-800 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] overflow-hidden transform scale-95 opacity-0 transition-all duration-300">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
+                    <i data-lucide="check-circle" class="w-8 h-8 text-blue-400"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">Xác nhận thanh toán</h3>
+                <p class="text-sm text-slate-400 mb-4">Chọn phương thức thanh toán và xác nhận số tiền <span class="font-mono text-white">@totalAmountStr đ</span>.</p>
+                <div class="text-left space-y-3 mb-5">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Phương thức thanh toán *</label>
+                        <select id="paymentMethodSelect" class="w-full bg-[#0B101D] border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-200 focus:border-blue-500 outline-none">
+                            @foreach (var pm in paymentMethods) {
+                                if (pm.Id == defaultMethodId) {
+                                    <option value="@pm.Id" selected="selected">@pm.BankShortName @(pm.IsDefault ? "(Mặc định)" : "")</option>
+                                } else {
+                                    <option value="@pm.Id">@pm.BankShortName @(pm.IsDefault ? "(Mặc định)" : "")</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Ghi chú (tuỳ chọn)</label>
+                        <input type="text" id="paymentNoteInput" maxlength="200" placeholder="VD: Chuyển khoản Vietcombank..." class="w-full bg-[#0B101D] border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-200 focus:border-blue-500 outline-none" />
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" id="btnCancelPayment" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-700 text-sm font-bold text-slate-300 hover:bg-slate-800 transition-colors uppercase tracking-widest">Hủy</button>
+                    <button type="button" id="btnExecutePayment" class="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-sm font-bold text-white shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all uppercase tracking-widest flex items-center justify-center gap-1.5"><i data-lucide="dollar-sign" class="w-4 h-4"></i> Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Hidden Print Template (80mm Thermal) *@
+    <div class="hp-print-area hidden">
+        <div style="text-align: center; border-bottom: 1px dashed black; padding-bottom: 10px; margin-bottom: 10px;">
+            <h2 style="margin: 0; font-size: 18px; color: black !important;">HP AUTO DETAILING</h2>
+            <p style="margin: 5px 0; font-size: 10px; color: black !important;">Số 123, Đường 456, Quận 7, TP.HCM</p>
+            <p style="margin: 5px 0; font-size: 10px; color: black !important;">Hotline: 090 123 4567</p>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 15px;">
+            <h3 style="margin: 0; font-size: 14px; color: black !important;">PHIẾU THANH TOÁN</h3>
+            <p style="margin: 5px 0; font-size: 11px; color: black !important;">Mã: @Model.InvoiceCode</p>
+        </div>
+
+        <div style="font-size: 11px; margin-bottom: 15px; border-bottom: 1px solid black; padding-bottom: 10px; color: black !important;">
+            <p style="margin: 3px 0;">KH: @customerName</p>
+            <p style="margin: 3px 0;">Xe: @carInfo</p>
+            <p style="margin: 3px 0;">Ngày: @Model.CreatedAt.ToString("dd/MM/yyyy")</p>
+        </div>
+
+        <table style="width: 100%; font-size: 11px; border-collapse: collapse; color: black !important;">
+            <thead>
+                <tr style="border-bottom: 1px solid black;">
+                    <th style="text-align: left; padding: 5px 0;">Dịch vụ</th>
+                    <th style="text-align: right; padding: 5px 0;">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ticket != null)
+                {
+                    if (ticket.TicketServices != null)
+                    {
+                        foreach (var ts in ticket.TicketServices)
+                        {
+                            var serviceName = ts.Service?.Name ?? "Dịch vụ " + ts.ServiceId;
+                            var priceStr = ts.PriceSnapshot.ToString("N0");
+                            <tr><td style="padding: 5px 0;">@serviceName</td><td style="text-align: right;">@priceStr</td></tr>
+                        }
+                    }
+                    if (ticket.TicketMaterialUsages != null)
+                    {
+                        foreach (var tm in ticket.TicketMaterialUsages.Where(m => m.IsChargedToCustomer))
+                        {
+                            var matName = tm.Material?.Name ?? "Vật tư " + tm.MaterialId;
+                            var totalMatPrice = (tm.Quantity * tm.UnitPrice).ToString("N0");
+                            <tr><td style="padding: 5px 0;">@matName (@tm.Quantity @(tm.Material?.Unit ?? ""))</td><td style="text-align: right;">@totalMatPrice</td></tr>
+                        }
+                    }
+                }
+            </tbody>
+        </table>
+
+        <div style="margin-top: 15px; border-top: 1px solid black; padding-top: 10px; text-align: right; color: black !important;">
+            <p style="font-weight: bold; font-size: 13px; margin: 0;">TỔNG: @totalAmountStr đ</p>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center; font-size: 10px; font-style: italic; color: black !important;">
+            <p>Cảm ơn Quý khách. Hẹn gặp lại!</p>
+            <p style="margin-top: 5px;">--- hpautodetailing.com ---</p>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            function initInvoice() {
+                if (window.lucide) lucide.createIcons();
+
+                // Nếu HPUI chưa được load (trường hợp F5 full reload), chờ 50ms và gọi lại
+                if (!window.HPUI || !window.HPUI.generateQR) {
+                    setTimeout(initInvoice, 50);
+                    return;
+                }
+
+                // Initialize QR Code if not paid
+                var qrImg = document.getElementById('invoiceQR');
+                if (qrImg) {
+                    var amount = @(Model.TotalAmount.ToString("F0", System.Globalization.CultureInfo.InvariantCulture));
+                    var description = 'Thanh toan hoa don @Model.InvoiceCode';
+                    qrImg.src = HPUI.generateQR(amount, description);
+                }
+
+                var btnConfirm = document.getElementById('btnConfirmPayment');
+                var paymentModal = document.getElementById('paymentConfirmModal');
+                var paymentBackdrop = document.getElementById('paymentModalBackdrop');
+                var paymentContent = document.getElementById('paymentModalContent');
+                var btnCancel = document.getElementById('btnCancelPayment');
+                var btnExecute = document.getElementById('btnExecutePayment');
+
+                function openModal() {
+                    paymentModal.classList.remove('hidden');
+                    paymentModal.classList.add('flex');
+                    // Trigger reflow
+                    void paymentModal.offsetWidth;
+                    paymentBackdrop.classList.remove('opacity-0');
+                    paymentContent.classList.remove('opacity-0', 'scale-95');
+                    paymentContent.classList.add('opacity-100', 'scale-100');
+                }
+
+                function closeModal() {
+                    paymentBackdrop.classList.add('opacity-0');
+                    paymentContent.classList.remove('opacity-100', 'scale-100');
+                    paymentContent.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        paymentModal.classList.add('hidden');
+                        paymentModal.classList.remove('flex');
+                    }, 300);
+                }
+
+                if (btnConfirm && !btnConfirm.hasAttribute('data-initialized')) {
+                    btnConfirm.setAttribute('data-initialized', 'true');
+                    
+                    btnConfirm.addEventListener('click', function() {
+                        openModal();
+                    });
+
+                    if (btnCancel) {
+                        btnCancel.addEventListener('click', closeModal);
+                        paymentBackdrop.addEventListener('click', closeModal);
+                    }
+
+                    if (btnExecute) {
+                        btnExecute.addEventListener('click', function() {
+                            btnExecute.disabled = true;
+                            btnCancel.disabled = true;
+                            var originalHtml = btnExecute.innerHTML;
+                            btnExecute.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Đang xử lý...';
+                            
+                            fetch('/Financial/MarkPaid', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    InvoiceId: @Model.Id,
+                                    PaymentMethodId: parseInt(document.getElementById('paymentMethodSelect').value, 10) || @defaultMethodId,
+                                    PaymentNote: document.getElementById('paymentNoteInput').value || null
+                                })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    HPUI.toast('Thanh toán thành công toàn bộ số tiền!','success');
+                                    setTimeout(function(){
+                                        closeModal();
+                                        if (window.HPUI && window.HPUI.loadPage) {
+                                            window.HPUI.loadPage('/financial/invoice/@Model.Id');
+                                        } else {
+                                            window.location.reload();
+                                        }
+                                    }, 1000);
+                                } else {
+                                    btnExecute.disabled = false;
+                                    btnCancel.disabled = false;
+                                    btnExecute.innerHTML = originalHtml;
+                                    if (window.lucide) lucide.createIcons();
+                                    HPUI.toast(data.message, 'error');
+                                    closeModal();
+                                }
+                            })
+                            .catch(err => {
+                                btnExecute.disabled = false;
+                                btnCancel.disabled = false;
+                                btnExecute.innerHTML = originalHtml;
+                                if (window.lucide) lucide.createIcons();
+                                HPUI.toast('Lỗi kết nối khi xác nhận thanh toán!', 'error');
+                                console.error(err);
+                                closeModal();
+                            });
+                        });
+                    }
+                }
+            }
+            
+            // Bắt đầu khởi tạo
+            initInvoice();
+        })();
+    </script>
+</div>

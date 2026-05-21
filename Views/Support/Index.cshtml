@@ -1,0 +1,146 @@
+@{ ViewData["Title"] = "Support"; Layout = "_Layout"; }
+<div class="p-4 sm:p-6 lg:p-10 flex-1 space-y-8 h-full" data-tab-group="supportTabs">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = "Trung tâm hỗ trợ",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> { new(){Label="Trang chủ",Path="/"}, new(){Label="Hỗ trợ"} }
+    })
+
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 bg-[#122131]/60 p-8 rounded-2xl border border-slate-800 shadow-sm relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px]"></div>
+        <div class="relative z-10 w-full">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20"><i data-lucide="help-circle" class="w-6 h-6 text-blue-400"></i></div>
+                <div><h3 class="text-xl font-bold text-white mb-1 tracking-tight font-['Space_Grotesk']">Bạn cần hỗ trợ gì?</h3><p class="text-slate-400 text-sm">Nhập từ khóa hoặc chọn danh mục bên dưới để bắt đầu.</p></div>
+            </div>
+            <div class="relative max-w-2xl mt-6">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"><i data-lucide="search" class="w-5 h-5"></i></span>
+                <input type="text" placeholder="Tìm kiếm hướng dẫn, bài viết, lỗi thường gặp..." onkeydown="if(event.key === 'Enter') HPUI.toast('Đang tìm kiếm...', 'info')" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-xl py-3.5 pl-12 pr-4 text-sm focus:border-blue-500 outline-none text-white transition-all shadow-inner" />
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        @* Sidebar Navigation *@
+        <div class="space-y-2">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-3 mb-4">Danh mục trợ giúp</h3>
+            <button data-tab-btn="start" onclick="HPUI.switchTab('supportTabs', 'start')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20"><i data-lucide="zap" class="w-4 h-4"></i> Bắt đầu nhanh</button>
+            <button data-tab-btn="tickets" onclick="HPUI.switchTab('supportTabs', 'tickets')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-[#122131]/50 border border-transparent"><i data-lucide="file-text" class="w-4 h-4"></i> Quy trình dịch vụ</button>
+            <button data-tab-btn="crm" onclick="HPUI.switchTab('supportTabs', 'crm')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-[#122131]/50 border border-transparent"><i data-lucide="users" class="w-4 h-4"></i> Khách hàng & CRM</button>
+            <button data-tab-btn="inventory" onclick="HPUI.switchTab('supportTabs', 'inventory')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-[#122131]/50 border border-transparent"><i data-lucide="package" class="w-4 h-4"></i> Vật tư & Kho vận</button>
+            
+            <div class="mt-8 pt-8 border-t border-slate-800 space-y-4">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-3 mb-4">Kết nối chuyên gia</h3>
+                <button onclick="HPUI.toast('Đang kết nối tới tổng đài hỗ trợ...', 'info')" class="w-full flex items-center justify-between px-4 py-3 bg-[#122131] hover:bg-[#1c2e42] border border-slate-800 rounded-xl transition-colors group">
+                    <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/20"><i data-lucide="phone-call" class="w-4 h-4 text-white"></i></div><div class="text-left"><p class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">Hotline 24/7</p><p class="text-[10px] text-slate-500 font-mono tracking-tighter">0987.654.321</p></div></div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-700 group-hover:text-blue-500 transition-all"></i>
+                </button>
+                <button onclick="HPUI.toast('Mở khung chat hỗ trợ...', 'info')" class="w-full flex items-center justify-between px-4 py-3 bg-[#122131] hover:bg-[#1c2e42] border border-slate-800 rounded-xl transition-colors group">
+                    <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20"><i data-lucide="message-circle" class="w-4 h-4 text-white"></i></div><div class="text-left"><p class="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Chat Zalo/Messenger</p><p class="text-[10px] text-slate-500 font-mono tracking-tighter">HP Support Center</p></div></div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-700 group-hover:text-emerald-500 transition-all"></i>
+                </button>
+            </div>
+        </div>
+
+        @* Content Panels *@
+        <div class="lg:col-span-3 space-y-6">
+            @* QUICK START *@
+            <div data-tab-panel="start" class="bg-[#122131]/40 border border-slate-800/80 rounded-2xl p-6 sm:p-8 animate-in fade-in duration-300">
+                <h3 class="text-2xl font-bold text-white mb-2 font-['Space_Grotesk']">Bắt đầu nhanh</h3>
+                <p class="text-slate-400 text-sm mb-8">Làm quen với các tính năng cơ bản của hệ thống HP Auto Detailing.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                    <div class="bg-[#0B101D] border border-slate-800 rounded-2xl overflow-hidden group cursor-pointer hover:border-blue-500/50 transition-all hover:shadow-xl hover:shadow-blue-500/5">
+                        <div class="h-44 bg-slate-800 relative flex items-center justify-center overflow-hidden"><img src="https://images.unsplash.com/photo-1605810230434-7631ac76cd12?auto=format&fit=crop&q=80&w=800&h=400" alt="Video thumbnail" class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity duration-500 group-hover:scale-105" /><div class="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center border-4 border-white/10 z-10 shadow-2xl group-hover:scale-110 transition-all"><i data-lucide="play" class="w-6 h-6 text-white fill-current ml-1"></i></div></div>
+                        <div class="p-5"><h4 class="text-sm font-bold text-slate-200 group-hover:text-blue-400 transition-colors mb-1">Hướng dẫn tổng quan cho Lễ tân</h4><p class="text-[11px] text-slate-500">Video giới thiệu quy trình tiếp nhận & tạo phiếu (4:15)</p></div>
+                    </div>
+                    <div class="bg-[#0B101D] border border-slate-800 rounded-2xl p-6 group cursor-pointer hover:border-emerald-500/50 transition-all flex flex-col justify-between hover:shadow-xl hover:shadow-emerald-500/5">
+                        <div><div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 mb-6"><i data-lucide="file-check" class="w-6 h-6 text-emerald-400"></i></div><h4 class="text-base font-bold text-slate-200 group-hover:text-emerald-400 transition-colors mb-3">Tài liệu PDF cho Quản lý</h4><p class="text-xs text-slate-500 leading-relaxed mb-6">Mô tả chi tiết cấu hình hệ thống, quản lý tài chính và xuất báo cáo chuyên sâu.</p></div>
+                        <div class="flex items-center text-xs font-bold text-blue-400 group-hover:translate-x-2 transition-transform uppercase tracking-widest">Tải tài liệu <i data-lucide="download" class="w-4 h-4 ml-2"></i></div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2"><i data-lucide="help-circle" class="w-3.5 h-3.5"></i> Câu hỏi thường gặp</h4>
+                    <details class="bg-[#0B101D]/50 border border-slate-800/50 rounded-xl group"><summary class="flex items-center justify-between p-4 cursor-pointer text-sm font-bold text-slate-300 group-hover:text-blue-400 transition-colors">Phân quyền nhân viên như thế nào?<i data-lucide="plus" class="w-4 h-4 text-slate-600 group-open:rotate-45 transition-transform"></i></summary><div class="p-4 pt-0 text-sm text-slate-500 border-t border-slate-800/30 mt-2 bg-slate-900/20">Vào Cài đặt > Tài khoản & Phân quyền. Bạn có thể chọn các vai trò như Admin, Kỹ thuật viên, hoặc Kế toán để giới hạn quyền truy cập.</div></details>
+                    <details class="bg-[#0B101D]/50 border border-slate-800/50 rounded-xl group"><summary class="flex items-center justify-between p-4 cursor-pointer text-sm font-bold text-slate-300 group-hover:text-blue-400 transition-colors">Làm sao để đổi ngôn ngữ giao diện?<i data-lucide="plus" class="w-4 h-4 text-slate-600 group-open:rotate-45 transition-transform"></i></summary><div class="p-4 pt-0 text-sm text-slate-500 border-t border-slate-800/30 mt-2 bg-slate-900/20">Tính năng đổi ngôn ngữ nằm trong mục Cài đặt > Hệ thống > Giao diện & Trải nghiệm.</div></details>
+                </div>
+            </div>
+
+            @* TICKETS WORKFLOW *@
+            <div data-tab-panel="tickets" class="bg-[#122131]/40 border border-slate-800/80 rounded-2xl p-6 sm:p-8 hidden animate-in fade-in duration-300">
+                <h3 class="text-2xl font-bold text-white mb-2 font-['Space_Grotesk']">Quy trình dịch vụ</h3>
+                <p class="text-slate-400 text-sm mb-8">Hướng dẫn chi tiết từ lúc nhận xe đến khi bàn giao và thanh toán.</p>
+                
+                <div class="space-y-6">
+                    <div class="flex items-start gap-6 p-6 bg-[#0B101D] border border-slate-800 rounded-2xl">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-black shrink-0">1</div>
+                        <div><h4 class="text-base font-bold text-white mb-2">Tiếp nhận & Kiểm tra xe</h4><p class="text-sm text-slate-500 leading-relaxed text-justify">Khi khách đến, hãy dùng chức năng 'Tạo phiếu' để ghi nhận biển số, tình trạng xe và yêu cầu của khách. Bạn có thể chụp ảnh trạng thái xe trực tiếp từ ứng dụng để tránh tranh chấp sau này.</p></div>
+                    </div>
+                    <div class="flex items-start gap-6 p-6 bg-[#0B101D] border border-slate-800 rounded-2xl">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-black shrink-0">2</div>
+                        <div><h4 class="text-base font-bold text-white mb-2">Phân công Kỹ thuật viên</h4><p class="text-sm text-slate-500 leading-relaxed text-justify">Trong tab 'Điều phối', chọn các nhân sự phù hợp cho từng hạng mục (vd: Đánh bóng, Phủ Ceramic). Hệ thống sẽ tự động cập nhật thời gian dự kiến hoàn thành dựa trên định mức dịch vụ.</p></div>
+                    </div>
+                    <div class="flex items-start gap-6 p-6 bg-[#0B101D] border border-slate-800 rounded-2xl">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-black shrink-0">3</div>
+                        <div><h4 class="text-base font-bold text-white mb-2">Nghiệm thu & Thanh toán</h4><p class="text-sm text-slate-500 leading-relaxed text-justify">Sau khi thi công xong, nhấn 'Hoàn tất' để chuyển sang bước thanh toán. Tại đây bạn có thể áp dụng Voucher giảm giá và in hóa đơn cho khách hàng.</p></div>
+                    </div>
+                </div>
+            </div>
+
+            @* CRM HELP *@
+            <div data-tab-panel="crm" class="bg-[#122131]/40 border border-slate-800/80 rounded-2xl p-6 sm:p-8 hidden animate-in fade-in duration-300">
+                <h3 class="text-2xl font-bold text-white mb-2 font-['Space_Grotesk']">Khách hàng & CRM</h3>
+                <p class="text-slate-400 text-sm mb-8">Xây dựng tệp khách hàng trung thành và quản lý lịch sử chăm sóc.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-5 bg-blue-500/5 border border-blue-500/10 rounded-2xl">
+                        <i data-lucide="search" class="w-8 h-8 text-blue-500 mb-4"></i>
+                        <h4 class="text-sm font-bold text-white mb-2">Tra cứu lịch sử xe</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">Chỉ cần nhập biển số xe để xem lại toàn bộ các lần đã chăm sóc, loại hóa chất đã dùng và các ghi chú đặc biệt từ lần trước.</p>
+                    </div>
+                    <div class="p-5 bg-amber-500/5 border border-amber-500/10 rounded-2xl">
+                        <i data-lucide="crown" class="w-8 h-8 text-amber-500 mb-4"></i>
+                        <h4 class="text-sm font-bold text-white mb-2">Quản lý hạng thành viên</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">Hệ thống tự động xếp hạng Silver/Gold/Platinum dựa trên tổng chi tiêu để bạn có chính sách ưu đãi phù hợp.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8 p-6 bg-slate-900/50 rounded-2xl border border-slate-800">
+                    <h4 class="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4 text-blue-400"></i> Mẹo chăm sóc khách hàng</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed italic">"Sử dụng tính năng 'Lời nhắc bảo trì' để tự động gửi SMS nhắc khách hàng sau 3 tháng phủ Ceramic sẽ giúp tăng tỷ lệ quay lại đến 40%."</p>
+                </div>
+            </div>
+
+            @* INVENTORY HELP *@
+            <div data-tab-panel="inventory" class="bg-[#122131]/40 border border-slate-800/80 rounded-2xl p-6 sm:p-8 hidden animate-in fade-in duration-300">
+                <h3 class="text-2xl font-bold text-white mb-2 font-['Space_Grotesk']">Vật tư & Kho vận</h3>
+                <p class="text-slate-400 text-sm mb-8">Kiểm soát hao phí hóa chất và quản lý nhập/xuất kho vật tư.</p>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-[#0B101D] border border-slate-800 rounded-xl group hover:border-blue-500/30 transition-all">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-blue-400 transition-colors"><i data-lucide="bar-chart-2" class="w-5 h-5"></i></div>
+                            <div><p class="text-sm font-bold text-slate-200">Định mức vật tư theo dịch vụ</p><p class="text-[11px] text-slate-500">Cách cài đặt lượng ML hóa chất tiêu hao cho mỗi gói rửa xe.</p></div>
+                        </div>
+                        <i data-lucide="external-link" class="w-4 h-4 text-slate-700 group-hover:text-blue-500"></i>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-[#0B101D] border border-slate-800 rounded-xl group hover:border-blue-500/30 transition-all">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-blue-400 transition-colors"><i data-lucide="alert-circle" class="w-5 h-5"></i></div>
+                            <div><p class="text-sm font-bold text-slate-200">Xử lý cảnh báo hết hàng</p><p class="text-[11px] text-slate-500">Cấu hình ngưỡng tồn kho tối thiểu để nhận thông báo nhập hàng.</p></div>
+                        </div>
+                        <i data-lucide="external-link" class="w-4 h-4 text-slate-700 group-hover:text-blue-500"></i>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-[#0B101D] border border-slate-800 rounded-xl group hover:border-blue-500/30 transition-all">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-blue-400 transition-colors"><i data-lucide="clipboard-list" class="w-5 h-5"></i></div>
+                            <div><p class="text-sm font-bold text-slate-200">Quy trình Kiểm kho định kỳ</p><p class="text-[11px] text-slate-500">Hướng dẫn đối soát số lượng thực tế và số lượng trên phần mềm.</p></div>
+                        </div>
+                        <i data-lucide="external-link" class="w-4 h-4 text-slate-700 group-hover:text-blue-500"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts { <script>if(window.lucide)lucide.createIcons();</script> }

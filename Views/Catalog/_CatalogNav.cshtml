@@ -1,0 +1,18 @@
+@{
+    var activeTab = ViewBag.ActiveTab as string ?? "services";
+    var servicesActive = activeTab == "services";
+    var quotasActive = activeTab == "quotas";
+    string TabClass(bool active) => active
+        ? "px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-blue-500 border-blue-500"
+        : "px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600";
+}
+
+<div class="flex gap-2 sm:gap-4 border-b border-slate-800 overflow-x-auto pb-px no-scrollbar">
+    <a href="/catalog/services" class="@TabClass(servicesActive)">
+        <i data-lucide="grid" class="w-4 h-4"></i> Danh mục dịch vụ
+    </a>
+    <a href="/catalog/quotas" class="@TabClass(quotasActive)">
+        <i data-lucide="flask-conical" class="w-4 h-4"></i> Định mức vật tư
+        <span class="ml-1 px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] font-bold rounded uppercase">QUAN TRỌNG</span>
+    </a>
+</div>

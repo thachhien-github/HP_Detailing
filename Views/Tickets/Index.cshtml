@@ -1,0 +1,188 @@
+@model HP_Detailing.Models.ViewModels.TicketIndexViewModel
+@{ ViewData["Title"] = "Tickets"; Layout = "_Layout"; }
+
+<div class="p-4 sm:p-6 lg:p-8 space-y-8">
+  @* Page Header (mapped from React PageHeader) *@
+  @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel
+  {
+    Title = "Tiếp nhận dịch vụ & Tiến độ",
+    Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb>
+    {
+      new HP_Detailing.Models.PageHeaderBreadcrumb { Label = "Trang chủ", Path = "/" },
+      new HP_Detailing.Models.PageHeaderBreadcrumb { Label = "Danh sách phiếu dịch vụ" }
+    },
+    ActionsSlotHtml = @"<button id=""btnExport"" type=""button"" class=""px-5 py-2.5 bg-slate-900 border border-slate-800 text-slate-300 hover:border-blue-500/50 transition-all text-sm rounded-lg flex items-center gap-2 font-bold""><i data-lucide=""download"" class=""w-4 h-4""></i> Xuất báo cáo</button><a href=""/tickets/new"" class=""px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] text-sm rounded-lg flex items-center gap-2""><i data-lucide=""plus"" class=""w-4 h-4""></i> Tạo phiếu mới</a>"
+  })
+
+  <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden">
+    <div class="p-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/30">
+      <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+        <div class="relative w-full sm:w-80 group">
+          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-500 transition-colors"></i>
+          <input id="ticketSearch" name="search" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg pl-10 pr-4 py-2 text-sm focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 text-slate-200 outline-none transition-all placeholder:text-slate-600" placeholder="Tìm kiếm phiếu, biển số..." type="text" />
+        </div>
+        <div class="relative w-full sm:w-48">
+          <select id="ticketStatus" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-slate-400 focus:border-blue-500/50 outline-none appearance-none cursor-pointer hover:bg-slate-800/50 transition-all">
+            <option value="">Tất cả trạng thái</option>
+            <option value="in_progress">Đang xử lý</option>
+            <option value="pending">Chờ tiếp nhận</option>
+            <option value="waiting_customer">Chờ khách nhận</option>
+            <option value="completed">Hoàn thành</option>
+            <option value="cancelled">Đã huỷ</option>
+          </select>
+          <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none"></i>
+        </div>
+      </div>
+      <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden lg:block">
+        Đang hiển thị: <span class="text-blue-400" id="rowCountDisplay">@Model.Tickets.Count()</span> kết quả
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-900/50">
+            <th class="px-6 py-4 w-10">
+              <input type="checkbox" id="selectAll" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-0 focus:ring-offset-0 transition-all cursor-pointer">
+            </th>
+            <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Mã phiếu</th>
+            <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Khách hàng / Phương tiện</th>
+            <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Nhân viên KT</th>
+            <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Dịch vụ</th>
+            <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Tiến độ & Trạng thái</th>
+            <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-right">Tổng tiền</th>
+            <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="ticketTableBody" class="divide-y divide-slate-800 border-t border-slate-800">
+          <tr>
+            <td colspan="8" class="px-6 py-8 text-center text-sm text-slate-500">Đang tải dữ liệu...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="ticketPaging" class="px-4 py-3 border-t border-slate-800 bg-slate-900/20"></div>
+  </div>
+
+  @* Floating Bulk Action Bar *@
+  <div id="bulkActionBar" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 border border-blue-500/30 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-6 z-50 translate-y-24 opacity-0 transition-all duration-500 backdrop-blur-xl">
+    <div class="flex items-center gap-3 pr-6 border-r border-slate-800">
+      <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center" id="selectedCount">0</span>
+      <span class="text-sm font-bold text-slate-200">Đã chọn</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="HPUI.toast('Đang in hàng loạt...', 'info')" class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all"><i data-lucide="printer" class="w-4 h-4"></i> In hàng loạt</button>
+      <button onclick="HPUI.toast('Đang cập nhật trạng thái...', 'info')" class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Đổi trạng thái</button>
+      <button onclick="HPUI.toast('Tính năng xóa hàng loạt sẽ sớm được cập nhật', 'warning')" class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i> Xóa mục chọn</button>
+    </div>
+    <button onclick="clearSelection()" class="ml-4 text-slate-500 hover:text-slate-300 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+  </div>
+</div>
+
+<script>
+  (function () {
+    if (window.lucide) lucide.createIcons();
+    var search = document.getElementById('ticketSearch');
+    var status = document.getElementById('ticketStatus');
+    var tbody = document.getElementById('ticketTableBody');
+    var pageSize = 10;
+    var currentPage = 1;
+    var debounceTimer;
+    window.clearSelection = function () {
+      document.querySelectorAll('.row-select').forEach(function(cb){ cb.checked = false; });
+      var bulkBar = document.getElementById('bulkActionBar');
+      if (bulkBar) {
+        bulkBar.classList.add('translate-y-24', 'opacity-0');
+        bulkBar.classList.remove('translate-y-0', 'opacity-100');
+      }
+    };
+
+    function statusText(statusValue) {
+      if (statusValue === 'in_progress') return 'Đang xử lý';
+      if (statusValue === 'pending') return 'Chờ tiếp nhận';
+      if (statusValue === 'completed') return 'Hoàn thành';
+      if (statusValue === 'cancelled') return 'Đã huỷ';
+      if (statusValue === 'waiting_customer') return 'Chờ khách nhận';
+      return statusValue || 'N/A';
+    }
+
+    function badgeHtml(statusValue) {
+      var text = statusText(statusValue);
+      if (statusValue === 'completed') return `<span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded">${text}</span>`;
+      if (statusValue === 'pending') return `<span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-400 uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded">${text}</span>`;
+      if (statusValue === 'in_progress') return `<span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-blue-400 uppercase tracking-widest bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded">${text}</span>`;
+      return `<span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest bg-slate-500/10 border border-slate-500/20 px-2.5 py-1 rounded">${text}</span>`;
+    }
+
+    function renderRows(items) {
+      if (!items || items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-sm text-slate-500">Không có phiếu dịch vụ phù hợp.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = items.map(function(ticket) {
+        var createdAt = new Date(ticket.createdAt).toLocaleString('vi-VN', { hour12: false }).replace(',', '');
+        var staffName = ticket.assignedStaffName ? ticket.assignedStaffName : '<span class="text-slate-500">Chưa phân công</span>';
+        return `
+          <tr class="ticket-row hover:bg-slate-800/30 transition-all group cursor-pointer border-l-2 border-transparent">
+            <td class="px-6 py-4"><input type="checkbox" class="row-select w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-0 focus:ring-offset-0 transition-all cursor-pointer" onclick="event.stopPropagation()"></td>
+            <td class="px-6 py-4"><p class="font-mono text-xs font-bold text-blue-400">${ticket.ticketCode || ''}</p><div class="flex items-center gap-1 mt-1 text-[10px] text-slate-500 font-medium">${createdAt}</div></td>
+            <td class="px-6 py-4"><div class="flex items-center gap-2 mb-1"><span class="text-[13px] font-bold text-slate-200">${ticket.customerName || ''}</span><span class="text-[11px] font-mono text-slate-500">(${ticket.customerPhone || ''})</span></div><div class="flex items-center gap-2"><span class="bg-slate-800 border border-slate-700 text-slate-300 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider">${ticket.plate || ''}</span><span class="text-xs text-slate-400">${ticket.carModel || ''}</span></div></td>
+            <td class="px-6 py-4 text-sm text-slate-300">${staffName}</td>
+            <td class="px-6 py-4 text-[12px] text-slate-300">${statusText(ticket.status)}</td>
+            <td class="px-6 py-4">${badgeHtml(ticket.status)}</td>
+            <td class="px-6 py-4 text-right"><span class="text-[14px] font-bold text-slate-200 font-mono">${Number(ticket.totalPrice || 0).toLocaleString('vi-VN')}đ</span></td>
+            <td class="px-6 py-4 text-right"><a class="p-1.5 text-slate-400 hover:text-blue-400 transition-colors" title="Chi tiết / Cập nhật" href="/tickets/${ticket.id}"><span class="inline-block w-4 h-4">⋮</span></a></td>
+          </tr>`;
+      }).join('');
+    }
+
+    function loadTickets(page) {
+      currentPage = page || 1;
+      var params = new URLSearchParams({
+        page: String(currentPage),
+        pageSize: String(pageSize),
+        search: search.value || '',
+        status: status.value || ''
+      });
+
+      fetch('/tickets/list?' + params.toString())
+        .then(function(res){ return res.json(); })
+        .then(function(data){
+          renderRows(data.items || []);
+          document.getElementById('rowCountDisplay').textContent = data.totalCount || 0;
+          HPUI.renderPaging('ticketPaging', data.page || 1, data.totalPages || 0, function(nextPage){
+            loadTickets(nextPage);
+          });
+        })
+        .catch(function(){
+          tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-sm text-red-400">Không thể tải danh sách phiếu dịch vụ.</td></tr>';
+        });
+    }
+
+    if (search) {
+      search.addEventListener('input', function(){
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function(){ loadTickets(1); }, 300);
+      });
+    }
+    if (status) status.addEventListener('change', function(){ loadTickets(1); });
+
+    // Export toast
+    var btnExport = document.getElementById('btnExport');
+    if (btnExport) {
+      btnExport.addEventListener('click', function () {
+        if (window.HPUI && window.HPUI.toast) {
+          window.HPUI.toast('Đang tổng hợp báo cáo phiếu dịch vụ...', 'info');
+          setTimeout(function () {
+            window.HPUI.toast('Báo cáo đã được tải xuống thành công!', 'success');
+          }, 1500);
+        } else {
+          alert('Export báo cáo');
+        }
+      });
+    }
+
+    loadTickets(1);
+  })();
+</script>

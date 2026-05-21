@@ -1,0 +1,288 @@
+@{ ViewData["Title"] = "Analytics"; Layout = "_Layout";
+   decimal thisPeriodRevenue = ViewBag.ThisPeriodRevenue ?? 0m;
+   decimal lastPeriodRevenue = ViewBag.LastPeriodRevenue ?? 0m;
+   decimal revenueGrowth = ViewBag.RevenueGrowth ?? 0m;
+   int completedTickets = ViewBag.CompletedTickets ?? 0;
+   int thisMonthTickets = ViewBag.ThisMonthTickets ?? 0;
+   decimal stockCost = ViewBag.StockCost ?? 0m;
+   decimal totalCatRevenue = ViewBag.TotalCatRevenue ?? 0m;
+
+   var revenueByMonth = ViewBag.RevenueByMonth as List<(int Month, int Year, decimal Revenue)> ?? new();
+   var topServices = ViewBag.TopServices as dynamic ?? new List<dynamic>();
+   var catRevenue = ViewBag.CategoryRevenue as dynamic ?? new List<dynamic>();
+   var topStaff = ViewBag.TopStaff as List<HP_Detailing.Models.Staff> ?? new();
+
+   decimal maxRevenue = revenueByMonth.Any() ? revenueByMonth.Max(r => r.Revenue) : 1m;
+   if (maxRevenue == 0) maxRevenue = 1;
+
+   bool isGrowthPositive = revenueGrowth >= 0;
+   string growthColor = isGrowthPositive ? "text-emerald-400 bg-emerald-500/10" : "text-rose-400 bg-rose-500/10";
+   string growthIcon = isGrowthPositive ? "trending-up" : "trending-down";
+}
+
+<style>
+    @@keyframes barGrow {
+        from { height: 0; opacity: 0; }
+        to { opacity: 1; }
+    }
+    .animate-bar { animation: barGrow 0.6s ease forwards; }
+    @@keyframes circleDraw { from { stroke-dasharray: 0 100; } }
+    .animate-circle { animation: circleDraw 1.5s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+</style>
+
+<div class="p-4 sm:p-6 lg:p-8 flex-1 space-y-8 h-full min-h-0 overflow-y-auto">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = "Báo cáo & Phân tích",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> {
+            new(){Label="Trang chủ",Path="/"}, new(){Label="Báo cáo & Phân tích"}
+        },
+        ActionsSlotHtml = @"<div class=""flex items-center gap-2"">
+            <input type=""date"" id=""filterFromDate"" class=""bg-[#0B101D] border border-slate-700/50 text-slate-300 rounded py-1.5 px-3 text-xs outline-none focus:border-blue-500"" title=""Từ ngày"">
+            <span class=""text-slate-500"">-</span>
+            <input type=""date"" id=""filterToDate"" class=""bg-[#0B101D] border border-slate-700/50 text-slate-300 rounded py-1.5 px-3 text-xs outline-none focus:border-blue-500"" title=""Đến ngày"">
+            <button type=""button"" id=""btnFilterAnalytics"" class=""px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition-all shadow-sm"">Lọc</button>
+        </div>"
+    })
+
+    @* KPI Grid *@
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        @* Revenue *@
+        <div class="bg-[#122131] border border-slate-800 p-5 rounded-xl flex flex-col justify-between h-40 group hover:border-blue-500/30 transition-colors relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="banknote" class="w-16 h-16 text-blue-500"></i></div>
+            <div class="flex justify-between items-start">
+                <div class="p-2 bg-blue-500/10 rounded"><i data-lucide="banknote" class="w-5 h-5 text-blue-500"></i></div>
+                <span class="text-[10px] font-bold flex items-center gap-1 px-2 py-0.5 rounded-full tracking-wider @growthColor">
+                    @(isGrowthPositive ? "+" : "")@revenueGrowth% <i data-lucide="@growthIcon" class="w-3 h-3"></i>
+                </span>
+            </div>
+            <div>
+                <p class="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Doanh thu kỳ này</p>
+                <h3 class="text-2xl font-black text-white font-mono">@((thisPeriodRevenue / 1_000_000m).ToString("N1"))M <span class="text-xs text-slate-500">VND</span></h3>
+            </div>
+        </div>
+
+        @* Completed Tickets *@
+        <div class="bg-[#122131] border border-slate-800 p-5 rounded-xl flex flex-col justify-between h-40 group hover:border-amber-500/30 transition-colors relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="car" class="w-16 h-16 text-amber-500"></i></div>
+            <div class="flex justify-between items-start">
+                <div class="p-2 bg-amber-500/10 rounded"><i data-lucide="car" class="w-5 h-5 text-amber-500"></i></div>
+                <span class="text-[10px] font-bold text-blue-400 flex items-center gap-1 bg-blue-400/10 px-2 py-0.5 rounded-full tracking-wider">kỳ này: @thisMonthTickets</span>
+            </div>
+            <div>
+                <p class="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Xe đã hoàn tất (tổng)</p>
+                <h3 class="text-2xl font-black text-white font-mono">@completedTickets <span class="text-xs text-slate-500">Đơn vị</span></h3>
+            </div>
+        </div>
+
+        @* Active Staff *@
+        <div class="bg-[#122131] border border-slate-800 p-5 rounded-xl flex flex-col justify-between h-40 group hover:border-emerald-500/30 transition-colors relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="users" class="w-16 h-16 text-emerald-500"></i></div>
+            <div class="flex justify-between items-start">
+                <div class="p-2 bg-emerald-500/10 rounded"><i data-lucide="users" class="w-5 h-5 text-emerald-500"></i></div>
+                <span class="text-[10px] font-bold text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full tracking-widest">Đang hoạt động</span>
+            </div>
+            <div>
+                <p class="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Nhân sự</p>
+                <h3 class="text-2xl font-black text-white font-mono">@topStaff.Count <span class="text-xs text-slate-500">Nhân viên</span></h3>
+            </div>
+        </div>
+
+        @* Stock Cost *@
+        <div class="bg-[#122131] border border-slate-800 p-5 rounded-xl flex flex-col justify-between h-40 group hover:border-rose-500/30 transition-colors relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="package" class="w-16 h-16 text-rose-500"></i></div>
+            <div class="flex justify-between items-start">
+                <div class="p-2 bg-rose-500/10 rounded"><i data-lucide="package" class="w-5 h-5 text-rose-500"></i></div>
+                <span class="text-[10px] font-bold text-slate-500 flex items-center gap-1 bg-slate-800 px-2 py-0.5 rounded-full tracking-widest">Giá trị tồn</span>
+            </div>
+            <div>
+                <p class="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Chi phí kho vật tư</p>
+                <h3 class="text-2xl font-black text-white font-mono">@((stockCost / 1_000_000m).ToString("N1"))M <span class="text-xs text-slate-500">VND</span></h3>
+            </div>
+        </div>
+    </div>
+
+    @* Charts Row *@
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        @* Bar Chart — Revenue 12 months *@
+        <div class="lg:col-span-2 bg-[#122131] border border-slate-800 rounded-xl p-6 relative overflow-hidden min-h-[380px] shadow-lg">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8 relative z-10">
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-0.5">Doanh thu 12 tháng gần nhất</h4>
+                    <p class="text-xs text-slate-500">Tính từ các hoá đơn đã thanh toán (PAID)</p>
+                </div>
+                <div class="flex gap-4 text-[10px] font-bold uppercase tracking-widest">
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 bg-blue-500 rounded-full"></span> Doanh thu</span>
+                </div>
+            </div>
+            @* Bar Chart *@
+            <div class="absolute bottom-10 left-6 right-6 top-28 flex items-end gap-1.5 z-10">
+                @foreach (var (month, year, rev) in revenueByMonth) {
+                    var heightPct = maxRevenue > 0 ? (double)(rev / maxRevenue) * 100 : 0;
+                    var isCurrentMonth = month == DateTime.Now.Month && year == DateTime.Now.Year;
+                    var barClass = isCurrentMonth
+                        ? "bg-gradient-to-t from-blue-600 to-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.25)]"
+                        : "bg-slate-700/50 hover:bg-blue-500/40 transition-colors";
+                    var revM = (rev / 1_000_000m).ToString("N1");
+                    <div class="flex-1 group relative flex flex-col justify-end" style="height:100%">
+                        <div class="animate-bar rounded-t-sm @barClass relative cursor-pointer" style="height: @heightPct.ToString("F0")%">
+                            <div class="absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 text-[9px] font-bold text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-20">@revM M</div>
+                            @if (isCurrentMonth) { <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-blue-400 whitespace-nowrap animate-pulse">H.Nay</span> }
+                        </div>
+                        <p class="text-[9px] text-slate-500 text-center mt-1.5 font-bold">T@month</p>
+                    </div>
+                }
+            </div>
+            @* Grid lines *@
+            <div class="absolute inset-x-0 top-28 bottom-10 flex flex-col justify-between pointer-events-none px-6 opacity-20">
+                @for (int g = 0; g < 4; g++) { <div class="border-t border-slate-700 w-full"></div> }
+            </div>
+        </div>
+
+        @* Donut — Service category breakdown *@
+        <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 flex flex-col min-h-[380px] shadow-lg overflow-hidden group">
+            <h4 class="text-lg font-bold text-white mb-0.5">Cơ cấu Dịch vụ</h4>
+            <p class="text-xs text-slate-500 mb-6">Tỷ trọng doanh thu theo loại dịch vụ</p>
+            @if (totalCatRevenue > 0) {
+                var colors = new[] { "#3b82f6", "#f59e0b", "#94a3b8", "#10b981" };
+                var catList = new List<dynamic>(catRevenue);
+                decimal offset = 0;
+                <div class="flex-1 flex flex-col justify-center gap-8">
+                    <div class="relative w-44 h-44 mx-auto">
+                        <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                            <circle cx="18" cy="18" fill="transparent" r="16" stroke="#1c2b3c" stroke-width="3"></circle>
+                            @for (int ci = 0; ci < catList.Count; ci++) {
+                                var cat = catList[ci];
+                                decimal pct = totalCatRevenue > 0 ? (decimal)cat.Revenue / totalCatRevenue * 100 : 0;
+                                <circle class="animate-circle" style="animation-delay: @(ci*0.15)s"
+                                    cx="18" cy="18" fill="transparent" r="16"
+                                    stroke="@colors[ci % colors.Length]" stroke-width="3.5"
+                                    stroke-dasharray="@pct.ToString("F1") 100"
+                                    stroke-dashoffset="-@offset.ToString("F1")"
+                                    pathLength="100" stroke-linecap="round"></circle>
+                                offset += pct;
+                            }
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-2xl font-black font-mono text-white">@((totalCatRevenue/1_000_000m).ToString("N0"))M</span>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">VND</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 px-2">
+                        @for (int ci = 0; ci < catList.Count; ci++) {
+                            var cat = catList[ci];
+                            decimal pct = totalCatRevenue > 0 ? Math.Round((decimal)cat.Revenue / totalCatRevenue * 100, 1) : 0;
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="flex items-center gap-2 text-slate-400">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background:@colors[ci % colors.Length]"></span>
+                                    @cat.Name
+                                </span>
+                                <span class="font-bold text-white bg-slate-800/50 px-2 py-0.5 rounded">@pct%</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            } else {
+                <div class="flex-1 flex items-center justify-center text-slate-500 text-sm">Chưa có dữ liệu dịch vụ</div>
+            }
+        </div>
+    </div>
+
+    @* Top Services & Staff *@
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        @* Top Services *@
+        <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+            <div class="p-6 border-b border-slate-800 bg-[#0B101D] flex items-center justify-between">
+                <h4 class="text-lg font-bold text-white">Dịch vụ phổ biến nhất</h4>
+                <i data-lucide="award" class="w-5 h-5 text-amber-500"></i>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead><tr class="border-b border-slate-800 bg-slate-900/30">
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Tên dịch vụ</th>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Lượt</th>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-right">Doanh thu</th>
+                    </tr></thead>
+                    <tbody class="divide-y divide-slate-800/50">
+                    @{ var svcList = new List<dynamic>(topServices); }
+                    @if (!svcList.Any()) {
+                        <tr><td colspan="3" class="px-6 py-10 text-center text-slate-500 text-sm">Chưa có dữ liệu</td></tr>
+                    }
+                    @foreach (var svc in svcList) {
+                        <tr class="hover:bg-slate-800/40 transition-colors group">
+                            <td class="px-6 py-4 font-bold text-sm text-slate-200 group-hover:text-blue-400 transition-colors">@svc.Name</td>
+                            <td class="px-6 py-4 font-mono text-xs text-slate-400 text-center">@svc.Count</td>
+                            <td class="px-6 py-4 font-mono text-xs text-blue-400 font-bold text-right">@(((decimal)svc.Revenue / 1_000_000m).ToString("N1"))M</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @* Top Staff *@
+        <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+            <div class="p-6 border-b border-slate-800 bg-[#0B101D] flex justify-between items-center">
+                <h4 class="text-lg font-bold text-white">Danh sách nhân viên</h4>
+                <div class="bg-blue-500/10 px-2.5 py-1 rounded border border-blue-500/20 text-[10px] font-bold text-blue-400 uppercase tracking-widest">Hiện tại</div>
+            </div>
+            <div class="p-5 space-y-4">
+                @if (!topStaff.Any()) {
+                    <p class="text-center text-slate-500 text-sm py-8">Chưa có nhân viên nào.</p>
+                }
+                @foreach (var staff in topStaff) {
+                    var initials = staff.FullName.Length >= 2 ? staff.FullName.Substring(0,2).ToUpper() : staff.FullName.ToUpper();
+                    var contract = staff.LaborContracts?.FirstOrDefault(c => c.Status == "Hiệu lực");
+                    <div class="flex items-center gap-4 bg-[#0B101D]/50 p-4 rounded-xl border border-slate-800/50 hover:border-blue-500/30 transition-all group/card cursor-pointer" onclick="HPUI.loadPage('/staff/detail/@staff.Id')">
+                        <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200 font-bold text-lg shrink-0 group-hover/card:border-blue-500/50 transition-colors">@initials</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="font-bold text-sm text-slate-200 group-hover/card:text-blue-400 transition-colors truncate">@staff.FullName</span>
+                                @if (contract != null) {
+                                    <span class="text-xs font-mono font-bold text-blue-400 shrink-0 ml-2">@((contract.BasicSalary/1_000_000m).ToString("N1"))M</span>
+                                }
+                            </div>
+                            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1.5">
+                                <div class="bg-gradient-to-r from-blue-600 to-blue-400 h-full" style="width: @(staff.IsActive ? "70" : "30")%"></div>
+                            </div>
+                            <div class="flex justify-between items-center text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                                <span>@(staff.Position ?? staff.Specialty ?? "Nhân viên")</span>
+                                <span class="@(staff.IsActive ? "text-emerald-400" : "text-slate-500")">@staff.Status</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){ 
+    if(window.lucide) lucide.createIcons(); 
+    
+    var btnFilter = document.getElementById('btnFilterAnalytics');
+    if (btnFilter && !btnFilter.hasAttribute('data-init')) {
+        btnFilter.setAttribute('data-init', 'true');
+        btnFilter.addEventListener('click', function() {
+            var f = document.getElementById('filterFromDate').value;
+            var t = document.getElementById('filterToDate').value;
+            var url = '/analytics';
+            if (f || t) {
+                url += '?';
+                var params = [];
+                if (f) params.push('fromDate=' + f);
+                if (t) params.push('toDate=' + t);
+                url += params.join('&');
+            }
+            if (window.HPUI && window.HPUI.loadPage) window.HPUI.loadPage(url);
+            else window.location.href = url;
+        });
+
+        // Set values if present in ViewBag
+        var sDate = '@(ViewBag.StartDate != null ? ((DateTime)ViewBag.StartDate).ToString("yyyy-MM-dd") : "")';
+        var eDate = '@(ViewBag.EndDate != null ? ((DateTime)ViewBag.EndDate).ToString("yyyy-MM-dd") : "")';
+        if (sDate) document.getElementById('filterFromDate').value = sDate;
+        if (eDate) document.getElementById('filterToDate').value = eDate;
+    }
+})();
+</script>

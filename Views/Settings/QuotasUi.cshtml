@@ -1,0 +1,208 @@
+@{
+    ViewData["Title"] = "Settings - Quotas";
+    Layout = "_Layout";
+    var dbServices = ViewBag.Services as List<HP_Detailing.Models.Service> ?? new();
+    var materials = ViewBag.Materials as List<HP_Detailing.Models.Material> ?? new();
+    var quotas = ViewBag.Quotas as List<HP_Detailing.Models.ServiceMaterialQuota> ?? new();
+}
+
+<div class="p-4 sm:p-6 lg:p-8 flex-1 h-full min-h-0 overflow-y-auto" data-tab-group="settingsTabs">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = "Thiết lập hệ thống",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> { new(){Label="Trang chủ",Path="/"}, new(){Label="Cấu hình"} }
+    })
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div class="xl:col-span-12 mb-2 sm:mb-6">
+            <div class="flex gap-2 sm:gap-4 border-b border-slate-800 overflow-x-auto pb-px no-scrollbar" id="settingsTabs">
+                <a href="/settings" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Hệ thống
+                </a>
+                <a href="/settings/services" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="grid" class="w-4 h-4"></i> Danh mục dịch vụ
+                </a>
+                <a href="/settings/quotas-ui" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-blue-500 border-blue-500">
+                    <i data-lucide="flask-conical" class="w-4 h-4"></i> Định mức Vật tư <span class="ml-1 px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] font-bold rounded uppercase">QUAN TRỌNG</span>
+                </a>
+                <a href="/settings" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="users" class="w-4 h-4"></i> Tài khoản & Phân quyền
+                </a>
+                <a href="/settings" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i> Phương thức thanh toán
+                </a>
+                <a href="/settings" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Cấu hình máy in/hóa đơn
+                </a>
+            </div>
+        </div>
+
+        @* QUOTA TAB — giữ nguyên UI block như Index.cshtml (định mức vật tư) *@
+        <div data-tab-panel="quota" class="xl:col-span-12 space-y-6">
+            <div class="bg-[#122131] border border-blue-500/20 rounded-xl p-5 flex gap-4 items-start shadow-[0_0_20px_rgba(59,130,246,0.05)]">
+                <div class="p-2.5 bg-blue-500/10 rounded-lg shrink-0"><i data-lucide="zap" class="w-5 h-5 text-blue-400"></i></div>
+                <div>
+                    <p class="font-bold text-blue-300 text-sm mb-1">Nghiệp vụ tự động trừ kho theo định mức</p>
+                    <p class="text-slate-400 text-xs leading-relaxed">Mỗi khi một <strong class="text-slate-200">Ticket</strong> chọn dịch vụ có cấu hình định mức tại đây, hệ thống sẽ <strong class="text-blue-400">tự động tạo MaterialUsage và trừ WarehouseStock</strong> — không cần nhập tay. Cảnh báo tồn thấp sẽ hiện ngay khi vật tư xuống dưới định mức cảnh báo.</p>
+                </div>
+            </div>
+
+            @* Add Quota Form *@
+            <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/30 flex items-center gap-3">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-blue-400"></i>
+                    <h3 class="font-bold text-slate-200">Thêm định mức vật tư cho dịch vụ</h3>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dịch vụ *</label>
+                        <select id="qService" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-3 text-sm text-slate-300 focus:border-blue-500 outline-none">
+                            <option value="">-- Chọn dịch vụ --</option>
+                            @foreach (var s in dbServices) {
+                                <option value="@s.Id">@s.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Vật tư *</label>
+                        <select id="qMaterial" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-3 text-sm text-slate-300 focus:border-blue-500 outline-none">
+                            <option value="">-- Chọn vật tư --</option>
+                            @foreach (var m in materials) {
+                                <option value="@m.Id" data-unit="@m.Unit">@m.Name (@(m.Unit ?? "đvt"))</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Định mức / lần *</label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="qQty" placeholder="1.0" min="0.01" step="0.01" class="flex-1 bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-3 text-sm text-blue-400 font-mono font-bold focus:border-blue-500 outline-none" />
+                            <span id="qUnit" class="text-[11px] text-slate-500 font-mono whitespace-nowrap">đvt</span>
+                        </div>
+                    </div>
+                    <button id="btnAddQuota" class="py-2.5 px-5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Thêm định mức
+                    </button>
+                </div>
+            </div>
+
+            @* Quota Table *@
+            <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/30 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-200 flex items-center gap-2"><i data-lucide="list" class="w-4 h-4 text-blue-400"></i> Bảng định mức hiện tại <span class="text-[10px] text-slate-500 font-mono">(@quotas.Count định mức)</span></h3>
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500"></i>
+                        <input type="text" id="qSearch" placeholder="Tìm dịch vụ / vật tư..." class="bg-[#0B101D] border border-slate-700/50 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none w-56" />
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-[#1c2b3c]/30 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <th class="px-5 py-4">Dịch vụ</th>
+                                <th class="px-5 py-4">Vật tư tiêu hao</th>
+                                <th class="px-5 py-4 text-center">Định mức / lần</th>
+                                <th class="px-5 py-4 text-center w-24">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quotaTableBody" class="divide-y divide-slate-800/40">
+                        @if (!quotas.Any()) {
+                            <tr id="qEmptyRow"><td colspan="4" class="px-5 py-12 text-center text-slate-500 text-sm">Chưa có định mức nào. Thêm định mức ở form phía trên.</td></tr>
+                        }
+                        @foreach (var q in quotas) {
+                            <tr class="quota-row hover:bg-slate-800/20 transition-colors" data-id="@q.Id" data-search="@(q.Service?.Name?.ToLower()) @(q.Material?.Name?.ToLower())">
+                                <td class="px-5 py-4">
+                                    <span class="font-bold text-slate-200">@q.Service?.Name</span>
+                                    @if (q.Service?.ServiceCategory != null) {
+                                        <span class="ml-2 text-[9px] font-bold text-slate-500 uppercase tracking-widest">@q.Service.ServiceCategory.Name</span>
+                                    }
+                                </td>
+                                <td class="px-5 py-4 text-slate-300">@q.Material?.Name</td>
+                                <td class="px-5 py-4 text-center">
+                                    <span class="font-mono font-bold text-blue-400">@q.DefaultQty.ToString("N2")</span>
+                                    <span class="text-[10px] text-slate-500 ml-1">@(q.Material?.Unit ?? "đvt")</span>
+                                </td>
+                                <td class="px-5 py-4 text-center">
+                                    <button onclick="deleteQuota(@q.Id)" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all" title="Xóa">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    if (window.lucide) lucide.createIcons();
+
+    (function() {
+        // Unit hint khi chọn vật tư
+        var matSel = document.getElementById('qMaterial');
+        var unitEl = document.getElementById('qUnit');
+        if (matSel && unitEl) {
+            matSel.addEventListener('change', function() {
+                var opt = matSel.options[matSel.selectedIndex];
+                unitEl.textContent = opt.getAttribute('data-unit') || 'đvt';
+            });
+        }
+
+        // Thêm định mức
+        var btnAdd = document.getElementById('btnAddQuota');
+        if (btnAdd && !btnAdd.dataset.init) {
+            btnAdd.dataset.init = '1';
+            btnAdd.addEventListener('click', function() {
+                var svcId  = parseInt(document.getElementById('qService').value)  || 0;
+                var matId  = parseInt(document.getElementById('qMaterial').value) || 0;
+                var qty    = parseFloat(document.getElementById('qQty').value)    || 0;
+                if (!svcId || !matId || qty <= 0) { HPUI.toast('Vui lòng điền đầy đủ tất cả các trường!', 'warning'); return; }
+
+                btnAdd.disabled = true;
+                fetch('/settings/quotas/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ServiceId: svcId, MaterialId: matId, DefaultQty: qty })
+                }).then(r => r.json()).then(data => {
+                    btnAdd.disabled = false;
+                    if (data.success) {
+                        HPUI.toast('Đã thêm định mức! Kho sẽ tự động trừ từ bây giờ.', 'success');
+                        setTimeout(() => HPUI.loadPage('/settings/quotas-ui'), 400);
+                    } else { HPUI.toast(data.message || 'Lỗi!', 'error'); }
+                }).catch(() => { btnAdd.disabled = false; HPUI.toast('Lỗi kết nối!', 'error'); });
+            });
+        }
+
+        // Xóa định mức
+        window.deleteQuota = function(id) {
+            if (!confirm('Xóa định mức này? Kho sẽ không còn tự động trừ cho dịch vụ đó.')) return;
+            fetch('/settings/quotas/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(id)
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    var row = document.querySelector(`.quota-row[data-id="${id}"]`);
+                    if (row) row.remove();
+                    HPUI.toast('Đã xóa định mức!', 'success');
+                } else { HPUI.toast(data.message || 'Lỗi!', 'error'); }
+            });
+        };
+
+        // Search quota table
+        var qSearch = document.getElementById('qSearch');
+        if (qSearch) {
+            qSearch.addEventListener('input', function() {
+                var q = qSearch.value.toLowerCase();
+                document.querySelectorAll('.quota-row').forEach(function(r) {
+                    r.style.display = (!q || r.getAttribute('data-search').includes(q)) ? '' : 'none';
+                });
+            });
+        }
+    })();
+</script>
+}
+

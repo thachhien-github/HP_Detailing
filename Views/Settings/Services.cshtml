@@ -1,0 +1,189 @@
+@{
+    ViewData["Title"] = "Settings - Services";
+    Layout = "_Layout";
+    // Giữ nguyên cách lấy dữ liệu giống Index.cshtml
+    var services = ViewBag.Services as List<HP_Detailing.Models.Service> ?? new();
+    var materials = ViewBag.Materials as List<HP_Detailing.Models.Material> ?? new();
+}
+
+<div class="p-4 sm:p-6 lg:p-8 flex-1 h-full min-h-0 overflow-y-auto" data-tab-group="settingsTabs">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = "Thiết lập hệ thống",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> { new(){Label="Trang chủ",Path="/"}, new(){Label="Cấu hình"} }
+    })
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div class="xl:col-span-12 mb-2 sm:mb-6">
+            <div class="flex gap-2 sm:gap-4 border-b border-slate-800 overflow-x-auto pb-px no-scrollbar" id="settingsTabs">
+                <a href="/settings" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Hệ thống
+                </a>
+                <a href="/settings/services" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-blue-500 border-blue-500">
+                    <i data-lucide="grid" class="w-4 h-4"></i> Danh mục dịch vụ
+                </a>
+                <a href="/settings/quotas-ui" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="flask-conical" class="w-4 h-4"></i> Định mức Vật tư <span class="ml-1 px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] font-bold rounded uppercase">QUAN TRỌNG</span>
+                </a>
+                <a href="/settings" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="users" class="w-4 h-4"></i> Tài khoản & Phân quyền
+                </a>
+                <a href="/settings" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i> Phương thức thanh toán
+                </a>
+                <a href="/settings" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Cấu hình máy in/hóa đơn
+                </a>
+            </div>
+        </div>
+
+        @* Services Tab (copy nguyên UI block từ Index.cshtml, bỏ phần system/accounts/etc) *@
+        <div data-tab-panel="services" class="xl:col-span-12 space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#122131]/80 border border-slate-800 p-6 rounded-xl shadow-sm mb-6 gap-4">
+                 <div>
+                     <h3 class="text-xl font-bold text-white mb-1 font-['Space_Grotesk']">Danh mục dịch vụ</h3>
+                     <p class="text-slate-400 text-sm">Quản lý bảng giá, thời gian thi công và danh mục các gói chăm sóc xe.</p>
+                 </div>
+                 <div class="flex items-center gap-3 w-full md:w-auto">
+                     <div class="relative flex-1 md:w-64">
+                         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                         <input type="text" id="svcSearch" class="w-full bg-[#0B101D] border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 outline-none focus:border-blue-500/50 transition-all" placeholder="Tìm dịch vụ...">
+                     </div>
+                     <button onclick="HPUI.openModal('svcModal')" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors whitespace-nowrap">
+                         <i data-lucide="plus" class="w-4 h-4"></i> Thêm dịch vụ
+                     </button>
+                 </div>
+             </div>
+
+             <div class="bg-[#122131]/80 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                 <div class="overflow-x-auto">
+                     <table class="w-full text-left">
+                         <thead class="bg-[#0B101D] border-b border-slate-800">
+                             <tr>
+                                 <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mã / Tên dịch vụ</th>
+                                 <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Danh mục</th>
+                                 <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Thời gian</th>
+                                 <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Đơn giá</th>
+                                 <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Trạng thái</th>
+                                 <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Thao tác</th>
+                             </tr>
+                         </thead>
+                         <tbody class="divide-y divide-slate-800/50" id="svcTableBody">
+                             @* Giữ nguyên logic mẫu/demo như Index.cshtml hiện tại *@
+                             @{
+                                 var demoServices = new[] {
+                                     new { id = "DV-001", name = "Rửa xe bọt tuyết cơ bản", cat = "Rửa xe", time = "45 phút", price = "150.000đ", status = "Hoạt động", catColor = "text-blue-400 bg-blue-400/10" },
+                                     new { id = "DV-002", name = "Vệ sinh khoang máy kỹ thuật", cat = "Detailing", time = "120 phút", price = "1.200.000đ", status = "Hoạt động", catColor = "text-amber-400 bg-amber-400/10" },
+                                     new { id = "DV-003", name = "Đánh bóng Ceramic 9H", cat = "Ceramic", time = "2 ngày", price = "8.500.000đ", status = "Hoạt động", catColor = "text-rose-400 bg-rose-400/10" },
+                                     new { id = "DV-004", name = "Dán phim cách nhiệt 3M", cat = "Window Film", time = "4 giờ", price = "Liên hệ", status = "Tạm ngưng", catColor = "text-slate-400 bg-slate-400/10" }
+                                 };
+                             }
+                             @foreach (var s in demoServices)
+                             {
+                                 <tr class="hover:bg-slate-800/30 transition-colors group" data-search="@s.id @s.name @s.cat">
+                                     <td class="px-6 py-4">
+                                         <div>
+                                             <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-tight">@s.id</p>
+                                             <p class="text-sm font-bold text-white mt-0.5 group-hover:text-blue-400 transition-colors">@s.name</p>
+                                         </div>
+                                     </td>
+                                     <td class="px-6 py-4">
+                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest @s.catColor">
+                                             @s.cat
+                                         </span>
+                                     </td>
+                                     <td class="px-6 py-4">
+                                         <div class="flex items-center gap-2 text-slate-400">
+                                             <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                             <span class="text-xs">@s.time</span>
+                                         </div>
+                                     </td>
+                                     <td class="px-6 py-4 text-right">
+                                         <span class="text-sm font-bold text-blue-400 font-mono">@s.price</span>
+                                     </td>
+                                     <td class="px-6 py-4">
+                                         <span class="text-[10px] font-bold uppercase tracking-widest @(s.status == "Hoạt động" ? "text-emerald-400" : "text-slate-500")">@s.status</span>
+                                     </td>
+                                     <td class="px-6 py-4 text-right">
+                                         <div class="flex items-center justify-end gap-2">
+                                             <button onclick="HPUI.openModal('svcModal')" class="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all">
+                                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                             </button>
+                                             <button onclick="HPUI.toast('Xác nhận xóa dịch vụ?', 'error')" class="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all">
+                                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                             </button>
+                                         </div>
+                                     </td>
+                                 </tr>
+                             }
+                         </tbody>
+                     </table>
+                 </div>
+             </div>
+        </div>
+
+        @* Modal Service (copy nguyên block) *@
+        <div id="svcModal" class="hp-modal-overlay hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+            <div class="hp-modal-content bg-[#122131] border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-zoom-in">
+                <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-[#0B101D]/50">
+                    <div>
+                        <h3 class="text-lg font-bold text-white font-['Space_Grotesk']">Thông tin dịch vụ</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Service Management</p>
+                    </div>
+                    <button onclick="HPUI.closeModal('svcModal')" class="text-slate-500 hover:text-white p-1 transition-colors">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-2 md:col-span-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tên dịch vụ hiển thị</label>
+                            <input type="text" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="VD: Rửa xe bọt tuyết Premium">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mã dịch vụ (SKU)</label>
+                            <input type="text" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:border-blue-500/50 outline-none transition-all" placeholder="DV-XXXX">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Danh mục</label>
+                            <select class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all appearance-none">
+                                <option>Rửa xe</option>
+                                <option>Detailing</option>
+                                <option>Ceramic</option>
+                                <option>Window Film</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Thời gian thi công (phút)</label>
+                            <input type="number" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="45">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Đơn giá niêm yết (VNĐ)</label>
+                            <input type="text" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:border-blue-500/50 outline-none transition-all" placeholder="500.000">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mô tả dịch vụ</label>
+                        <textarea class="w-full h-24 bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all resize-none" placeholder="Nhập mô tả chi tiết các bước thực hiện..."></textarea>
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 bg-[#0B101D]/80 border-t border-slate-800 flex justify-end gap-3">
+                    <button onclick="HPUI.closeModal('svcModal')" class="px-5 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors">Hủy</button>
+                    <button onclick="HPUI.toast('Đã cập nhật danh mục dịch vụ', 'success'); HPUI.closeModal('svcModal')" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">Lưu dịch vụ</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        if (window.lucide) lucide.createIcons();
+        // Giữ nguyên hành vi filter như Index.cshtml
+        HPUI.filterTable('svcSearch', 'svcTableBody');
+    </script>
+}
+

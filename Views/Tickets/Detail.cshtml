@@ -1,0 +1,459 @@
+@model HP_Detailing.Models.ViewModels.TicketDetailViewModel
+@{ ViewData["Title"] = "Ticket Detail"; Layout = "_Layout"; }
+
+<div class="p-4 sm:p-6 lg:p-8 space-y-8 max-w-5xl mx-auto">
+  @* ===== PAGE HEADER ===== *@
+  @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel
+  {
+    Title = $"Chi tiết phiếu: {Model.TicketCode}",
+    Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb>
+    {
+      new HP_Detailing.Models.PageHeaderBreadcrumb { Label = "Trang chủ", Path = "/" },
+      new HP_Detailing.Models.PageHeaderBreadcrumb { Label = "Phiếu dịch vụ", Path = "/tickets" },
+      new HP_Detailing.Models.PageHeaderBreadcrumb { Label = Model.TicketCode }
+    }
+  })
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+      @* ===== ACCORDION 1: RECEPTION INFO ===== *@
+      <div class="hp-accordion active bg-[#122131] border border-slate-800 shadow-sm">
+        <div class="hp-accordion-header p-6 hover:bg-slate-800/30">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-blue-500/10 rounded text-blue-500"><i data-lucide="info" class="w-4 h-4"></i></div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest">Thông tin tiếp nhận</h3>
+              <p class="text-[10px] text-slate-500 font-medium uppercase tracking-tight mt-0.5">@Model.Plate • @Model.CustomerName</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-down" class="hp-accordion-chevron w-5 h-5 text-slate-500"></i>
+        </div>
+        <div class="hp-accordion-content px-6 border-t border-slate-800/50">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 pb-4">
+            <div class="space-y-4">
+              <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Khách hàng</p>
+                <p class="text-sm font-bold text-slate-200 flex items-center gap-2"><i data-lucide="user" class="w-4 h-4 text-slate-500"></i> @Model.CustomerName</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Số điện thoại</p>
+                <p class="text-sm font-mono text-slate-300 flex items-center gap-2"><i data-lucide="phone" class="w-4 h-4 text-slate-500"></i> @Model.CustomerPhone</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">KTV phụ trách</p>
+                <p class="text-sm text-slate-300 flex items-center gap-2"><i data-lucide="user-cog" class="w-4 h-4 text-slate-500"></i> @(string.IsNullOrWhiteSpace(Model.AssignedStaffName) ? "Chưa phân công" : Model.AssignedStaffName)</p>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Thông tin xe</p>
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-sm font-bold text-slate-200 flex items-center gap-2"><i data-lucide="car" class="w-4 h-4 text-slate-500"></i> @Model.CarModel</span>
+                  <span class="inline-block w-fit bg-slate-800 border border-slate-700 text-blue-400 px-2 py-0.5 rounded text-[11px] font-mono font-bold uppercase tracking-wider">@Model.Plate</span>
+                </div>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Thời gian tiếp nhận</p>
+                <p class="text-sm font-mono text-slate-300 flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-slate-500"></i> @Model.CreatedAt.ToString("HH:mm dd/MM/yyyy")</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @* ===== DYNAMIC SERVICES & MATERIALS LIST SECTION ===== *@
+      <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 shadow-sm relative">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
+            <i data-lucide="settings" class="w-4 h-4 text-indigo-400"></i>
+            1. Bảng kê tiền công dịch vụ
+          </h3>
+          <button id="btnAddService" data-hp-toggle="addServiceBox" type="button" class="text-xs font-bold px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded hover:bg-blue-500/20 transition-all flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Thêm dịch vụ
+          </button>
+        </div>
+
+        <div class="space-y-4 mb-8" id="servicesList">
+          @foreach (var svc in Model.Services)
+          {
+            var svcStatusLabel = svc.Status switch
+            {
+              "completed" => "Hoàn thành",
+              "in_progress" => "Đang thi công",
+              "not_started" => "Chưa bắt đầu",
+              _ => svc.Status
+            };
+
+            <div class="bg-[#0B101D] border border-slate-800 rounded-lg p-4 flex justify-between items-center group">
+              <div>
+                <p class="text-sm font-bold text-slate-200">@svc.Name</p>
+                <p class="text-xs text-slate-500 mt-1">Mã DV: @svc.ServiceCode</p>
+              </div>
+              <div class="text-right">
+                <p class="text-sm font-mono text-blue-400 font-bold">@svc.Price.ToString("N0")đ</p>
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 block">@svcStatusLabel</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        @* ===== ADD SERVICE BOX (COLLAPSIBLE AJAX FORM) ===== *@
+        <div id="addServiceBox" class="hidden mt-4 p-4 border border-blue-500/30 bg-blue-500/5 rounded-lg mb-8">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold text-blue-400 uppercase tracking-widest">Thêm dịch vụ phát sinh</h4>
+            <button type="button" data-hp-toggle="addServiceBox" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">Chọn dịch vụ từ CSDL</label>
+              <select id="svcSelect" class="w-full bg-[#051424] border border-slate-800 rounded px-3 py-2.5 text-sm text-slate-200 focus:border-blue-500 outline-none">
+                <option value="">-- Chọn dịch vụ có sẵn --</option>
+                @foreach (var activeSvc in Model.AvailableServices)
+                {
+                  <option value="@activeSvc.Id">[@activeSvc.ServiceCode] @activeSvc.Name (@activeSvc.UnitPrice.ToString("N0")đ)</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="mt-4 flex justify-end">
+            <button id="btnAddConfirm" type="button" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all text-xs rounded-lg flex items-center gap-1.5">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i> Thêm & Lưu CSDL
+            </button>
+          </div>
+        </div>
+
+        @* ===== SEPARATE MATERIALS LIST SECTION ===== *@
+        <div class="border-t border-slate-800/80 pt-6 mb-6">
+          <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2 mb-4">
+            <i data-lucide="package" class="w-4 h-4 text-emerald-400"></i>
+            2. Vật tư phụ tùng cấp phát thực tế
+          </h3>
+
+          @if (Model.Materials.Count == 0)
+          {
+            <div class="p-4 bg-[#0B101D] border border-slate-800 rounded-lg text-slate-500 text-xs italic text-center">
+              Không yêu cầu tiêu hao vật tư phụ tùng đi kèm.
+            </div>
+          }
+          else
+          {
+            <div class="overflow-x-auto border border-slate-800 rounded-lg">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-[#0B101D] text-slate-400 text-[10px] font-bold uppercase tracking-wider border-b border-slate-800">
+                    <th class="p-3">Vật tư phụ tùng</th>
+                    <th class="p-3 text-center">Số lượng</th>
+                    <th class="p-3 text-right">Đơn giá bán</th>
+                    <th class="p-3 text-center">Tính phí</th>
+                    <th class="p-3 text-right">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60 text-slate-300 text-xs">
+                  @foreach (var mat in Model.Materials)
+                  {
+                    var lineTotal = mat.Quantity * mat.UnitPrice;
+                    <tr class="hover:bg-slate-800/20 transition-all">
+                      <td class="p-3">
+                        <span class="font-bold text-slate-200 block">@mat.MaterialName</span>
+                        <span class="text-[9px] text-slate-500 font-mono">@mat.MaterialCode</span>
+                      </td>
+                      <td class="p-3 text-center font-mono">@mat.Quantity @mat.Unit</td>
+                      <td class="p-3 text-right font-mono text-slate-400">@mat.UnitPrice.ToString("N0")đ</td>
+                      <td class="p-3 text-center">
+                        @if (mat.IsChargedToCustomer)
+                        {
+                          <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold uppercase tracking-wider">Tính phí</span>
+                        }
+                        else
+                        {
+                          <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 text-[9px] font-bold uppercase tracking-wider">Miễn phí</span>
+                        }
+                      </td>
+                      <td class="p-3 text-right font-mono font-bold @(mat.IsChargedToCustomer ? "text-blue-400" : "text-slate-500 line-through")">
+                        @((mat.IsChargedToCustomer ? lineTotal : 0).ToString("N0"))đ
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+
+        @* live billing calculator totals *@
+        <div class="mt-6 border-t border-slate-800 pt-6 flex flex-col gap-2">
+          <div class="flex justify-between items-center text-xs text-slate-500 font-medium">
+            <span>TỔNG TIỀN CÔNG DỊCH VỤ:</span>
+            <span class="font-mono font-bold text-slate-300">@Model.Services.Sum(s => s.Price).ToString("N0")đ</span>
+          </div>
+          <div class="flex justify-between items-center text-xs text-slate-500 font-medium pb-4 border-b border-slate-800/50">
+            <span>TỔNG VẬT TƯ PHỤ TÙNG:</span>
+            <span class="font-mono font-bold text-slate-300">@Model.Materials.Where(m => m.IsChargedToCustomer).Sum(m => m.Quantity * m.UnitPrice).ToString("N0")đ</span>
+          </div>
+          <div class="flex justify-between items-center pt-2">
+            <span class="text-sm font-bold text-slate-400 uppercase tracking-widest">TỔNG THANH TOÁN (TẠM TÍNH):</span>
+            <span class="text-xl font-mono text-emerald-400 font-bold" id="totalAmount">@Model.TotalAmount.ToString("N0")đ</span>
+          </div>
+        </div>
+      </div>
+
+      @* ===== ACCORDION 2: PHOTOS & INSPECTION ===== *@
+      <div class="hp-accordion bg-[#122131] border border-slate-800 shadow-sm">
+        <div class="hp-accordion-header p-6 hover:bg-slate-800/30">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-emerald-500/10 rounded text-emerald-500"><i data-lucide="camera" class="w-4 h-4"></i></div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest">Hình ảnh hiện trạng xe</h3>
+              <p class="text-[10px] text-slate-500 font-medium uppercase tracking-tight mt-0.5">04 Ảnh hiện trạng tiếp nhận</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-down" class="hp-accordion-chevron w-5 h-5 text-slate-500"></i>
+        </div>
+        <div class="hp-accordion-content px-6 border-t border-slate-800/50">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 pb-4">
+             @for(int i=1; i<=4; i++) {
+               <div class="aspect-square bg-slate-900 rounded-lg border border-slate-800 overflow-hidden group/img relative cursor-pointer">
+                  <img src="https://images.unsplash.com/photo-1603386329225-868f9b1ee6c9?w=300&h=300&fit=crop" class="w-full h-full object-cover opacity-60 group-hover/img:scale-110 group-hover/img:opacity-100 transition-all" alt="Car Detail Image @i" />
+                  <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity bg-blue-500/20"><i data-lucide="maximize-2" class="w-5 h-5 text-white"></i></div>
+               </div>
+             }
+          </div>
+          <button class="w-full mt-2 mb-4 py-2.5 border-2 border-dashed border-slate-700 rounded-lg text-slate-500 hover:text-blue-400 hover:border-blue-500/50 transition-all text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i> Tải thêm ảnh tiếp nhận
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      @* ===== ACCORDION 3: CONSTRUCTION PROGRESS (RIGHT COLUMN) ===== *@
+      <div class="hp-accordion active bg-[#122131] border border-slate-800 shadow-sm">
+        <div class="hp-accordion-header p-6 hover:bg-slate-800/30">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-indigo-500/10 rounded text-indigo-500"><i data-lucide="activity" class="w-4 h-4"></i></div>
+            <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest">Tiến độ thi công</h3>
+          </div>
+          <i data-lucide="chevron-down" class="hp-accordion-chevron w-5 h-5 text-slate-500"></i>
+        </div>
+        <div class="hp-accordion-content px-6 border-t border-slate-800/50">
+          <div class="space-y-8 pt-6 pb-4 relative before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-emerald-500 before:via-blue-500 before:to-slate-700">
+            @* Step 1: Reception *@
+            <div class="relative flex items-start gap-4 group">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#122131] bg-emerald-500 text-slate-900 shadow shrink-0 z-10">
+                <i data-lucide="check" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-1 p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 shadow-lg">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="font-bold text-slate-200 text-sm">Tiếp nhận xe</div>
+                  <time class="font-mono text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Hoàn tất</time>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed">Phiếu tiếp nhận đã lập và nạp thành công vào hệ thống SQL Server.</p>
+              </div>
+            </div>
+
+            @* Step 2: Detailing Construction *@
+            @{
+              var step2Icon = Model.Status == "completed" || Model.Status == "waiting_customer" ? "check" : "clock";
+              var step2Bg = Model.Status == "completed" || Model.Status == "waiting_customer" ? "bg-emerald-500" : "bg-blue-500 animate-pulse";
+              var step2StatusLabel = Model.Status == "completed" || Model.Status == "waiting_customer" ? "Hoàn tất" : "Đang xử lý";
+            }
+            <div class="relative flex items-start gap-4 group">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#122131] @step2Bg text-white shadow shrink-0 z-10">
+                <i data-lucide="@step2Icon" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-1 p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 shadow-lg">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="font-bold text-slate-200 text-sm">Thi công Detailing</div>
+                  <time class="font-mono text-[10px] font-bold text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">@step2StatusLabel</time>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed">Kỹ thuật viên đang thi công các dịch vụ kèm theo phiếu tiếp nhận.</p>
+              </div>
+            </div>
+          </div>
+          
+          @* ===== STAGE CONTROL DROP DOWN (AJAX UPDATE) ===== *@
+          <div id="progressArea" class="mt-8 mb-4">
+            @if (Model.Status == "completed")
+            {
+              <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                  <i data-lucide="check-circle" class="w-6 h-6 text-emerald-500"></i>
+                </div>
+                <div>
+                  <div class="font-bold text-emerald-400 text-sm">Đã hoàn thành bàn giao</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">Phiếu dịch vụ này đã được đóng thành công.</div>
+                </div>
+              </div>
+              <a onclick="HPUI.loadPage('/financial')" class="w-full mt-4 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all shadow-[0_0_15px_rgba(59,130,246,0.2)] text-sm rounded-lg flex items-center justify-center gap-2 cursor-pointer">
+                <i data-lucide="banknote" class="w-4 h-4"></i> Xem hóa đơn thanh toán
+              </a>
+            }
+            else
+            {
+              <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest">CẬP NHẬT TIẾN ĐỘ THI CÔNG</label>
+              <select id="statusSelect" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg px-4 py-3 text-sm text-slate-200 focus:border-blue-500 outline-none cursor-pointer">
+                <option value="pending" selected="@(Model.Status == "pending" ? "selected" : null)">Chờ tiếp nhận</option>
+                <option value="in_progress" selected="@(Model.Status == "in_progress" ? "selected" : null)">Đang thi công</option>
+                <option value="waiting_customer" selected="@(Model.Status == "waiting_customer" ? "selected" : null)">Đợi khách nhận xe</option>
+                <option value="completed" selected="@(Model.Status == "completed" ? "selected" : null)">Hoàn thành bàn giao</option>
+              </select>
+              <button id="btnComplete" type="button" class="w-full mt-4 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all shadow-[0_0_15px_rgba(59,130,246,0.2)] text-sm rounded-lg flex items-center justify-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> Lưu & Hoàn tất bàn giao
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script>
+    (function(){
+      // Initialize Lucide
+      if (window.lucide) lucide.createIcons();
+
+      // ========================================================
+      // AJAX NGHIỆP VỤ: THÊM DỊCH VỤ PHÁT SINH
+      // ========================================================
+      var btnConfirm = document.getElementById('btnAddConfirm');
+      if (btnConfirm) {
+        btnConfirm.addEventListener('click', function() {
+          var select = document.getElementById('svcSelect');
+          var selectedServiceId = select.value;
+
+          if (!selectedServiceId) {
+            HPUI.toast('Vui lòng chọn một dịch vụ từ danh sách!', 'warning');
+            return;
+          }
+
+          btnConfirm.disabled = true;
+          btnConfirm.innerHTML = '<span class="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Đang xử lý...';
+
+          // Gửi request AJAX POST an toàn
+          fetch('/Tickets/AddService', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: JSON.stringify({
+              TicketId: @Model.Id,
+              ServiceId: parseInt(selectedServiceId)
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            btnConfirm.disabled = false;
+            btnConfirm.innerHTML = '<i data-lucide="save" class="w-3.5 h-3.5"></i> Thêm & Lưu CSDL';
+            if (window.lucide) lucide.createIcons();
+
+            if (data.success) {
+              HPUI.toast(data.message, 'success');
+              if (window.HPUI && window.HPUI.loadPage) {
+                setTimeout(() => HPUI.loadPage('/tickets/' + @Model.Id), 500);
+              } else {
+                setTimeout(() => window.location.reload(), 500);
+              }
+            } else {
+              HPUI.toast(data.message, 'error');
+            }
+          })
+          .catch(err => {
+            btnConfirm.disabled = false;
+            btnConfirm.innerHTML = '<i data-lucide="save" class="w-3.5 h-3.5"></i> Thêm & Lưu CSDL';
+            if (window.lucide) lucide.createIcons();
+            HPUI.toast('Đã xảy ra lỗi kết nối CSDL khi thêm dịch vụ!', 'error');
+            console.error(err);
+          });
+        });
+      }
+
+      // ========================================================
+      // AJAX NGHIỆP VỤ: THAY ĐỔI TRẠNG THÁI TIẾN TRÌNH THI CÔNG
+      // ========================================================
+      var statusSelect = document.getElementById('statusSelect');
+      if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+          var newStatus = statusSelect.value;
+
+          HPUI.toast('Đang ghi nhận tiến độ mới...', 'info');
+
+          fetch('/Tickets/UpdateStatus', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              TicketId: @Model.Id,
+              Status: newStatus
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              HPUI.toast(data.message, 'success');
+              // Tải lại trang qua AJAX SPA của HPUI để cập nhật lại timeline đồng bộ
+              if (window.HPUI && window.HPUI.loadPage) {
+                setTimeout(() => HPUI.loadPage('/tickets/' + @Model.Id), 500);
+              }
+            } else {
+              HPUI.toast(data.message, 'error');
+            }
+          })
+          .catch(err => {
+            HPUI.toast('Lỗi kết nối CSDL khi cập nhật tiến độ!', 'error');
+            console.error(err);
+          });
+        });
+      }
+
+      // ========================================================
+      // AJAX NGHIỆP VỤ: HOÀN TẤT VÀ CHUYỂN THANH TOÁN
+      // ========================================================
+      var btnComplete = document.getElementById('btnComplete');
+      if (btnComplete) {
+        btnComplete.addEventListener('click', function() {
+          btnComplete.disabled = true;
+          btnComplete.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Đang cập nhật...';
+
+          fetch('/Tickets/UpdateStatus', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              TicketId: @Model.Id,
+              Status: 'completed'
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              HPUI.toast('Phiếu đã chuyển trạng thái Hoàn thành! Đang tạo thông tin thanh toán...', 'success');
+              setTimeout(function() {
+                var invoiceUrl = data.invoiceId > 0 ? '/financial/invoice/' + data.invoiceId : '/financial';
+                if (window.HPUI && window.HPUI.loadPage) {
+                  window.HPUI.loadPage(invoiceUrl);
+                } else {
+                  window.location.href = invoiceUrl;
+                }
+              }, 1200);
+            } else {
+              btnComplete.disabled = false;
+              btnComplete.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Lưu & Hoàn tất bàn giao';
+              if (window.lucide) lucide.createIcons();
+              HPUI.toast(data.message, 'error');
+            }
+          })
+          .catch(err => {
+            btnComplete.disabled = false;
+            btnComplete.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Lưu & Hoàn tất bàn giao';
+            if (window.lucide) lucide.createIcons();
+            HPUI.toast('Lỗi kết nối CSDL khi hoàn thành phiếu!', 'error');
+            console.error(err);
+          });
+        });
+      }
+    })();
+  </script>

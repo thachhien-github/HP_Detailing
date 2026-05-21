@@ -1,0 +1,806 @@
+@model HP_Detailing.Models.ViewModels.SettingsViewModel
+@{ ViewData["Title"] = "Settings"; Layout = "_Layout"; }
+<div class="p-4 sm:p-6 lg:p-8 flex-1 h-full min-h-0 overflow-y-auto" data-tab-group="settingsTabs">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = "Thiết lập hệ thống",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> {
+            new(){Label="Trang chủ",Path="/"},
+            new(){Label="Cấu hình"}
+        }
+    })
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div class="xl:col-span-12 mb-2 sm:mb-6">
+            <div class="flex gap-2 sm:gap-4 border-b border-slate-800 overflow-x-auto pb-px no-scrollbar" id="settingsTabs">
+                <button onclick="HPUI.switchTab('settingsTabs', 'system')" data-tab-btn="system" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-blue-500 border-blue-500">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Hệ thống
+                </button>
+                <button onclick="HPUI.switchTab('settingsTabs', 'accounts')" data-tab-btn="accounts" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="users" class="w-4 h-4"></i> Tài khoản &amp; Phân quyền
+                </button>
+                <button onclick="HPUI.switchTab('settingsTabs', 'payments')" data-tab-btn="payments" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i> Phương thức thanh toán
+                </button>
+                <button onclick="HPUI.switchTab('settingsTabs', 'printer')" data-tab-btn="printer" class="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 whitespace-nowrap transition-all font-medium text-sm border-b-2 text-slate-400 hover:text-slate-200 border-transparent hover:border-slate-600">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Cấu hình máy in/hóa đơn
+                </button>
+            </div>
+        </div>
+
+        @* ─── Tab: Hệ thống ─────────────────────────────────── *@
+        <div data-tab-panel="system" class="xl:col-span-12 grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+            @* Cột trái *@
+            <div class="xl:col-span-7 space-y-6">
+
+                @* Logo & Nhận diện *@
+                <div class="bg-[#122131]/80 border border-slate-800 p-6 rounded-xl shadow-[0_0_15px_rgba(74,142,255,0.05)]">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-display text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="camera" class="w-5 h-5 text-purple-500"></i>
+                            Logo &amp; Nhận diện Thương hiệu
+                        </h3>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center gap-8">
+                        <div class="relative group">
+                            <div class="w-32 h-32 rounded-2xl bg-[#0B101D] border-2 border-dashed border-slate-700 flex items-center justify-center overflow-hidden group-hover:border-blue-500/50 transition-all">
+                                <img src="https://images.unsplash.com/photo-1599305090598-fe179d501c27?auto=format&fit=crop&q=80&w=200&h=200" alt="Logo Preview" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
+                            </div>
+                            <label class="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 hover:bg-blue-500 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg transition-all border border-blue-400/30">
+                                <i data-lucide="camera" class="w-5 h-5"></i>
+                                <input type="file" class="hidden" accept="image/*" onchange="HPUI.toast('Đã cập nhật logo!', 'success')" />
+                            </label>
+                        </div>
+                        <div class="flex-1 space-y-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-200 mb-1">Logo trung tâm</h4>
+                                <p class="text-xs text-slate-500 leading-relaxed">Logo sẽ hiển thị trên thanh điều hướng, các bản in hóa đơn và báo cáo. Định dạng hỗ trợ: PNG, SVG, JPG. Kích thước tối đa: 2MB.</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-colors flex items-center gap-2">
+                                    <i data-lucide="upload" class="w-3.5 h-3.5"></i> Tải ảnh lên
+                                </button>
+                                <button class="px-4 py-2 bg-transparent text-slate-500 hover:text-red-400 text-xs font-bold transition-colors">Xóa logo</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* Thông tin cơ bản *@
+                <div class="bg-[#122131]/80 border border-slate-800 p-6 rounded-xl shadow-[0_0_15px_rgba(74,142,255,0.05)] relative overflow-hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 z-10 relative">
+                        <h3 class="font-display text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="info" class="w-5 h-5 text-blue-500"></i> Thông tin cơ bản
+                        </h3>
+                        <button onclick="HPUI.toast('Cấu hình đã được cập nhật!', 'success')" class="bg-blue-600/10 text-blue-400 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-600/20 transition-all border border-blue-500/20 w-fit">LƯU THAY ĐỔI</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 z-10 relative">
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold tracking-widest text-slate-400 uppercase">Tên trung tâm</label>
+                            <input class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" type="text" value="HP Auto Detailing" />
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold tracking-widest text-slate-400 uppercase">Hotline hỗ trợ</label>
+                            <input class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" type="text" value="0987.654.321" />
+                        </div>
+                        <div class="sm:col-span-2 space-y-2">
+                            <label class="text-xs font-bold tracking-widest text-slate-400 uppercase">Địa chỉ trụ sở</label>
+                            <input class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" type="text" value="Số 123, Đường Công Nghệ, Phường Kỹ Thuật, TP. Hồ Chí Minh" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Cột phải *@
+            <div class="xl:col-span-5 space-y-6">
+
+                @* Giao diện & Trải nghiệm *@
+                <div class="bg-[#122131]/80 border border-slate-800 p-6 rounded-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/10 transition-colors"></div>
+                    <div class="flex items-center justify-between mb-6 relative z-10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                <i data-lucide="palette" class="w-5 h-5 text-blue-500"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-display text-lg font-bold text-white leading-tight">Giao diện &amp; Trải nghiệm</h3>
+                                <p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Interface Settings</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6 relative z-10">
+                        @* Chế độ hiển thị *@
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-3 block">Chế độ hiển thị</label>
+                            <div class="grid grid-cols-2 gap-3" id="themeModeContainer">
+                                <button onclick="HPUI.setThemeMode('dark')" data-mode="dark" class="theme-mode-btn flex items-center justify-center gap-2 p-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-slate-500 hover:text-slate-300 transition-all">
+                                    <i data-lucide="moon" class="w-4 h-4"></i>
+                                    <span class="text-xs font-bold">Chế độ Tối</span>
+                                </button>
+                                <button onclick="HPUI.setThemeMode('light')" data-mode="light" class="theme-mode-btn flex items-center justify-center gap-2 p-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-slate-500 hover:text-slate-300 transition-all">
+                                    <i data-lucide="sun" class="w-4 h-4"></i>
+                                    <span class="text-xs font-bold">Chế độ Sáng</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        @* Màu sắc chủ đạo *@
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-3 block">Màu sắc chủ đạo</label>
+                            <div class="flex flex-wrap gap-3" id="primaryColorContainer">
+                                @{
+                                    var colors = new[] {
+                                        new { name = "Blue",    colorClass = "bg-blue-500",    ring = "ring-blue-500" },
+                                        new { name = "Emerald", colorClass = "bg-emerald-500", ring = "ring-emerald-500" },
+                                        new { name = "Amber",   colorClass = "bg-amber-500",   ring = "ring-amber-500" },
+                                        new { name = "Rose",    colorClass = "bg-rose-500",    ring = "ring-rose-500" },
+                                        new { name = "Purple",  colorClass = "bg-purple-500",  ring = "ring-purple-500" }
+                                    };
+                                }
+                                @foreach (var c in colors)
+                                {
+                                    <button onclick="HPUI.setThemeColor('@c.name')" data-color="@c.name" data-ring="@c.ring"
+                                            class="color-btn w-8 h-8 rounded-full @c.colorClass ring-offset-2 ring-offset-[#122131] hover:ring-2 transition-all shadow-lg">
+                                    </button>
+                                }
+                            </div>
+                        </div>
+
+                        @* Ngôn ngữ *@
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-3 block">Ngôn ngữ hệ thống</label>
+                            <div class="space-y-2" id="languageContainer">
+                                <button onclick="HPUI.setLanguage('vi')" data-lang="vi" class="lang-btn w-full flex items-center justify-between p-3 bg-[#0B101D]/30 border border-slate-800 rounded-xl hover:border-slate-700 transition-all">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xl">🇻🇳</span>
+                                        <span class="text-sm font-bold text-slate-400">Tiếng Việt (Mặc định)</span>
+                                    </div>
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 hidden"></i>
+                                </button>
+                                <button onclick="HPUI.setLanguage('en')" data-lang="en" class="lang-btn w-full flex items-center justify-between p-3 bg-[#0B101D]/30 border border-slate-800 rounded-xl hover:border-slate-700 transition-all">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xl">🇺🇸</span>
+                                        <span class="text-sm font-bold text-slate-400">English (BETA)</span>
+                                    </div>
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 hidden"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* Hạ tầng & Thiết bị *@
+                <div class="bg-[#122131]/80 border border-slate-800 p-6 rounded-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/10 transition-colors"></div>
+                    <div class="flex items-center justify-between mb-6 relative z-10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                                <i data-lucide="wifi" class="w-5 h-5 text-emerald-500"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-display text-lg font-bold text-white leading-tight">Hạ tầng &amp; Thiết bị</h3>
+                                <p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">System Health</p>
+                            </div>
+                        </div>
+                        <button onclick="HPUI.toast('Hệ thống hoạt động bình thường', 'success')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-widest uppercase transition-all border text-blue-400 border-blue-500/30 hover:bg-blue-500/10">
+                            KIỂM TRA <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4 relative z-10">
+                        <div class="flex items-center justify-between p-3.5 bg-[#0B101D]/50 rounded-xl border border-slate-800/10 hover:border-slate-700/50 hover:bg-[#0B101D] transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg flex items-center justify-center border bg-slate-800/50 border-slate-700/30 text-slate-400">
+                                    <i data-lucide="globe" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-sm font-bold text-slate-200">Kết nối Internet</p>
+                                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                                    </div>
+                                    <div class="flex items-center gap-2 mt-0.5">
+                                        <span class="text-[9px] text-slate-500 font-medium uppercase tracking-tight">VNPT Business - 150Mbps</span>
+                                        <span class="text-[9px] text-slate-700 font-mono">•</span>
+                                        <span class="text-[9px] text-slate-600 font-mono">192.168.1.1</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3.5 bg-[#0B101D]/50 rounded-xl border border-slate-800/10 hover:border-slate-700/50 hover:bg-[#0B101D] transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg flex items-center justify-center border bg-slate-800/50 border-slate-700/30 text-slate-400">
+                                    <i data-lucide="printer" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-sm font-bold text-slate-200">Máy in hóa đơn</p>
+                                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                                    </div>
+                                    <div class="flex items-center gap-2 mt-0.5">
+                                        <span class="text-[9px] text-slate-500 font-medium uppercase tracking-tight">Xprinter K80 - USB 3.0</span>
+                                        <span class="text-[9px] text-slate-700 font-mono">•</span>
+                                        <span class="text-[9px] text-slate-600 font-mono">Local</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3.5 bg-[#0B101D]/50 rounded-xl border border-slate-800/10 hover:border-slate-700/50 hover:bg-[#0B101D] transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg flex items-center justify-center border bg-slate-800/50 border-slate-700/30 text-slate-400">
+                                    <i data-lucide="database" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-sm font-bold text-slate-200">Cơ sở dữ liệu</p>
+                                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                                    </div>
+                                    <div class="flex items-center gap-2 mt-0.5">
+                                        <span class="text-[9px] text-slate-500 font-medium uppercase tracking-tight">SQL Server 2022 - Local</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ─── Tab: Tài khoản & Phân quyền ────────────────────── *@
+        <div data-tab-panel="accounts" class="xl:col-span-12 hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#122131]/80 border border-slate-800 p-6 rounded-xl shadow-sm mb-6 gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1 font-display">Tài khoản &amp; Phân quyền</h3>
+                    <p class="text-slate-400 text-sm">Quản lý danh sách nhân sự có quyền truy cập vào hệ thống điều hành.</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-64">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                        <input type="text" id="accSearch" class="w-full bg-[#0B101D] border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 outline-none focus:border-blue-500/50 transition-all" placeholder="Tìm tài khoản...">
+                    </div>
+                    <button onclick="openAccModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors whitespace-nowrap">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Thêm mới
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-[#122131]/80 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-[#0B101D] border-b border-slate-800">
+                            <tr>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Người dùng</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tên đăng nhập</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Vai trò &amp; Quyền</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Trạng thái</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/50" id="accTableBody">
+                            @foreach (var acc in Model.Accounts)
+                            {
+                                var roleColor = acc.Role == "Admin" ? "text-rose-400 bg-rose-400/10" :
+                                                acc.Role == "Quản lý cửa hàng" ? "text-blue-400 bg-blue-400/10" : "text-amber-400 bg-amber-400/10";
+                                var statusColor = acc.IsActive ? "text-emerald-400" : "text-slate-500";
+                                var statusText = acc.IsActive ? "Hoạt động" : "Đang khóa";
+
+                                <tr class="hover:bg-slate-800/30 transition-colors group" data-search="@acc.FullName @acc.UserName @acc.Email">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="@acc.AvatarUrl" class="w-9 h-9 rounded-lg object-cover ring-1 ring-slate-700/50 group-hover:ring-blue-500/30 transition-all">
+                                            <div>
+                                                <p class="text-sm font-bold text-white leading-none">@acc.FullName</p>
+                                                <p class="text-[10px] text-slate-500 font-medium mt-1 uppercase tracking-tight">@acc.Email</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-xs font-mono font-bold text-slate-400 bg-[#0B101D] px-2 py-1 rounded border border-slate-800">@acc.UserName</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest @roleColor">@acc.Role</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full @(acc.IsActive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-slate-600")"></div>
+                                            <span class="text-[11px] font-bold uppercase tracking-widest @statusColor">@statusText</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button onclick="openAccModal('@acc.Id', '@acc.UserName', '@acc.FullName', '@acc.Email', '@acc.Role')" class="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all" title="Chỉnh sửa">
+                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                            </button>
+                                            @if (acc.IsActive && acc.UserName != "admin_hpd")
+                                            {
+                                                <button onclick="deleteAccount('@acc.Id')" class="p-2 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-all" title="Khóa tài khoản">
+                                                    <i data-lucide="lock" class="w-4 h-4"></i>
+                                                </button>
+                                            }
+                                            else if (!acc.IsActive)
+                                            {
+                                                <button onclick="activateAccount('@acc.Id')" class="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all" title="Mở khóa tài khoản">
+                                                    <i data-lucide="unlock" class="w-4 h-4"></i>
+                                                </button>
+                                            }
+                                            @if (acc.UserName != "admin_hpd")
+                                            {
+                                                <button onclick="hardDeleteAccount('@acc.Id')" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all" title="Xóa vĩnh viễn">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-4 bg-[#0B101D]/50 border-t border-slate-800 flex justify-between items-center">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Hiển thị @Model.Accounts.Count tài khoản</p>
+                </div>
+            </div>
+        </div>
+
+        @* Modal: Tài khoản *@
+        <div id="accModal" class="hp-modal-overlay hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+            <div class="hp-modal-content bg-[#122131] border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-zoom-in">
+                <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-[#0B101D]/50">
+                    <div>
+                        <h3 class="text-lg font-bold text-white font-display">Thêm / Cập nhật tài khoản</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Account Details</p>
+                    </div>
+                    <button onclick="HPUI.closeModal('accModal')" class="text-slate-500 hover:text-white p-1 transition-colors">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-6">
+                    <form id="accForm">
+                        <input type="hidden" id="accId" />
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Họ và tên nhân viên</label>
+                                <input type="text" id="accFullName" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="VD: Nguyễn Văn A">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Email nội bộ</label>
+                                <input type="email" id="accEmail" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="a.nguyen@hpauto.vn">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tên đăng nhập</label>
+                                <input type="text" id="accUserName" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:border-blue-500/50 outline-none transition-all" placeholder="user_name">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mật khẩu mới</label>
+                                <input type="password" id="accPassword" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="••••••••">
+                            </div>
+                        </div>
+                        <div class="space-y-3 mt-5">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Vai trò hệ thống</label>
+                            <div class="grid grid-cols-4 gap-3">
+                                @foreach (var r in Model.AvailableRoles)
+                                {
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="accRole" value="@r" class="peer hidden" @(r=="Admin" ? "checked" : "")>
+                                        <div class="p-3 border border-slate-800 rounded-xl bg-[#0B101D]/50 peer-checked:border-blue-500/50 peer-checked:bg-blue-500/5 transition-all text-center">
+                                            <p class="text-xs font-bold text-slate-400 peer-checked:text-blue-400">@r</p>
+                                        </div>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    </form>
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Phân quyền chi tiết</label>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 p-4 bg-[#0B101D]/50 rounded-xl border border-slate-800/50">
+                            <label class="flex items-center justify-between group cursor-pointer">
+                                <span class="text-xs text-slate-300 group-hover:text-white transition-colors">Xem báo cáo doanh thu</span>
+                                <input type="checkbox" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-0">
+                            </label>
+                            <label class="flex items-center justify-between group cursor-pointer">
+                                <span class="text-xs text-slate-300 group-hover:text-white transition-colors">Quản lý kho hàng</span>
+                                <input type="checkbox" checked class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-0">
+                            </label>
+                            <label class="flex items-center justify-between group cursor-pointer">
+                                <span class="text-xs text-slate-300 group-hover:text-white transition-colors">Xóa phiếu dịch vụ</span>
+                                <input type="checkbox" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-0">
+                            </label>
+                            <label class="flex items-center justify-between group cursor-pointer">
+                                <span class="text-xs text-slate-300 group-hover:text-white transition-colors">Cấu hình hệ thống</span>
+                                <input type="checkbox" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-0">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-[#0B101D]/80 border-t border-slate-800 flex justify-end gap-3">
+                    <button onclick="HPUI.closeModal('accModal')" class="px-5 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors">Hủy</button>
+                    <button onclick="saveAccount()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">Lưu thông tin</button>
+                </div>
+            </div>
+        </div>
+
+        @* ─── Tab: Phương thức thanh toán ───────────────────── *@
+        <div data-tab-panel="payments" class="xl:col-span-12 hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#122131]/80 border border-slate-800 p-6 rounded-xl shadow-sm mb-6 gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1 font-display">Cấu hình Thanh toán</h3>
+                    <p class="text-slate-400 text-sm">Quản lý các tài khoản ngân hàng và phương thức nhận thanh toán từ khách hàng.</p>
+                </div>
+                <button onclick="HPUI.openModal('payModal')" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors whitespace-nowrap">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Thêm phương thức
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-[#122131]/80 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                            <i data-lucide="banknote" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white uppercase tracking-tight">Tiền mặt</h4>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Thanh toán trực tiếp tại quầy</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Mặc định</span>
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                    </div>
+                </div>
+                <div class="bg-[#122131]/80 border border-slate-800 p-5 rounded-xl flex items-center justify-between opacity-60">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
+                            <i data-lucide="smartphone" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white uppercase tracking-tight">Ví điện tử (Momo/VNPay)</h4>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Chưa cấu hình API</p>
+                        </div>
+                    </div>
+                    <button class="text-xs font-bold text-blue-400 hover:underline">Thiết lập</button>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 ml-1">Tài khoản Ngân hàng (Chuyển khoản)</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @{
+                        var banks = new[] {
+                            new { name = "Techcombank", no = "1903.8888.9999", owner = "HP AUTO DETAILING", branch = "Hà Nội", color = "bg-rose-600", isDefault = true },
+                            new { name = "Vietcombank", no = "0011.0000.2222", owner = "NGUYEN VAN ANH", branch = "Sở Giao Dịch", color = "bg-emerald-600", isDefault = false }
+                        };
+                    }
+                    @foreach (var bank in banks)
+                    {
+                        <div class="bg-[#122131]/80 border border-slate-800 rounded-2xl overflow-hidden group hover:border-blue-500/30 transition-all">
+                            <div class="p-5">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="w-12 h-8 rounded-md @bank.color flex items-center justify-center text-[10px] font-black text-white italic">@bank.name.Substring(0,3).ToUpper()</div>
+                                    <div class="flex gap-1">
+                                        <button onclick="HPUI.toast('Đang mở QR Code', 'info')" class="p-1.5 text-slate-400 hover:text-white bg-slate-800/50 rounded-lg border border-slate-700/50 transition-all"><i data-lucide="qr-code" class="w-4 h-4"></i></button>
+                                        <button onclick="HPUI.openModal('payModal')" class="p-1.5 text-slate-400 hover:text-white bg-slate-800/50 rounded-lg border border-slate-700/50 transition-all"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                    </div>
+                                </div>
+                                <div class="space-y-1">
+                                    <h5 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Số tài khoản</h5>
+                                    <p class="text-lg font-bold text-white font-mono tracking-wider">@bank.no</p>
+                                </div>
+                                <div class="mt-4 pt-4 border-t border-slate-800/50 space-y-1">
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Chủ tài khoản: <span class="text-slate-300">@bank.owner</span></p>
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Chi nhánh: <span class="text-slate-300">@bank.branch</span></p>
+                                </div>
+                            </div>
+                            <div class="px-5 py-3 bg-[#0B101D]/50 border-t border-slate-800 flex justify-between items-center">
+                                @if (bank.isDefault)
+                                {
+                                    <span class="text-[9px] font-black uppercase text-emerald-400 tracking-[0.15em] flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Mặc định trên hóa đơn</span>
+                                }
+                                else
+                                {
+                                    <button onclick="HPUI.toast('Đã đặt làm mặc định', 'success')" class="text-[9px] font-bold uppercase text-slate-500 hover:text-blue-400 tracking-[0.15em] transition-colors">Đặt làm mặc định</button>
+                                }
+                                <button class="text-slate-600 hover:text-rose-400 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* Modal: Thanh toán *@
+        <div id="payModal" class="hp-modal-overlay hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+            <div class="hp-modal-content bg-[#122131] border border-slate-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-zoom-in">
+                <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-[#0B101D]/50">
+                    <div>
+                        <h3 class="text-lg font-bold text-white font-display">Thêm tài khoản Ngân hàng</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Payment Configuration</p>
+                    </div>
+                    <button onclick="HPUI.closeModal('payModal')" class="text-slate-500 hover:text-white p-1 transition-colors">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-5">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tên Ngân hàng</label>
+                        <select class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all appearance-none">
+                            <option>Techcombank</option><option>Vietcombank</option><option>MB Bank</option><option>VietinBank</option><option>BIDV</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Số tài khoản</label>
+                        <input type="text" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:border-blue-500/50 outline-none transition-all" placeholder="0001xxxxxxxx">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Họ tên chủ tài khoản</label>
+                        <input type="text" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="NGUYEN VAN A">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Chi nhánh</label>
+                        <input type="text" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="Chi nhánh Hà Nội">
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-[#0B101D]/50 rounded-xl border border-slate-800/50 mt-2">
+                        <input type="checkbox" id="chkDefault" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-0">
+                        <label for="chkDefault" class="text-xs text-slate-300 cursor-pointer">Đặt làm mặc định để hiển thị trên hóa đơn và QR</label>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-[#0B101D]/80 border-t border-slate-800 flex justify-end gap-3">
+                    <button onclick="HPUI.closeModal('payModal')" class="px-5 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors">Hủy</button>
+                    <button onclick="HPUI.toast('Đã lưu thông tin tài khoản ngân hàng', 'success'); HPUI.closeModal('payModal')" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">Lưu phương thức</button>
+                </div>
+            </div>
+        </div>
+
+        @* ─── Tab: Cấu hình Máy in ───────────────────────────── *@
+        <div data-tab-panel="printer" class="xl:col-span-12 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-[#122131]/80 border border-slate-800 p-8 rounded-2xl shadow-sm space-y-8">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                            <i data-lucide="printer" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-display">Cấu hình Máy in</h3>
+                            <p class="text-xs text-slate-400">Trạng thái: <span class="text-emerald-400 font-bold uppercase tracking-widest ml-1">Đã kết nối USB</span></p>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Khổ giấy</label>
+                                <select class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none appearance-none">
+                                    <option selected>80mm (Nhiệt)</option>
+                                    <option>58mm (Nhiệt)</option>
+                                    <option>A4</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Số bản in</label>
+                                <input type="number" value="1" min="1" max="5" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mẫu in</label>
+                            <div class="space-y-2">
+                                @{
+                                    var templates = new[] {
+                                        new { id = "tpl1", label = "Mẫu hóa đơn dịch vụ", checked_ = true },
+                                        new { id = "tpl2", label = "Mẫu phiếu thu tiền", checked_ = false },
+                                        new { id = "tpl3", label = "Mẫu báo cáo ngày", checked_ = false }
+                                    };
+                                }
+                                @foreach (var tpl in templates)
+                                {
+                                    <label class="flex items-center gap-3 p-3 bg-[#0B101D]/50 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700 transition-all">
+                                        <input type="radio" name="printTpl" @(tpl.checked_ ? "checked" : "") class="text-blue-500 focus:ring-0">
+                                        <span class="text-sm text-slate-300">@tpl.label</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tuỳ chọn in</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                @{
+                                    var opts = new[] {
+                                        new { lbl = "Tự động in hóa đơn", val = true },
+                                        new { lbl = "Tự động in phiếu thu", val = false },
+                                        new { lbl = "In Logo lên hóa đơn", val = true },
+                                        new { lbl = "In mã vạch / QR Code", val = true }
+                                    };
+                                }
+                                @foreach (var opt in opts)
+                                {
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" @(opt.val ? "checked" : "") class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-0">
+                                        <span class="text-xs text-slate-400">@opt.lbl</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                        <div class="flex gap-3 pt-2">
+                            <button onclick="HPUI.toast('Đã lưu cấu hình máy in', 'success')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl text-sm font-bold transition-all">Lưu cấu hình</button>
+                            <button onclick="HPUI.toast('Đang in thử...', 'info')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-sm font-bold transition-all">In thử</button>
+                        </div>
+                    </div>
+                </div>
+
+                @* Xem trước bản in *@
+                <div class="bg-[#122131]/80 border border-slate-800 p-8 rounded-2xl shadow-sm flex flex-col">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-white font-display">Xem trước bản in</h3>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">80mm preview</span>
+                    </div>
+                    <div class="flex-1 flex items-start justify-center">
+                        <div class="w-[300px] bg-white text-black rounded-lg shadow-2xl p-4 font-mono text-[11px] leading-relaxed">
+                            <div class="text-center border-b border-dashed border-gray-300 pb-3 mb-3">
+                                <p class="text-base font-black tracking-tight">HP AUTO DETAILING</p>
+                                <p class="text-[10px] text-gray-500">Số 123, Đường Công Nghệ, TP.HCM</p>
+                                <p class="text-[10px] text-gray-500">Tel: 0987.654.321</p>
+                            </div>
+                            <div class="text-center mb-3">
+                                <p class="font-black text-sm tracking-widest">PHIẾU THANH TOÁN</p>
+                                <p class="text-[10px] text-gray-500">PDV-20240520-001</p>
+                                <p class="text-[10px] text-gray-500">20/05/2024 - 15:30</p>
+                            </div>
+                            <div class="border-t border-dashed border-gray-300 pt-3 mt-3 space-y-1">
+                                <div class="flex justify-between"><span>Rửa xe + đánh bóng</span><span>350,000</span></div>
+                                <div class="flex justify-between"><span>Phủ ceramic</span><span>1,200,000</span></div>
+                            </div>
+                            <div class="border-t border-dashed border-gray-300 pt-3 mt-3 space-y-1">
+                                <div class="flex justify-between font-bold"><span>Tổng tiền:</span><span>1,550,000đ</span></div>
+                                <div class="flex justify-between text-[10px] text-gray-500"><span>Khuyến mãi:</span><span>-50,000đ</span></div>
+                                <div class="flex justify-between font-black text-sm"><span>Khách phải trả:</span><span>1,500,000đ</span></div>
+                            </div>
+                            <div class="text-center border-t border-dashed border-gray-300 pt-3 mt-3">
+                                <p class="text-[10px] text-gray-500">Cảm ơn quý khách và hẹn gặp lại!</p>
+                                <p class="text-[10px] text-gray-400 mt-1">www.hpautodetailing.vn</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Khởi động lại theme buttons sau khi trang load
+    document.addEventListener('DOMContentLoaded', function () {
+        const savedMode = localStorage.getItem('hp-theme-mode') || 'dark';
+        document.querySelectorAll('.theme-mode-btn').forEach(btn => {
+            if (btn.dataset.mode === savedMode) {
+                btn.classList.add('border-blue-500', 'text-blue-400', 'bg-blue-500/10');
+                btn.classList.remove('text-slate-500', 'border-slate-700/50');
+            }
+        });
+        const savedColor = localStorage.getItem('hp-primary-color') || 'Blue';
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            if (btn.dataset.color === savedColor) {
+                btn.classList.add('ring-2', btn.dataset.ring);
+            }
+        });
+        const savedLang = localStorage.getItem('hp-language') || 'vi';
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            const icon = btn.querySelector('[data-lucide="check-circle-2"]');
+            if (icon) icon.classList.toggle('hidden', btn.dataset.lang !== savedLang);
+        });
+
+        // Search account table
+        const searchInput = document.getElementById('accSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                const q = this.value.toLowerCase();
+                document.querySelectorAll('#accTableBody tr').forEach(row => {
+                    row.style.display = (row.dataset.search || '').toLowerCase().includes(q) ? '' : 'none';
+                });
+            });
+        }
+
+        if (window.lucide) lucide.createIcons();
+    });
+</script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Check if we need to open a specific tab (e.g. from redirect)
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            if (tab) {
+                HPUI.switchTab('settingsTabs', tab);
+            }
+        });
+
+        function openAccModal(id, username, fullname, email, role) {
+            document.getElementById('accId').value = id || '';
+            document.getElementById('accUserName').value = username || '';
+            document.getElementById('accFullName').value = fullname || '';
+            document.getElementById('accEmail').value = email || '';
+            document.getElementById('accPassword').value = '';
+
+            if (role) {
+                const radio = document.querySelector(`input[name="accRole"][value="${role}"]`);
+                if (radio) radio.checked = true;
+            }
+
+            HPUI.openModal('accModal');
+        }
+
+        async function saveAccount() {
+            const data = {
+                id: document.getElementById('accId').value,
+                userName: document.getElementById('accUserName').value,
+                fullName: document.getElementById('accFullName').value,
+                email: document.getElementById('accEmail').value,
+                password: document.getElementById('accPassword').value,
+                role: document.querySelector('input[name="accRole"]:checked')?.value || ''
+            };
+
+            try {
+                const response = await fetch('/settings/accounts/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    HPUI.toast(result.message, 'success');
+                    HPUI.closeModal('accModal');
+                    setTimeout(() => window.location.href = '/settings?tab=accounts', 1000);
+                } else {
+                    HPUI.toast(result.message, 'error');
+                }
+            } catch (err) {
+                HPUI.toast('Lỗi kết nối máy chủ', 'error');
+            }
+        }
+
+        async function deleteAccount(id) {
+            if (!confirm('Bạn có chắc chắn muốn KHÓA tài khoản này không?')) return;
+            try {
+                const response = await fetch(`/settings/accounts/delete/${id}`, { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    HPUI.toast(result.message, 'success');
+                    setTimeout(() => window.location.href = '/settings?tab=accounts', 1000);
+                } else {
+                    HPUI.toast(result.message, 'error');
+                }
+            } catch (err) {
+                HPUI.toast('Lỗi kết nối máy chủ', 'error');
+            }
+        }
+
+        async function activateAccount(id) {
+            if (!confirm('Mở khóa tài khoản này?')) return;
+            try {
+                const response = await fetch(`/settings/accounts/activate/${id}`, { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    HPUI.toast(result.message, 'success');
+                    setTimeout(() => window.location.href = '/settings?tab=accounts', 1000);
+                } else {
+                    HPUI.toast(result.message, 'error');
+                }
+            } catch (err) {
+                HPUI.toast('Lỗi kết nối máy chủ', 'error');
+            }
+        }
+
+        async function hardDeleteAccount(id) {
+            if (!confirm('CẢNH BÁO: Xóa vĩnh viễn tài khoản này khỏi hệ thống? Hành động này không thể hoàn tác!')) return;
+            try {
+                const response = await fetch(`/settings/accounts/hard-delete/${id}`, { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    HPUI.toast(result.message, 'success');
+                    setTimeout(() => window.location.href = '/settings?tab=accounts', 1000);
+                } else {
+                    HPUI.toast(result.message, 'error');
+                }
+            } catch (err) {
+                HPUI.toast('Lỗi kết nối máy chủ', 'error');
+            }
+        }
+    </script>
+}

@@ -1,0 +1,279 @@
+@{ ViewData["Title"] = "Tạo phiếu nhập kho"; Layout = "_Layout";
+   var materials = ViewBag.Materials as List<HP_Detailing.Models.Material> ?? new();
+   var suppliers = ViewBag.Suppliers as List<HP_Detailing.Models.Supplier> ?? new();
+   var jsonOpts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+}
+
+<div class="p-4 sm:p-6 lg:p-8 space-y-8 flex-1 h-full min-h-0 overflow-y-auto">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = "Tạo phiếu nhập kho",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> {
+            new(){Label="Trang chủ",Path="/"}, new(){Label="Kho",Path="/warehouse"}, new(){Label="Nhập kho mới"}
+        },
+        ActionsSlotHtml = @"<button onclick=""HPUI.loadPage('/warehouse/imports')"" class=""flex items-center gap-2 px-4 py-2.5 border border-slate-700 text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold uppercase tracking-widest rounded-lg""><i data-lucide=""arrow-left"" class=""w-4 h-4""></i> Quay lại</button>"
+    })
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        @* Main Form *@
+        <div class="lg:col-span-2 space-y-6">
+            @* Supplier section *@
+            <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 space-y-4">
+                <h3 class="font-bold text-slate-300 flex items-center gap-2"><i data-lucide="truck" class="w-4 h-4 text-blue-400"></i> Thông tin nhà cung cấp</h3>
+
+                @if (suppliers.Any()) {
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Chọn nhà cung cấp đã biết</label>
+                        <select id="supplierSelect" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all">
+                            <option value="">-- Nhà cung cấp mới --</option>
+                            @foreach (var s in suppliers) {
+                                <option value="@s.Id" data-phone="@s.Phone">@s.Name @(s.LastUsedAt.HasValue ? $"(lần cuối: {s.LastUsedAt.Value:dd/MM/yyyy})" : "")</option>
+                            }
+                        </select>
+                    </div>
+                }
+
+                <div id="newSupplierFields" class="grid grid-cols-1 md:grid-cols-2 gap-4 @(suppliers.Any() ? "" : "")">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tên nhà cung cấp <span class="text-rose-500">*</span></label>
+                        <input type="text" id="supplierName" placeholder="Nhập tên nhà cung cấp..." class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Số điện thoại</label>
+                        <input type="tel" id="supplierPhone" placeholder="09xx.xxx.xxx" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 font-mono focus:border-blue-500 outline-none transition-all" />
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ghi chú phiếu nhập</label>
+                    <input type="text" id="importNotes" placeholder="Ghi chú thêm (tuỳ chọn)..." class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" />
+                </div>
+            </div>
+
+            @* Proof & Payment section *@
+            <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 space-y-4">
+                <h3 class="font-bold text-slate-300 flex items-center gap-2"><i data-lucide="receipt" class="w-4 h-4 text-blue-400"></i> Minh chứng & Thanh toán</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Người nhận hàng <span class="text-rose-500">*</span></label>
+                        <input type="text" id="receivedBy" value="@(User.Identity?.Name ?? "Admin")" placeholder="Tên người nhận hàng..." class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Trạng thái thanh toán</label>
+                        <select id="paymentStatus" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all">
+                            <option value="Chưa thanh toán">Chưa thanh toán</option>
+                            <option value="Đã thanh toán">Đã thanh toán</option>
+                            <option value="Thanh toán một phần">Thanh toán một phần</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Link minh chứng hóa đơn (Google Drive, ảnh...)</label>
+                    <input type="url" id="invoiceLink" placeholder="https://drive.google.com/... hoặc link hóa đơn điện tử" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" />
+                    <p class="text-[11px] text-slate-400 leading-normal flex items-start gap-1.5 mt-1.5 bg-slate-950/40 p-3 rounded-lg border border-slate-800">
+                        <i data-lucide="help-circle" class="w-4 h-4 text-blue-400 shrink-0 mt-0.5"></i>
+                        <span>
+                            <strong>Mẹo chia sẻ Google Drive public:</strong> Chuột phải vào file → <strong>Chia sẻ (Share)</strong> → Dưới mục <strong>Quyền truy cập chung (General access)</strong> chuyển thành <strong>"Bất kỳ ai có liên kết này" (Anyone with the link)</strong> → Chọn quyền <strong>Người xem (Viewer)</strong> → Nhấn <strong>Sao chép liên kết (Copy link)</strong> và dán vào đây.
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            @* Line Items *@
+            <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/30">
+                    <h3 class="font-bold text-slate-300 flex items-center gap-2"><i data-lucide="list" class="w-4 h-4 text-blue-400"></i> Danh sách vật tư nhập</h3>
+                    <button id="btnAddLine" class="text-xs font-bold text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-500 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Thêm dòng</button>
+                </div>
+                <div class="p-4 overflow-x-auto">
+                    <table class="w-full text-sm min-w-[520px]">
+                        <thead><tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-800">
+                            <th class="pb-3 text-left pl-2">Vật tư</th>
+                            <th class="pb-3 text-center w-28">Số lượng</th>
+                            <th class="pb-3 text-right w-36">Đơn giá (VNĐ)</th>
+                            <th class="pb-3 text-right w-36">Thành tiền</th>
+                            <th class="pb-3 w-10"></th>
+                        </tr></thead>
+                        <tbody id="importLines">
+                            <tr id="emptyRow"><td colspan="5" class="py-10 text-center text-slate-500 text-sm">Nhấn <strong class="text-blue-400">"Thêm dòng"</strong> để bắt đầu</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @* Summary Sidebar *@
+        <div>
+            <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 space-y-5 sticky top-6">
+                <h3 class="font-bold text-slate-300 flex items-center gap-2"><i data-lucide="calculator" class="w-4 h-4 text-blue-400"></i> Tổng kết phiếu</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm"><span class="text-slate-400">Số mặt hàng:</span><span id="summaryItems" class="font-bold text-slate-200">0</span></div>
+                    <div class="flex justify-between text-sm"><span class="text-slate-400">Tổng số lượng:</span><span id="summaryQty" class="font-bold text-slate-200">0</span></div>
+                    <div class="h-px bg-slate-800"></div>
+                    <div class="flex justify-between text-base font-bold"><span class="text-slate-300">Tổng tiền:</span><span id="summaryTotal" class="text-blue-400 font-mono">0 đ</span></div>
+                </div>
+                <button id="btnSaveImport" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                    <i data-lucide="save" class="w-4 h-4"></i> Lưu phiếu nhập kho
+                </button>
+                <p class="text-[10px] text-slate-500 text-center">Tồn kho cập nhật ngay sau khi lưu.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    if (window.lucide) lucide.createIcons();
+
+    // camelCase JSON from server
+    const materials = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        materials.Select(m => new { id = m.Id, materialCode = m.MaterialCode, name = m.Name, unit = m.Unit, unitPrice = m.UnitPrice })
+    ));
+
+    // Supplier select logic
+    const selEl = document.getElementById('supplierSelect');
+    if (selEl) {
+        selEl.addEventListener('change', function() {
+            const opt = this.options[this.selectedIndex];
+            const isNew = !this.value;
+            const nameEl = document.getElementById('supplierName');
+            const phoneEl = document.getElementById('supplierPhone');
+            if (!isNew) {
+                nameEl.value = opt.text.replace(/\s*\(lần cuối:.*\)/, '').trim();
+                phoneEl.value = opt.dataset.phone || '';
+                nameEl.readOnly = true;
+                phoneEl.readOnly = true;
+                nameEl.classList.add('opacity-60');
+                phoneEl.classList.add('opacity-60');
+            } else {
+                nameEl.value = ''; phoneEl.value = '';
+                nameEl.readOnly = false; phoneEl.readOnly = false;
+                nameEl.classList.remove('opacity-60'); phoneEl.classList.remove('opacity-60');
+            }
+        });
+    }
+
+    // Material dropdown options
+    function buildOptions() {
+        return '<option value="">-- Chọn vật tư --</option>' +
+            materials.map(m => `<option value="${m.id}" data-price="${m.unitPrice}" data-unit="${m.unit || ''}">${m.materialCode} — ${m.name}</option>`).join('');
+    }
+
+    function recalcRow(row) {
+        const qty  = parseFloat(row.querySelector('.line-qty').value)   || 0;
+        const price= parseFloat(row.querySelector('.line-price').value) || 0;
+        const total = qty * price;
+        row.querySelector('.line-total').textContent = total.toLocaleString('vi-VN') + ' đ';
+        row.dataset.total = total;
+        updateSummary();
+    }
+
+    function updateSummary() {
+        const rows = document.querySelectorAll('#importLines .import-line');
+        let items = 0, qty = 0, total = 0;
+        rows.forEach(r => {
+            const q = parseFloat(r.querySelector('.line-qty').value) || 0;
+            const t = parseFloat(r.dataset.total) || 0;
+            if (r.querySelector('.line-mat').value) items++;
+            qty += q; total += t;
+        });
+        document.getElementById('summaryItems').textContent = items;
+        document.getElementById('summaryQty').textContent = qty.toLocaleString('vi-VN');
+        document.getElementById('summaryTotal').textContent = total.toLocaleString('vi-VN') + ' đ';
+    }
+
+    function addLine() {
+        const emptyRow = document.getElementById('emptyRow');
+        if (emptyRow) emptyRow.remove();
+
+        const tr = document.createElement('tr');
+        tr.className = 'import-line border-t border-slate-800/50';
+        tr.dataset.total = 0;
+        tr.innerHTML = `
+            <td class="py-2 pr-2">
+                <select class="line-mat w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2 px-3 text-sm text-slate-300 focus:border-blue-500 outline-none">${buildOptions()}</select>
+            </td>
+            <td class="py-2 px-2">
+                <div class="relative">
+                    <input type="number" class="line-qty w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2 px-3 text-sm text-center text-slate-300 font-mono focus:border-blue-500 outline-none" placeholder="0" min="0" />
+                    <span class="line-unit absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-500"></span>
+                </div>
+            </td>
+            <td class="py-2 px-2">
+                <input type="number" class="line-price w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2 px-3 text-sm text-right text-blue-400 font-mono font-bold focus:border-blue-500 outline-none" placeholder="0" min="0" />
+            </td>
+            <td class="py-2 pl-2 text-right font-mono text-sm text-emerald-400 font-bold line-total whitespace-nowrap">0 đ</td>
+            <td class="py-2 pl-2 text-center">
+                <button class="text-slate-600 hover:text-rose-400 transition-colors remove-line"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </td>`;
+
+        document.getElementById('importLines').appendChild(tr);
+        lucide.createIcons();
+
+        tr.querySelector('.line-mat').addEventListener('change', function() {
+            const opt = this.options[this.selectedIndex];
+            tr.querySelector('.line-price').value = opt.dataset.price || '';
+            tr.querySelector('.line-unit').textContent = opt.dataset.unit || '';
+            recalcRow(tr);
+        });
+        tr.querySelector('.line-qty').addEventListener('input',   () => recalcRow(tr));
+        tr.querySelector('.line-price').addEventListener('input', () => recalcRow(tr));
+        tr.querySelector('.remove-line').addEventListener('click', () => { tr.remove(); updateSummary(); });
+    }
+
+    document.getElementById('btnAddLine').addEventListener('click', addLine);
+
+    // Save import
+    document.getElementById('btnSaveImport').addEventListener('click', function() {
+        const rows = document.querySelectorAll('#importLines .import-line');
+        const lines = [];
+        rows.forEach(r => {
+            const matId = parseInt(r.querySelector('.line-mat').value);
+            const qty   = parseFloat(r.querySelector('.line-qty').value);
+            const price = parseFloat(r.querySelector('.line-price').value) || 0;
+            if (matId && qty > 0) lines.push({ MaterialId: matId, Quantity: qty, UnitPrice: price });
+        });
+
+        if (!lines.length) { HPUI.toast('Vui lòng thêm ít nhất 1 mặt hàng!', 'warning'); return; }
+
+        const supplierIdEl = document.getElementById('supplierSelect');
+        const supplierId = supplierIdEl ? parseInt(supplierIdEl.value) || null : null;
+        const supplierName = document.getElementById('supplierName').value.trim();
+
+        this.disabled = true;
+        this.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Đang lưu...';
+        lucide.createIcons();
+
+        fetch('/warehouse/imports/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                SupplierId: supplierId,
+                SupplierName: !supplierId ? supplierName : null,
+                SupplierPhone: !supplierId ? document.getElementById('supplierPhone').value.trim() : null,
+                Notes: document.getElementById('importNotes').value.trim(),
+                InvoiceLink: document.getElementById('invoiceLink').value.trim(),
+                ReceivedBy: document.getElementById('receivedBy').value.trim() || 'Admin',
+                PaymentStatus: document.getElementById('paymentStatus').value,
+                Lines: lines
+            })
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                HPUI.toast(`Đã lưu phiếu ${data.importCode}! Tồn kho đã được cập nhật.`, 'success');
+                setTimeout(() => HPUI.loadPage('/warehouse/imports/' + data.importId), 500);
+            } else {
+                this.disabled = false;
+                this.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Lưu phiếu nhập kho';
+                lucide.createIcons();
+                HPUI.toast(data.message, 'error');
+            }
+        }).catch(() => {
+            this.disabled = false;
+            this.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Lưu phiếu nhập kho';
+            lucide.createIcons();
+            HPUI.toast('Lỗi kết nối!', 'error');
+        });
+    });
+})();
+</script>

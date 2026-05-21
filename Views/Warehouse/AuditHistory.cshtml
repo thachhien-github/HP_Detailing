@@ -1,0 +1,247 @@
+@{ ViewData["Title"] = "Lịch sử kiểm kê"; Layout = "_Layout"; }
+
+<div class="p-4 sm:p-6 lg:p-8 space-y-8 flex-1 h-full min-h-0 overflow-y-auto">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = "Lịch sử kiểm kê kho",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> {
+            new(){Label="Trang chủ",Path="/"}, new(){Label="Kho vật tư",Path="/warehouse"}, new(){Label="Kiểm kê",Path="/warehouse/audit"}, new(){Label="Lịch sử kiểm kê"}
+        },
+        ActionsSlotHtml = @"<a href=""/warehouse/audit"" class=""flex items-center gap-2 px-4 py-2.5 bg-blue-500 text-slate-950 hover:opacity-90 transition-all text-xs font-bold uppercase tracking-widest rounded-lg""><i data-lucide=""clipboard-check"" class=""w-5 h-5""></i> TẠO KIỂM KÊ MỚI</a>"
+    })
+
+    @* KPI Cards *@
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-[#122131] border border-slate-800 p-6 rounded-xl relative overflow-hidden group hover:border-blue-500/30 transition-colors">
+            <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="clipboard-list" class="w-20 h-20 text-blue-500"></i></div>
+            <p class="text-slate-400 text-[11px] font-bold mb-3 uppercase tracking-widest">Tổng phiên kiểm kê</p>
+            <h3 id="kpiTotalSessions" class="text-2xl font-bold text-blue-400 font-mono">—</h3>
+            <p class="mt-3 text-[11px] text-slate-500">Toàn bộ lịch sử hệ thống</p>
+        </div>
+        <div class="bg-[#122131] border border-slate-800 p-6 rounded-xl relative overflow-hidden group hover:border-amber-500/30 transition-colors">
+            <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="alert-triangle" class="w-20 h-20 text-amber-500"></i></div>
+            <p class="text-slate-400 text-[11px] font-bold mb-3 uppercase tracking-widest">Phiên gần nhất</p>
+            <h3 id="kpiLastSession" class="text-2xl font-bold text-slate-200 font-mono text-base">—</h3>
+            <p id="kpiLastDate" class="mt-3 text-[11px] text-slate-500">—</p>
+        </div>
+        <div class="bg-[#122131] border border-slate-800 p-6 rounded-xl relative overflow-hidden group hover:border-rose-500/30 transition-colors">
+            <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="git-pull-request" class="w-20 h-20 text-rose-500"></i></div>
+            <p class="text-slate-400 text-[11px] font-bold mb-3 uppercase tracking-widest">Chênh lệch lần cuối</p>
+            <h3 id="kpiLastDiscrepancy" class="text-2xl font-bold text-rose-400 font-mono">—</h3>
+            <p class="mt-3 text-[11px] text-slate-500">Số vật tư không khớp</p>
+        </div>
+    </div>
+
+    @* Table *@
+    <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left whitespace-nowrap min-w-[700px]">
+                <thead>
+                    <tr class="bg-[#1c2b3c]/50 border-b border-slate-800">
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Mã phiên</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Thời gian</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Người kiểm</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Mặt hàng</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Chênh lệch</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody id="auditHistoryBody" class="divide-y divide-slate-800 bg-[#122131]">
+                    <tr><td colspan="6" class="px-6 py-16 text-center text-slate-500 text-sm">Đang tải dữ liệu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        @* Pagination *@
+        <div id="auditPagination" class="px-6 py-4 border-t border-slate-800 bg-[#1c2b3c]/30 flex justify-between items-center"></div>
+    </div>
+</div>
+
+@* ===== Modal chi tiết phiên kiểm kê ===== *@
+<div id="auditDetailModal" class="fixed inset-0 z-[9999] hidden" style="display:none">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="HPUI.closeModal('auditDetailModal')"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+        <div class="bg-[#0F1923] border border-slate-700 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden pointer-events-auto max-h-[85vh] flex flex-col" onclick="event.stopPropagation()">
+            <div class="px-6 py-5 border-b border-slate-800 flex justify-between items-center shrink-0">
+                <h2 id="modalTitle" class="text-lg font-bold text-white flex items-center gap-2">
+                    <i data-lucide="clipboard-check" class="w-5 h-5 text-blue-400"></i>
+                    Chi tiết phiên kiểm kê
+                </h2>
+                <button onclick="HPUI.closeModal('auditDetailModal')" class="text-slate-500 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            @* Thông tin phiên *@
+            <div id="modalSessionInfo" class="px-6 py-4 bg-[#0B101D] border-b border-slate-800 shrink-0"></div>
+            @* Bảng chi tiết vật tư *@
+            <div class="flex-1 overflow-y-auto">
+                <table class="w-full text-left">
+                    <thead class="sticky top-0 z-10">
+                        <tr class="bg-slate-900 border-b border-slate-800">
+                            <th class="px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mã VT</th>
+                            <th class="px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tên vật tư</th>
+                            <th class="px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">ĐVT</th>
+                            <th class="px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Tồn HT</th>
+                            <th class="px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Thực tế</th>
+                            <th class="px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Chênh lệch</th>
+                            <th class="px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalDetailBody" class="divide-y divide-slate-800/50"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    if (window.lucide) lucide.createIcons();
+
+    var currentPage = 1;
+    var pageSize = 5;
+
+    function loadHistory(page) {
+        currentPage = page;
+        fetch(`/warehouse/audit/history?page=${page}&pageSize=${pageSize}`)
+            .then(r => r.json())
+            .then(data => {
+                renderTable(data);
+                renderPagination(data);
+                updateKPI(data);
+            })
+            .catch(() => {
+                document.getElementById('auditHistoryBody').innerHTML =
+                    '<tr><td colspan="6" class="px-6 py-16 text-center text-rose-400 text-sm">Lỗi tải dữ liệu</td></tr>';
+            });
+    }
+
+    function updateKPI(data) {
+        document.getElementById('kpiTotalSessions').textContent = data.totalCount;
+        if (data.items && data.items.length > 0 && currentPage === 1) {
+            var latest = data.items[0];
+            document.getElementById('kpiLastSession').textContent = latest.auditCode;
+            document.getElementById('kpiLastDate').textContent = latest.auditDate;
+            document.getElementById('kpiLastDiscrepancy').textContent = latest.discrepancyCount + ' mặt hàng';
+        }
+    }
+
+    function renderTable(data) {
+        var tbody = document.getElementById('auditHistoryBody');
+        if (!data.items || data.items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-16 text-center text-slate-500 text-sm">Chưa có phiên kiểm kê nào. <a href="/warehouse/audit" class="text-blue-400 hover:underline">Tạo kiểm kê đầu tiên</a></td></tr>';
+            return;
+        }
+        var html = '';
+        data.items.forEach(function(s) {
+            var hasDiff = s.discrepancyCount > 0;
+            var diffBadgeClass = hasDiff
+                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+            var diffIcon = hasDiff ? 'alert-triangle' : 'check-circle';
+            html += `<tr class="hover:bg-slate-800/30 transition-colors cursor-pointer group" onclick="viewAuditDetail(${s.id})">
+                <td class="px-6 py-4"><div class="flex items-center gap-2"><i data-lucide="clipboard-list" class="w-4 h-4 text-blue-400"></i><span class="font-mono text-sm font-bold text-blue-400 group-hover:underline">${s.auditCode}</span></div></td>
+                <td class="px-6 py-4 text-sm text-slate-300 font-mono">${s.auditDate}</td>
+                <td class="px-6 py-4 text-sm font-bold text-slate-200">${s.auditedBy || '—'}</td>
+                <td class="px-6 py-4 text-center"><span class="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded font-bold text-xs">${s.totalItems} <i data-lucide="package" class="w-3 h-3"></i></span></td>
+                <td class="px-6 py-4 text-center"><span class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest px-2.5 py-1 rounded ${diffBadgeClass}"><i data-lucide="${diffIcon}" class="w-3.5 h-3.5"></i>${s.discrepancyCount}</span></td>
+                <td class="px-6 py-4 text-sm text-slate-400 truncate max-w-[200px]">${s.notes || '—'}</td>
+            </tr>`;
+        });
+        tbody.innerHTML = html;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function renderPagination(data) {
+        var el = document.getElementById('auditPagination');
+        var totalPages = Math.ceil(data.totalCount / data.pageSize);
+        if (totalPages <= 1) {
+            el.innerHTML = `<span class="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Tổng: <span class="text-blue-400">${data.totalCount}</span> phiên kiểm kê</span><span></span>`;
+            return;
+        }
+        var btns = '';
+        // Nút Previous
+        btns += `<button onclick="loadAuditPage(${data.page - 1})" ${data.page <= 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded text-xs font-bold ${data.page <= 1 ? 'text-slate-600 cursor-not-allowed' : 'text-slate-300 hover:bg-slate-700'}"><i data-lucide="chevron-left" class="w-4 h-4 inline"></i></button>`;
+        // Số trang
+        for (var i = 1; i <= totalPages; i++) {
+            if (i === data.page) {
+                btns += `<button class="px-3 py-1.5 rounded text-xs font-bold bg-blue-600 text-white">${i}</button>`;
+            } else if (Math.abs(i - data.page) <= 2 || i === 1 || i === totalPages) {
+                btns += `<button onclick="loadAuditPage(${i})" class="px-3 py-1.5 rounded text-xs font-bold text-slate-400 hover:bg-slate-700 hover:text-white">${i}</button>`;
+            } else if (Math.abs(i - data.page) === 3) {
+                btns += `<span class="px-1 text-slate-600">…</span>`;
+            }
+        }
+        // Nút Next
+        btns += `<button onclick="loadAuditPage(${data.page + 1})" ${data.page >= totalPages ? 'disabled' : ''} class="px-3 py-1.5 rounded text-xs font-bold ${data.page >= totalPages ? 'text-slate-600 cursor-not-allowed' : 'text-slate-300 hover:bg-slate-700'}"><i data-lucide="chevron-right" class="w-4 h-4 inline"></i></button>`;
+
+        el.innerHTML = `<span class="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Tổng: <span class="text-blue-400">${data.totalCount}</span> phiên</span><div class="flex items-center gap-1">${btns}</div>`;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    window.loadAuditPage = function(p) { loadHistory(p); };
+
+    // Xem chi tiết phiên kiểm kê
+    window.viewAuditDetail = function(id) {
+        HPUI.openModal('auditDetailModal');
+        document.getElementById('modalDetailBody').innerHTML = '<tr><td colspan="7" class="px-5 py-10 text-center text-slate-500 text-sm">Đang tải...</td></tr>';
+        document.getElementById('modalSessionInfo').innerHTML = '';
+
+        fetch(`/warehouse/audit/${id}`)
+            .then(r => r.json())
+            .then(res => {
+                if (!res.success) {
+                    document.getElementById('modalDetailBody').innerHTML = `<tr><td colspan="7" class="px-5 py-10 text-center text-rose-400 text-sm">${res.message}</td></tr>`;
+                    return;
+                }
+                var d = res.data;
+                document.getElementById('modalTitle').innerHTML = `<i data-lucide="clipboard-check" class="w-5 h-5 text-blue-400"></i> ${d.auditCode}`;
+
+                // Thông tin phiên
+                document.getElementById('modalSessionInfo').innerHTML = `
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                        <div><span class="text-slate-500 block mb-1">Thời gian</span><span class="text-slate-200 font-mono font-bold">${d.auditDate}</span></div>
+                        <div><span class="text-slate-500 block mb-1">Người kiểm</span><span class="text-slate-200 font-bold">${d.auditedBy || '—'}</span></div>
+                        <div><span class="text-slate-500 block mb-1">Tổng mặt hàng</span><span class="text-indigo-400 font-bold font-mono">${d.totalItems}</span></div>
+                        <div><span class="text-slate-500 block mb-1">Chênh lệch</span><span class="${d.discrepancyCount > 0 ? 'text-rose-400' : 'text-emerald-400'} font-bold font-mono">${d.discrepancyCount} mặt hàng</span></div>
+                    </div>
+                    ${d.notes ? `<p class="mt-3 text-xs text-slate-400 italic">${d.notes}</p>` : ''}`;
+
+                // Bảng chi tiết
+                var rows = '';
+                d.items.forEach(function(item) {
+                    var diff = item.discrepancy;
+                    var diffClass = 'text-slate-500';
+                    var diffText = '0';
+                    var rowBg = '';
+                    if (Math.abs(diff) > 0.001) {
+                        if (diff > 0) {
+                            diffClass = 'text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20';
+                            diffText = '+' + diff.toFixed(2).replace(/\.00$/, '');
+                            rowBg = 'bg-emerald-500/[0.03]';
+                        } else {
+                            diffClass = 'text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20';
+                            diffText = diff.toFixed(2).replace(/\.00$/, '');
+                            rowBg = 'bg-rose-500/[0.03]';
+                        }
+                    }
+                    rows += `<tr class="${rowBg} hover:bg-slate-800/20 transition-colors">
+                        <td class="px-5 py-3 font-mono text-xs text-blue-400 font-bold">${item.materialCode}</td>
+                        <td class="px-5 py-3 text-sm text-slate-200 font-bold">${item.materialName}</td>
+                        <td class="px-5 py-3 text-center text-xs text-slate-400">${item.unit}</td>
+                        <td class="px-5 py-3 text-center font-mono text-sm text-slate-300">${item.systemQuantity.toFixed(2).replace(/\.00$/, '')}</td>
+                        <td class="px-5 py-3 text-center font-mono text-sm text-blue-400 font-bold">${item.actualQuantity.toFixed(2).replace(/\.00$/, '')}</td>
+                        <td class="px-5 py-3 text-center"><span class="text-xs font-bold ${diffClass}">${diffText}</span></td>
+                        <td class="px-5 py-3 text-xs text-slate-400 italic">${item.note || ''}</td>
+                    </tr>`;
+                });
+                document.getElementById('modalDetailBody').innerHTML = rows;
+                if (window.lucide) lucide.createIcons();
+            })
+            .catch(() => {
+                document.getElementById('modalDetailBody').innerHTML = '<tr><td colspan="7" class="px-5 py-10 text-center text-rose-400 text-sm">Lỗi tải dữ liệu</td></tr>';
+            });
+    };
+
+    // Khởi tải
+    loadHistory(1);
+})();
+</script>

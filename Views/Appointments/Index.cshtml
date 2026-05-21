@@ -1,0 +1,358 @@
+@model HP_Detailing.Models.ViewModels.AppointmentListViewModel
+@{ ViewData["Title"] = "Appointments"; Layout = "_Layout"; }
+
+<div class="p-4 sm:p-6 lg:p-8 space-y-8 flex-1">
+    @* ===== PAGE HEADER ===== *@
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel
+    {
+        Title = "Quản lý Lịch hẹn",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb>
+        {
+            new() { Label = "Trang chủ", Path = "/" },
+            new() { Label = "Lịch hẹn" }
+        },
+        ActionsSlotHtml = @"<button onclick=""HPUI.openModal('addAppointmentModal')"" class=""bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)]""><i data-lucide=""calendar-plus"" class=""w-4 h-4""></i> Tạo lịch hẹn mới</button>"
+    })
+
+    <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(173,199,255,0.02)]">
+        @* ===== FILTER & SEARCH BAR ===== *@
+        <div class="p-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/30">
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                <div class="relative w-full sm:w-80 group">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-500 transition-colors"></i>
+                    <input id="aptSearch" type="text" placeholder="Tìm theo tên khách, biển số..."
+                           class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all placeholder:text-slate-600" />
+                </div>
+                <div class="relative w-full sm:w-48">
+                    <select id="aptStatus" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-slate-400 focus:border-blue-500/50 outline-none appearance-none cursor-pointer hover:bg-slate-800/50 transition-all">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="pending">Chờ xác nhận</option>
+                        <option value="arrived">Đã tiếp nhận</option>
+                        <option value="cancelled">Đã hủy</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none"></i>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden lg:block ml-2">
+                    Tổng số: <span class="text-blue-400" id="totalAptCount">@Model.Appointments.Count()</span> lịch hẹn
+                </div>
+            </div>
+        </div>
+
+        @* ===== APPOINTMENTS TABLE ===== *@
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-slate-900/50">
+                    <tr>
+                        <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Thời gian</th>
+                        <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Khách hàng</th>
+                        <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Thông tin xe</th>
+                        <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Dịch vụ yêu cầu</th>
+                        <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Trạng thái</th>
+                        <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="aptTableBody" class="divide-y divide-slate-800/50">
+                    <tr>
+                        <td colspan="6" class="px-6 py-8 text-center text-sm text-slate-500">Đang tải dữ liệu...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="aptPaging" class="px-4 py-3 border-t border-slate-800 bg-slate-900/20"></div>
+    </div>
+</div>
+
+@* ===== CREATE APPOINTMENT MODAL (AJAX DRIVEN) ===== *@
+<div id="addAppointmentModal" class="hp-modal-overlay hidden" style="display:none;">
+    <div class="hp-modal-content bg-[#122131] border border-slate-700 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between p-5 border-b border-slate-800 bg-[#0B101D]">
+            <h3 class="text-lg font-bold text-white font-display">Tạo Lịch hẹn mới</h3>
+            <button onclick="HPUI.closeModal('addAppointmentModal')" class="text-slate-500 hover:text-white transition-colors p-1">
+                <i data-lucide="x-circle" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
+            <div class="grid grid-cols-2 gap-5">
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Thời gian dự kiến</label>
+                    <input type="datetime-local" id="aptTime" class="w-full bg-[#051424] border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:border-blue-500 outline-none" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Khách hàng</label>
+                    <input type="text" id="aptCustName" placeholder="Tên khách hàng..." class="w-full bg-[#051424] border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:border-blue-500 outline-none" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Điện thoại</label>
+                    <input type="text" id="aptCustPhone" placeholder="Số điện thoại..." class="w-full bg-[#051424] border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:border-blue-500 outline-none" />
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Biển số xe</label>
+                    <input type="text" id="aptPlate" placeholder="Nhập biển số..." class="w-full bg-[#051424] border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:border-blue-500 outline-none font-mono uppercase" />
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Dịch vụ yêu cầu</label>
+                    <input type="text" id="aptServices" placeholder="Ví dụ: Rửa xe VIP, Phủ Ceramic, v.v" class="w-full bg-[#051424] border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:border-blue-500 outline-none" />
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Ghi chú thêm</label>
+                    <textarea id="aptNote" placeholder="Nhập ghi chú hoặc yêu cầu đặc biệt..." rows="3" class="w-full bg-[#051424] border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:border-blue-500 outline-none resize-none"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="p-5 border-t border-slate-800 bg-[#0B101D] flex justify-end gap-3">
+            <button onclick="HPUI.closeModal('addAppointmentModal')" class="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-400 text-sm font-bold rounded-lg transition-colors">Hủy</button>
+            <button id="btnSaveApt" type="button" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(59,130,246,0.2)] flex items-center gap-1.5">
+                <i data-lucide="save" class="w-4 h-4"></i> Lưu lịch hẹn
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        if (window.lucide) lucide.createIcons();
+        var currentPage = 1;
+        var pageSize = 10;
+
+        // Gán thời gian mặc định cho lịch đặt hẹn là giờ hiện tại + 2 tiếng
+        var now = new Date();
+        now.setHours(now.getHours() + 2);
+        var year = now.getFullYear();
+        var month = String(now.getMonth() + 1).padStart(2, '0');
+        var day = String(now.getDate()).padStart(2, '0');
+        var hours = String(now.getHours()).padStart(2, '0');
+        var minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('aptTime').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+        function escapeHtml(value) {
+            return (value || '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function getStatusBadge(status) {
+            if (status === 'arrived') {
+                return '<span class="inline-flex items-center px-2.5 py-1 rounded-md border text-[11px] font-bold uppercase tracking-widest text-emerald-400 border-emerald-500/20 bg-emerald-500/5">Đã tiếp nhận</span>';
+            }
+            if (status === 'cancelled') {
+                return '<span class="inline-flex items-center px-2.5 py-1 rounded-md border text-[11px] font-bold uppercase tracking-widest text-red-400 border-red-500/20 bg-red-500/5">Đã hủy</span>';
+            }
+            return '<span class="inline-flex items-center px-2.5 py-1 rounded-md border text-[11px] font-bold uppercase tracking-widest text-amber-400 border-amber-500/20 bg-amber-500/5">Chờ xác nhận</span>';
+        }
+
+        function getActionButtons(apt) {
+            if (apt.status !== 'pending') {
+                return '';
+            }
+
+            return `
+                <button type="button"
+                        onclick="updateAppointmentStatus(${apt.id}, 'arrived', true)"
+                        class="text-[11px] font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 rounded transition-colors flex items-center gap-1">
+                    <i data-lucide="check" class="w-3.5 h-3.5"></i> Tiếp nhận xe
+                </button>
+                <button type="button"
+                        onclick="updateAppointmentStatus(${apt.id}, 'cancelled', false)"
+                        class="text-[11px] font-bold uppercase tracking-widest text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded transition-colors flex items-center gap-1">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i> Hủy lịch
+                </button>
+            `;
+        }
+
+        function renderTable(items) {
+            var body = document.getElementById('aptTableBody');
+            if (!body) return;
+
+            if (!items || items.length === 0) {
+                body.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-sm text-slate-500">Không có lịch hẹn phù hợp.</td></tr>';
+                return;
+            }
+
+            body.innerHTML = items.map(function (apt) {
+                var noteHtml = apt.note ? `<p class="text-[11px] text-slate-500 mt-1 italic">"${escapeHtml(apt.note)}"</p>` : '';
+                var plate = escapeHtml(apt.plate || 'N/A');
+                var services = escapeHtml(apt.services || '');
+                var phone = escapeHtml(apt.customerPhone || '');
+                var customer = escapeHtml(apt.customerName || '');
+                var aptTime = new Date(apt.appointmentTime);
+                var timeText = aptTime.toLocaleString('vi-VN', { hour12: false }).replace(',', '');
+
+                return `
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                <span class="text-sm font-bold text-blue-400 font-mono tracking-wider">${timeText}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-[14px] font-bold text-slate-200">${customer}</p>
+                            <p class="text-[11px] font-mono text-slate-500 mt-1">${phone}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 bg-[#051424] border border-slate-700 rounded text-sm text-slate-300 font-mono font-bold tracking-wider">${plate}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-[13px] text-slate-300 font-medium">${services}</p>
+                            ${noteHtml}
+                        </td>
+                        <td class="px-6 py-4">${getStatusBadge(apt.status)}</td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">${getActionButtons(apt)}</div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function loadAppointments(page) {
+            currentPage = page || 1;
+            var keyword = document.getElementById('aptSearch')?.value?.trim() || '';
+            var status = document.getElementById('aptStatus')?.value || '';
+            var query = new URLSearchParams({
+                page: String(currentPage),
+                pageSize: String(pageSize),
+                search: keyword,
+                status: status
+            });
+
+            fetch('/appointments/list?' + query.toString())
+                .then(function(res){ return res.json(); })
+                .then(function(data){
+                    renderTable(data.items || []);
+                    document.getElementById('totalAptCount').textContent = data.totalCount ?? 0;
+                    HPUI.renderPaging('aptPaging', data.page || 1, data.totalPages || 0, function(nextPage){
+                        loadAppointments(nextPage);
+                    });
+                })
+                .catch(function(err){
+                    console.error(err);
+                    document.getElementById('aptTableBody').innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-sm text-red-400">Không thể tải danh sách lịch hẹn.</td></tr>';
+                });
+        }
+
+        var searchInput = document.getElementById('aptSearch');
+        var statusSelect = document.getElementById('aptStatus');
+        var debounceTimer;
+        if (searchInput) {
+            searchInput.addEventListener('input', function(){
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function(){ loadAppointments(1); }, 300);
+            });
+        }
+        if (statusSelect) {
+            statusSelect.addEventListener('change', function(){ loadAppointments(1); });
+        }
+
+        // ========================================================
+        // AJAX NGHIỆP VỤ: LƯU LỊCH HẸN MỚI LÊN SERVER
+        // ========================================================
+        var btnSave = document.getElementById('btnSaveApt');
+        if (btnSave) {
+            btnSave.addEventListener('click', function() {
+                var name = document.getElementById('aptCustName').value.trim();
+                var phone = document.getElementById('aptCustPhone').value.trim();
+                var plate = document.getElementById('aptPlate').value.trim();
+                var services = document.getElementById('aptServices').value.trim();
+                var time = document.getElementById('aptTime').value;
+                var note = document.getElementById('aptNote').value.trim();
+
+                if (!name || !phone) {
+                    HPUI.toast('Vui lòng nhập Tên khách hàng và Số điện thoại!', 'warning');
+                    return;
+                }
+
+                btnSave.disabled = true;
+                btnSave.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Đang lưu...';
+
+                fetch('/Appointments/Create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        CustomerName: name,
+                        CustomerPhone: phone,
+                        Plate: plate,
+                        Services: services,
+                        AppointmentTime: time,
+                        Note: note
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btnSave.disabled = false;
+                    btnSave.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Lưu lịch hẹn';
+                    if (window.lucide) lucide.createIcons();
+
+                    if (data.success) {
+                        HPUI.toast(data.message, 'success');
+                        HPUI.closeModal('addAppointmentModal');
+                        
+                        // Clear form inputs
+                        document.getElementById('aptCustName').value = '';
+                        document.getElementById('aptCustPhone').value = '';
+                        document.getElementById('aptPlate').value = '';
+                        document.getElementById('aptServices').value = '';
+                        document.getElementById('aptNote').value = '';
+
+                        loadAppointments(1);
+                    } else {
+                        HPUI.toast(data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    btnSave.disabled = false;
+                    btnSave.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Lưu lịch hẹn';
+                    if (window.lucide) lucide.createIcons();
+                    HPUI.toast('Không thể kết nối CSDL để lưu lịch hẹn!', 'error');
+                    console.error(err);
+                });
+            });
+        }
+
+        // ========================================================
+        // AJAX NGHIỆP VỤ: ĐỔI TRẠNG THÁI TRỰC TIẾP TỪ TABLE CELL
+        // ========================================================
+        window.updateAppointmentStatus = function(aptId, newStatus, shouldRedirect) {
+            HPUI.toast('Đang cập nhật trạng thái lịch hẹn...', 'info');
+
+            fetch('/Appointments/UpdateStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    AppointmentId: aptId,
+                    Status: newStatus
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    HPUI.toast(data.message, 'success');
+                    if (shouldRedirect && newStatus === 'arrived') {
+                        window.location.href = '/tickets/create?appointmentId=' + aptId;
+                        return;
+                    }
+                    loadAppointments(currentPage);
+                } else {
+                    HPUI.toast(data.message, 'error');
+                }
+            })
+            .catch(err => {
+                HPUI.toast('Lỗi kết nối khi cập nhật trạng thái!', 'error');
+                console.error(err);
+            });
+        };
+
+        loadAppointments(1);
+    })();
+</script>

@@ -1,0 +1,179 @@
+@model HP_Detailing.Models.AppUser
+@using Microsoft.AspNetCore.Identity
+@{ ViewData["Title"] = "Profile"; Layout = "_Layout"; }
+<div class="p-4 sm:p-6 lg:p-10 flex-1 space-y-8 h-full" data-tab-group="profileTabs">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = "Quản lý Tài khoản",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> { new(){Label="Trang chủ",Path="/"}, new(){Label="Hồ sơ người dùng"} }
+    })
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        @* Navigation Sidebar *@
+        <div class="lg:col-span-3 space-y-4">
+            <div class="bg-[#122131]/60 border border-slate-800 rounded-2xl p-4 shadow-sm backdrop-blur-md">
+                <div class="flex flex-col gap-1">
+                    <button data-tab-btn="info" onclick="HPUI.switchTab('profileTabs', 'info')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 bg-slate-800 text-white border border-blue-500/50"><i data-lucide="user" class="w-4 h-4"></i> Thông tin cơ bản</button>
+                    <button data-tab-btn="security" onclick="HPUI.switchTab('profileTabs', 'security')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent"><i data-lucide="shield" class="w-4 h-4 text-slate-500"></i> Bảo mật</button>
+                    <button data-tab-btn="activity" onclick="HPUI.switchTab('profileTabs', 'activity')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent"><i data-lucide="history" class="w-4 h-4 text-slate-500"></i> Hoạt động</button>
+                    <button data-tab-btn="notif" onclick="HPUI.switchTab('profileTabs', 'notif')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent"><i data-lucide="bell" class="w-4 h-4 text-slate-500"></i> Thông báo</button>
+                </div>
+            </div>
+            <div class="bg-red-500/5 border border-red-500/20 rounded-2xl p-4">
+                <button onclick="HPUI.toast('Đang đăng xuất khỏi hệ thống...', 'info'); setTimeout(()=>window.location.href='/account/login', 1000);" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl text-sm font-bold transition-all"><i data-lucide="log-out" class="w-4 h-4"></i> Đăng xuất tài khoản</button>
+            </div>
+        </div>
+
+        @* Content Area *@
+        <div class="lg:col-span-9 space-y-6">
+            @* INFO TAB *@
+            <div data-tab-panel="info" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-[#122131]/60 border border-slate-800 rounded-2xl p-6 text-center shadow-sm flex flex-col items-center justify-center">
+                        <label class="relative group cursor-pointer mb-4 block">
+                            <div class="w-32 h-32 rounded-3xl bg-slate-800 border-4 border-slate-800 overflow-hidden shadow-2xl transition-transform duration-500 group-hover:scale-105">
+                                <img src="@(Model.AvatarUrl ?? "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80")" alt="Avatar" class="w-full h-full object-cover group-hover:opacity-75 transition-opacity" />
+                            </div>
+                            <div class="absolute inset-x-0 bottom-0 py-2 bg-black/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-[10px] font-bold text-white uppercase tracking-tighter"><i data-lucide="camera" class="w-3 h-3"></i> Cập nhật ảnh</div>
+                            <div class="absolute -top-2 -right-2 w-8 h-8 bg-emerald-500 rounded-xl border-4 border-[#122131] flex items-center justify-center shadow-lg"><i data-lucide="check-circle" class="w-4 h-4 text-white"></i></div>
+                        </label>
+                        <div class="text-center">
+                            <h3 class="text-xl font-bold text-white">@Model.FullName</h3>
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mt-2"><i data-lucide="shield" class="w-3 h-3"></i> @Model.UserName</div>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2 grid grid-cols-2 gap-4">
+                        <div class="bg-[#122131]/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between"><div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-4"><i data-lucide="clock" class="w-5 h-5 text-purple-400"></i></div><div><p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Thời gian làm việc</p><h4 class="text-2xl font-bold text-white font-['Space_Grotesk']">1,240 <span class="text-sm font-normal text-slate-400">giờ</span></h4></div></div>
+                        <div class="bg-[#122131]/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between"><div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-4"><i data-lucide="star" class="w-5 h-5 text-amber-400"></i></div><div><p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Đánh giá hệ thống</p><h4 class="text-2xl font-bold text-white font-['Space_Grotesk']">4.9 <span class="text-sm font-normal text-slate-400">/ 5</span></h4></div></div>
+                        <div class="bg-[#122131]/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between"><div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4"><i data-lucide="credit-card" class="w-5 h-5 text-blue-400"></i></div><div><p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Lương thưởng tháng</p><h4 class="text-2xl font-bold text-white font-['Space_Grotesk']">12.5 <span class="text-sm font-normal text-slate-400">M</span></h4></div></div>
+                        <div class="bg-[#122131]/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between"><div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4"><i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i></div><div><p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Phiếu đã duyệt</p><h4 class="text-2xl font-bold text-white font-['Space_Grotesk']">842 <span class="text-sm font-normal text-slate-400">phiếu</span></h4></div></div>
+                    </div>
+                </div>
+
+                <div class="bg-[#122131]/60 border border-slate-800 rounded-2xl p-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
+                    <h3 class="text-xl font-bold text-white mb-8 flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center"><i data-lucide="user" class="w-4 h-4 text-blue-500"></i></div> Chi tiết hồ sơ cá nhân</h3>
+                    <form asp-controller="Profile" asp-action="UpdateProfile" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        @Html.AntiForgeryToken()
+                        <div class="space-y-2"><label class="text-xs font-bold tracking-[0.1em] text-slate-500 uppercase">Họ và tên</label><div class="relative group"><input type="text" name="FullName" value="@Model.FullName" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-xl py-3 px-4 pl-11 text-sm text-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" required /><i data-lucide="user" class="w-4 h-4 text-slate-600 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-blue-500 transition-colors"></i></div></div>
+                        <div class="space-y-2"><label class="text-xs font-bold tracking-[0.1em] text-slate-500 uppercase">Tên đăng nhập</label><div class="relative"><input type="text" value="@Model.UserName" disabled class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 pl-11 text-sm text-slate-500 cursor-not-allowed outline-none" /><i data-lucide="fingerprint" class="w-4 h-4 text-slate-700 absolute left-4 top-1/2 -translate-y-1/2"></i></div></div>
+                        <div class="space-y-2"><label class="text-xs font-bold tracking-[0.1em] text-slate-500 uppercase">Số điện thoại liên hệ</label><div class="relative group"><input type="text" name="PhoneNumber" value="@Model.PhoneNumber" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-xl py-3 px-4 pl-11 text-sm text-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-mono" /><i data-lucide="phone" class="w-4 h-4 text-slate-600 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-blue-500 transition-colors"></i></div></div>
+                        <div class="space-y-2"><label class="text-xs font-bold tracking-[0.1em] text-slate-500 uppercase">Email công việc</label><div class="relative group"><input type="email" value="@Model.Email" disabled class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 pl-11 text-sm text-slate-500 cursor-not-allowed outline-none" /><i data-lucide="mail" class="w-4 h-4 text-slate-600 absolute left-4 top-1/2 -translate-y-1/2"></i></div></div>
+                        <div class="md:col-span-2 space-y-2"><label class="text-xs font-bold tracking-[0.1em] text-slate-500 uppercase">URL Ảnh Đại Diện (Tùy chọn)</label><div class="relative group"><input type="text" name="AvatarUrl" value="@Model.AvatarUrl" placeholder="https://..." class="w-full bg-[#0B101D] border border-slate-700/50 rounded-xl py-3 px-4 pl-11 text-sm text-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" /><i data-lucide="image" class="w-4 h-4 text-slate-600 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-blue-500 transition-colors"></i></div></div>
+                        <div class="md:col-span-2 mt-10 pt-8 border-t border-slate-800/80 flex items-center justify-between">
+                            <p class="text-[10px] text-slate-500 max-w-sm">Dữ liệu hồ sơ này sẽ được sử dụng cho các các tài liệu in ấn và báo cáo hệ thống. Hãy đảm bảo thông tin chính xác.</p>
+                            <button type="submit" onclick="HPUI.toast('Đang lưu thông tin...', 'info');" class="relative bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl text-sm transition-all shadow-xl shadow-blue-600/20 flex items-center gap-2 overflow-hidden"><i data-lucide="save" class="w-4 h-4"></i> Lưu hồ sơ</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @* SECURITY TAB *@
+            <div data-tab-panel="security" class="space-y-6 hidden">
+                <div class="bg-[#122131]/60 border border-slate-800 rounded-2xl p-8">
+                    <h3 class="text-xl font-bold text-white mb-8 flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center"><i data-lucide="lock" class="w-4 h-4 text-rose-500"></i></div> Đổi mật khẩu tài khoản</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <form asp-controller="Profile" asp-action="ChangePassword" method="post" class="space-y-6">
+                            @Html.AntiForgeryToken()
+                            <div class="space-y-2"><label class="text-xs font-bold tracking-[0.1em] text-slate-500 uppercase">Mật khẩu hiện tại</label><input type="password" name="CurrentPassword" required class="w-full bg-[#0B101D] border border-slate-700/50 rounded-xl py-3 px-4 text-sm text-white focus:border-rose-500 outline-none transition-all" /></div>
+                            <div class="space-y-2"><label class="text-xs font-bold tracking-[0.1em] text-slate-500 uppercase">Mật khẩu mới</label><input type="password" name="NewPassword" required class="w-full bg-[#0B101D] border border-slate-700/50 rounded-xl py-3 px-4 text-sm text-white focus:border-rose-500 outline-none transition-all" /></div>
+                            <div class="space-y-2"><label class="text-xs font-bold tracking-[0.1em] text-slate-500 uppercase">Xác nhận mật khẩu mới</label><input type="password" name="ConfirmPassword" required class="w-full bg-[#0B101D] border border-slate-700/50 rounded-xl py-3 px-4 text-sm text-white focus:border-rose-500 outline-none transition-all" /></div>
+                            <button type="submit" onclick="HPUI.toast('Đang xác thực và cập nhật...', 'info')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-6 rounded-xl text-sm transition-all shadow-lg shadow-rose-600/20">Cập nhật mật khẩu</button>
+                        </form>
+                        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+                            <h4 class="text-sm font-bold text-slate-200 mb-4">Tiêu chuẩn mật khẩu</h4>
+                            <ul class="space-y-3">
+                                <li class="flex items-center gap-3 text-xs text-slate-500"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Ít nhất 8 ký tự</li>
+                                <li class="flex items-center gap-3 text-xs text-slate-500"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Chứa chữ cái viết hoa và viết thường</li>
+                                <li class="flex items-center gap-3 text-xs text-slate-500"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Có ít nhất một chữ số hoặc ký tự đặc biệt</li>
+                                <li class="flex items-center gap-3 text-xs text-slate-500"><i data-lucide="circle" class="w-4 h-4 text-slate-700"></i> Không được trùng với 3 mật khẩu gần nhất</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[#122131]/60 border border-slate-800 rounded-2xl p-8 flex items-center justify-between">
+                    <div class="flex items-center gap-6">
+                        <div class="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500"><i data-lucide="shield-check" class="w-8 h-8"></i></div>
+                        <div>
+                            <h4 class="text-lg font-bold text-white">Xác thực 2 yếu tố (2FA)</h4>
+                            <p class="text-sm text-slate-500">Tăng cường bảo mật bằng cách yêu cầu mã từ ứng dụng xác thực.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Đã tắt</span>
+                        <button onclick="HPUI.toast('Đang chuyển hướng thiết lập 2FA...', 'info')" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors">Thiết lập ngay</button>
+                    </div>
+                </div>
+            </div>
+
+            @* ACTIVITY TAB *@
+            <div data-tab-panel="activity" class="space-y-6 hidden">
+                <div class="bg-[#122131]/60 border border-slate-800 rounded-2xl p-8">
+                    <h3 class="text-xl font-bold text-white mb-8 flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center"><i data-lucide="clock" class="w-4 h-4 text-amber-500"></i></div> Nhật ký hoạt động gần đây</h3>
+                    <div class="space-y-8 relative before:content-[''] before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-px before:bg-slate-800">
+                        @{
+                            var logs = new[] {
+                                new { time = "15:42", date = "Hôm nay", action = "Đăng nhập hệ thống", device = "Chrome / Windows 11", icon = "log-in", color = "text-emerald-500 bg-emerald-500/10" },
+                                new { time = "11:20", date = "Hôm nay", action = "Cập nhật trạng thái phiếu #T-842", device = "Mobile / iOS", icon = "edit", color = "text-blue-500 bg-blue-500/10" },
+                                new { time = "17:05", date = "Hôm qua", action = "Đổi màu giao diện chủ đạo", device = "Chrome / Windows 11", icon = "palette", color = "text-purple-500 bg-purple-500/10" },
+                                new { time = "09:30", date = "Hôm qua", action = "Xóa danh mục dịch vụ lỗi", device = "Chrome / Windows 11", icon = "trash", color = "text-rose-500 bg-rose-500/10" }
+                            };
+                        }
+                        @foreach (var log in logs)
+                        {
+                            <div class="relative flex gap-6 group">
+                                <div class="w-10 h-10 rounded-xl @log.color border border-slate-800/50 flex items-center justify-center z-10 shrink-0 shadow-sm group-hover:scale-110 transition-transform"><i data-lucide="@log.icon" class="w-5 h-5"></i></div>
+                                <div class="flex-1 pb-2">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h5 class="text-sm font-bold text-slate-200">@log.action</h5>
+                                        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">@log.time - @log.date</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">Thiết bị: @log.device</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <button class="w-full mt-10 py-3 bg-slate-900/50 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs font-bold rounded-xl border border-slate-800 transition-all">Xem toàn bộ lịch sử</button>
+                </div>
+            </div>
+
+            @* NOTIFICATIONS TAB *@
+            <div data-tab-panel="notif" class="space-y-6 hidden">
+                <div class="bg-[#122131]/60 border border-slate-800 rounded-2xl p-8">
+                    <h3 class="text-xl font-bold text-white mb-8 flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center"><i data-lucide="bell" class="w-4 h-4 text-blue-500"></i></div> Cấu hình thông báo</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between p-4 bg-slate-900/30 border border-slate-800 rounded-2xl">
+                            <div><h5 class="text-sm font-bold text-slate-200">Thông báo Lịch hẹn mới</h5><p class="text-xs text-slate-500">Nhận thông báo khi có khách hàng đặt lịch trực tuyến.</p></div>
+                            <div class="relative inline-flex items-center cursor-pointer"><input type="checkbox" checked class="sr-only peer"><div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 peer-checked:after:bg-white"></div></div>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-slate-900/30 border border-slate-800 rounded-2xl">
+                            <div><h5 class="text-sm font-bold text-slate-200">Cảnh báo tồn kho</h5><p class="text-xs text-slate-500">Nhận cảnh báo khi vật tư sắp hết hoặc quá hạn sử dụng.</p></div>
+                            <div class="relative inline-flex items-center cursor-pointer"><input type="checkbox" checked class="sr-only peer"><div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 peer-checked:after:bg-white"></div></div>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-slate-900/30 border border-slate-800 rounded-2xl">
+                            <div><h5 class="text-sm font-bold text-slate-200">Báo cáo doanh thu ngày</h5><p class="text-xs text-slate-500">Tự động gửi báo cáo tổng kết vào 22:00 mỗi ngày.</p></div>
+                            <div class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer"><div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 peer-checked:after:bg-white"></div></div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-slate-800 flex justify-end"><button onclick="HPUI.toast('Đã lưu cấu hình thông báo', 'success')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl text-sm transition-all shadow-lg shadow-blue-600/20">Lưu cấu hình</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts { 
+    <script>
+        if(window.lucide) lucide.createIcons();
+        @if (ViewData["MustChangePassword"] != null && (bool)ViewData["MustChangePassword"])
+        {
+            <text>
+            setTimeout(() => {
+                if(window.HPUI && window.HPUI.switchTab) {
+                    window.HPUI.switchTab('profileTabs', 'security');
+                }
+            }, 500);
+            </text>
+        }
+    </script> 
+}

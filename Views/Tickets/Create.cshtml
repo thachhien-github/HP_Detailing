@@ -1,0 +1,717 @@
+@model HP_Detailing.Models.ViewModels.TicketCreateViewModel
+@{ ViewData["Title"] = "Create Ticket"; Layout = "_Layout"; }
+
+<div class="p-4 sm:p-6 lg:p-8 space-y-8 flex-1">
+  @* ===== PAGE HEADER ===== *@
+  @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel
+  {
+      Title = "Tiếp nhận dịch vụ mới",
+      Subtitle = "Mã phiếu: Sẽ tự động sinh sau khi lưu thành công",
+      Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb>
+      {
+          new HP_Detailing.Models.PageHeaderBreadcrumb { Label = "Trang chủ", Path = "/" },
+          new HP_Detailing.Models.PageHeaderBreadcrumb { Label = "Phiếu dịch vụ", Path = "/tickets" },
+          new HP_Detailing.Models.PageHeaderBreadcrumb { Label = "Tạo phiếu mới" }
+      }
+  })
+
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+    @* ===== THÔNG TIN KHÁCH HÀNG & XE ===== *@
+    <div class="xl:col-span-4 space-y-8">
+      @* Khách hàng *@
+      <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 shadow-[0_0_15px_rgba(173,199,255,0.05)]">
+        <div class="flex items-center gap-2 mb-6 border-l-4 border-blue-400 pl-4">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded bg-blue-500/10 text-blue-400">
+              <i data-lucide="users" class="w-5 h-5"></i>
+          </span>
+          <h3 class="text-base font-bold text-slate-200 uppercase tracking-wider">Người đưa xe đến</h3>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">Số điện thoại</label>
+            <input id="txtCustPhone" class="w-full bg-[#051424] border border-slate-800 rounded-lg px-4 py-3 text-sm text-slate-200 focus:border-blue-500 outline-none" placeholder="Nhập số điện thoại..." type="text" value="@Model.CustomerPhone" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">Họ và Tên</label>
+            <input id="txtCustName" class="w-full bg-[#051424] border border-slate-800 rounded-lg px-4 py-3 text-sm text-slate-200 focus:border-blue-500 outline-none" placeholder="Tên người liên hệ..." type="text" value="@Model.CustomerName" />
+          </div>
+        </div>
+      </div>
+
+      @* Phân công KTV chính *@
+      <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 shadow-[0_0_15px_rgba(173,199,255,0.05)]">
+        <div class="flex items-center gap-2 mb-6 border-l-4 border-blue-400 pl-4">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded bg-blue-500/10 text-blue-400">
+              <i data-lucide="user-cog" class="w-5 h-5"></i>
+          </span>
+          <h3 class="text-base font-bold text-slate-200 uppercase tracking-wider">Phân công kỹ thuật viên</h3>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">KTV phụ trách chính</label>
+          <select id="selAssignedStaff" class="w-full bg-[#051424] border border-slate-800 rounded-lg px-4 py-3 text-sm text-slate-200 focus:border-blue-500 outline-none">
+            <option value="">-- Chưa phân công --</option>
+            @foreach (var staff in Model.Staffs)
+            {
+              <option value="@staff.Id" selected="@(Model.AssignedStaffId == staff.Id ? "selected" : null)">[@staff.Code] @staff.FullName - @staff.Position</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      @* Thông tin xe *@
+      <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 shadow-[0_0_15px_rgba(173,199,255,0.05)]">
+        <div class="flex items-center gap-2 mb-6 border-l-4 border-blue-400 pl-4">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded bg-blue-500/10 text-blue-400">
+              <i data-lucide="car" class="w-5 h-5"></i>
+          </span>
+          <h3 class="text-base font-bold text-slate-200 uppercase tracking-wider">Thông tin xe</h3>
+        </div>
+
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+              <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">BIỂN SỐ</label>
+              <div class="relative">
+                <input id="txtPlate" class="w-full bg-[#051424] border border-slate-800 rounded-lg px-4 py-3 text-sm font-mono font-medium text-blue-400 focus:border-blue-500 outline-none uppercase" type="text" value="@Model.Plate" placeholder="Ví dụ: 30A-123.45" />
+                <span id="plateSpinner" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
+              </div>
+              <p id="carAutoFillMsg" class="hidden mt-1.5 text-[11px] text-emerald-400 font-medium"></p>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">Hãng xe</label>
+              <input id="txtCarBrand" class="w-full bg-[#051424] border border-slate-800 rounded-lg px-4 py-3 text-sm text-slate-200 focus:border-blue-500 outline-none" type="text" value="" placeholder="Ví dụ: Toyota, Mercedes, BMW..." />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">Dòng xe (Model)</label>
+              <input id="txtCarModel" class="w-full bg-[#051424] border border-slate-800 rounded-lg px-4 py-3 text-sm text-slate-200 focus:border-blue-500 outline-none" type="text" value="" placeholder="Ví dụ: Vios, GLC 300, 320i..." />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">Màu sắc</label>
+              <input id="txtCarColor" class="w-full bg-[#051424] border border-slate-800 rounded-lg px-4 py-3 text-sm text-slate-200 focus:border-blue-500 outline-none" type="text" value="" placeholder="Ví dụ: Đen, Trắng, Đỏ..." />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      @* Nếu phiếu này được tạo từ lịch đặt hẹn, hiển thị banner nhỏ thông tin lịch đặt hẹn *@
+      @if (Model.AppointmentId.HasValue)
+      {
+          <input type="hidden" id="hdnAppointmentId" value="@Model.AppointmentId" />
+          <div class="bg-blue-950/40 border border-blue-800/40 rounded-xl p-4 flex gap-3 text-xs text-blue-300">
+              <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
+              <div>
+                  <p class="font-bold uppercase tracking-wider mb-1 text-[10px]">Tự động điền từ lịch hẹn</p>
+                  <p class="text-slate-400">Các thông tin khách hàng và biển số được đồng bộ từ lịch đặt hẹn trước. Dịch vụ gợi ý: <b>@Model.SuggestedServices</b></p>
+              </div>
+          </div>
+      }
+    </div>
+
+    @* ===== DANH MỤC DỊCH VỤ & KHẤU TRỪ KHO ===== *@
+    <div class="xl:col-span-8 space-y-8">
+      <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 shadow-[0_0_15px_rgba(173,199,255,0.05)]">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div class="flex items-center gap-2 border-l-4 border-blue-400 pl-4">
+            <span class="inline-flex items-center justify-center w-10 h-10 rounded bg-blue-500/10 text-blue-400">
+                <i data-lucide="boxes" class="w-5 h-5"></i>
+            </span>
+            <h3 class="text-base font-bold text-slate-200 uppercase tracking-wider whitespace-nowrap">1. Chọn tiền công dịch vụ <span id="chosenCount" class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded ml-2 font-normal">0 Dịch vụ</span></h3>
+          </div>
+
+          <div class="relative w-full md:w-72">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+            <input id="svcSearch" type="text" placeholder="Tìm tên dịch vụ, mã, loại..." class="w-full bg-[#051424] border border-slate-800 rounded-lg py-2 pl-9 pr-4 text-xs font-medium text-slate-300 focus:outline-none focus:border-blue-500 transition-all placeholder:text-slate-600" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="svcGrid"></div>
+
+        @* ===== DATABASE DỮ LIỆU ĐƯỢC SERIALIZE TRỰC TIẾP ===== *@
+        <script type="application/json" id="dbServices">
+          @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Services))
+        </script>
+        <script type="application/json" id="dbMaterials">
+          @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Materials))
+        </script>
+        <script type="application/json" id="preselectedServices">
+          @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PreselectedServiceIds))
+        </script>
+      </div>
+
+      @* Màn hình quản lý xuất vật tư phụ tùng tiêu hao & xuất bán kèm *@
+      <div id="materialPanel" class="hidden bg-[#122131] border border-slate-800 rounded-xl p-6 shadow-[0_0_15px_rgba(173,199,255,0.05)]">
+        <div class="flex items-center justify-between mb-6 border-l-4 border-blue-400 pl-4">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-10 h-10 rounded bg-blue-500/10 text-blue-400">
+                <i data-lucide="package" class="w-5 h-5"></i>
+            </span>
+            <h3 class="text-base font-bold text-slate-200 uppercase tracking-wider">2. Cấp phát & Bán kèm vật tư</h3>
+          </div>
+        </div>
+
+        @* Bảng danh sách vật tư cấp phát thực tế *@
+        <div class="overflow-x-auto border border-slate-800 rounded-lg mb-6">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-[#051424] text-slate-400 text-[10px] font-bold uppercase tracking-wider border-b border-slate-800">
+                <th class="p-4">Vật tư phụ tùng</th>
+                <th class="p-4 text-center">Tồn kho</th>
+                <th class="p-4 text-center" style="width: 110px;">Số lượng</th>
+                <th class="p-4 text-right" style="width: 140px;">Giá bán xuất</th>
+                <th class="p-4 text-center" style="width: 90px;">Tính phí</th>
+                <th class="p-4 text-center" style="width: 60px;">Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="materialsTableBody" class="divide-y divide-slate-800/60 text-slate-300 text-xs">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        @* Form phụ: Thêm vật tư ngoài danh mục định mức *@
+        <div class="bg-[#051424] p-4 rounded-xl border border-slate-800/80 flex flex-col sm:flex-row items-end gap-4">
+          <div class="flex-1">
+            <label class="block text-[10px] text-slate-500 font-bold mb-2 uppercase tracking-widest">Thêm phụ tùng/vật tư ngoài định mức</label>
+            <select id="selAddMaterial" class="w-full bg-[#122131] border border-slate-800 text-slate-200 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none">
+              <option value="">-- Chọn vật tư cần phụ thu/bán kèm --</option>
+              @foreach (var mat in Model.Materials)
+              {
+                  <option value="@mat.Id">@mat.Name (@mat.Code) - Tồn: @mat.Stock</option>
+              }
+            </select>
+          </div>
+          <button type="button" id="btnAddCustomMaterial" class="px-5 py-2.5 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/20 rounded-lg text-xs font-bold transition-all uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Thêm dòng
+          </button>
+        </div>
+      </div>
+
+      @* Thanh tổng hợp tạm tính chia tách Công & Vật tư *@
+      <div class="mt-8 pt-8 border-t border-slate-800">
+        <div class="flex flex-col lg:flex-row justify-between items-center bg-[#051424] p-5 rounded-xl border border-slate-800 gap-6">
+          <div class="flex flex-wrap items-center gap-6 w-full lg:w-auto">
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">TỔNG TIỀN CÔNG</p>
+              <p class="text-sm font-mono font-bold text-slate-300" id="servicesPriceSum">0đ</p>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">TỔNG VẬT TƯ</p>
+              <p class="text-sm font-mono font-bold text-slate-300" id="materialsPriceSum">0đ</p>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">TRẠNG THÁI KHO</p>
+              <span class="px-2.5 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded text-[10px] font-bold uppercase tracking-widest" id="shortageBadge">CHƯA XÁC LẬP</span>
+            </div>
+            <div class="hidden sm:block h-10 w-px bg-slate-800"></div>
+            <div class="w-full sm:w-auto">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">TỔNG CỘNG THANH TOÁN</p>
+              <p class="text-[26px] leading-[1.1] font-mono font-bold text-blue-400" id="totalPrice">0đ</p>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row w-full lg:w-auto gap-3 sm:gap-4">
+            <button type="button" onclick="HPUI.loadPage('/tickets')" class="w-full sm:w-auto px-6 py-3 border border-slate-700 rounded-lg text-sm font-bold text-slate-400 hover:bg-slate-800 transition-all uppercase tracking-widest">Hủy bỏ</button>
+            <button type="button" id="btnSave" class="w-full sm:w-auto px-8 py-3 rounded-lg text-sm font-bold transition-all uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5" disabled>
+                <i data-lucide="save" class="w-4 h-4"></i> Lưu phiếu
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    // Đọc danh sách Dịch vụ và Vật tư thật từ SQL Server thông qua serialize
+    var services = JSON.parse(document.getElementById('dbServices').textContent);
+    var dbMaterials = JSON.parse(document.getElementById('dbMaterials').textContent);
+
+    // Chuyển đổi mảng vật tư thành map tra cứu (Id + mã vật tư)
+    var materialsLookup = {};
+    var materialsByCode = {};
+    dbMaterials.forEach(function(m) {
+      var id = m.Id != null ? m.Id : m.id;
+      var code = m.Code || m.code || '';
+      var row = {
+        id: id,
+        code: code,
+        name: m.Name || m.name,
+        unit: m.Unit || m.unit || 'Đơn vị',
+        stock: Number(m.Stock != null ? m.Stock : m.stock) || 0,
+        price: Number(m.Price != null ? m.Price : m.price) || 0
+      };
+      materialsLookup[id] = row;
+      if (code) materialsByCode[code] = row;
+    });
+
+    function resolveMaterialRow(materialId, materialCode) {
+      if (materialId != null && materialsLookup[materialId]) return materialsLookup[materialId];
+      if (materialCode && materialsByCode[materialCode]) return materialsByCode[materialCode];
+      return null;
+    }
+
+    // Cấu hình check-car auto-fill
+    var txtPlate = document.getElementById('txtPlate');
+    var plateSpinner = document.getElementById('plateSpinner');
+    var carAutoFillMsg = document.getElementById('carAutoFillMsg');
+    var txtCustPhone = document.getElementById('txtCustPhone');
+    var txtCustName = document.getElementById('txtCustName');
+    var txtCarBrand = document.getElementById('txtCarBrand');
+    var txtCarModel = document.getElementById('txtCarModel');
+    var txtCarColor = document.getElementById('txtCarColor');
+
+    txtPlate.addEventListener('blur', function() {
+      var plate = txtPlate.value.trim();
+      if (!plate) return;
+
+      plateSpinner.classList.remove('hidden');
+      carAutoFillMsg.classList.add('hidden');
+
+      fetch('/tickets/check-car?plate=' + encodeURIComponent(plate))
+        .then(res => res.json())
+        .then(data => {
+          plateSpinner.classList.add('hidden');
+          if (data.found) {
+            txtCustPhone.value = data.ownerPhone || '';
+            txtCustName.value = data.ownerName || '';
+            txtCarBrand.value = data.brand || '';
+            txtCarModel.value = data.model || '';
+            txtCarColor.value = data.color || '';
+            carAutoFillMsg.textContent = '✨ Đã tự động điền thông tin xe và chủ sở hữu!';
+            carAutoFillMsg.className = 'mt-1.5 text-[11px] text-emerald-400 font-medium';
+            carAutoFillMsg.classList.remove('hidden');
+            HPUI.toast('Đồng bộ thông tin xe thành công!', 'success');
+          } else {
+            carAutoFillMsg.textContent = '🆕 Xe mới chưa có trên hệ thống, sẽ tự động lưu sau khi tạo phiếu.';
+            carAutoFillMsg.className = 'mt-1.5 text-[11px] text-blue-400 font-medium';
+            carAutoFillMsg.classList.remove('hidden');
+          }
+        })
+        .catch(err => {
+          plateSpinner.classList.add('hidden');
+          console.error('Lỗi check car:', err);
+        });
+    });
+
+    var selectedServiceIds = [];
+    var selectedMaterials = []; // Mảng chứa vật tư xuất kho thực tế: { materialId, code, name, qty, unit, unitPrice, isChargedToCustomer, isQuota }
+
+    var svcGrid = document.getElementById('svcGrid');
+    var svcSearch = document.getElementById('svcSearch');
+    var materialPanel = document.getElementById('materialPanel');
+    var materialsTableBody = document.getElementById('materialsTableBody');
+    var selAddMaterial = document.getElementById('selAddMaterial');
+    var btnAddCustomMaterial = document.getElementById('btnAddCustomMaterial');
+
+    var chosenCount = document.getElementById('chosenCount');
+    var servicesPriceSum = document.getElementById('servicesPriceSum');
+    var materialsPriceSum = document.getElementById('materialsPriceSum');
+    var totalPriceEl = document.getElementById('totalPrice');
+    var shortageBadge = document.getElementById('shortageBadge');
+    var btnSave = document.getElementById('btnSave');
+
+    function money(n){ return n.toLocaleString('vi-VN') + 'đ'; }
+
+    // Kiểm tra xem lượng tồn kho hiện có của bất kỳ vật tư nào có nhỏ hơn lượng cấp phát yêu cầu không
+    function calcHasShortage(){
+      return selectedMaterials.some(m => m.qty > m.stock);
+    }
+
+    function renderSummary(){
+      var chosen = selectedServiceIds.length;
+      if (chosenCount) {
+        chosenCount.textContent = chosen + ' Dịch vụ';
+      }
+
+      var totalServices = services.filter(s => selectedServiceIds.includes(s.Id)).reduce((acc, s) => acc + s.Price, 0);
+      var totalMaterials = selectedMaterials
+        .filter(m => m.isChargedToCustomer)
+        .reduce((acc, m) => acc + (m.qty * m.unitPrice), 0);
+
+      if (servicesPriceSum) {
+        servicesPriceSum.textContent = money(totalServices);
+      }
+      if (materialsPriceSum) {
+        materialsPriceSum.textContent = money(totalMaterials);
+      }
+      if (totalPriceEl) {
+        totalPriceEl.textContent = money(totalServices + totalMaterials);
+      }
+
+      var shortage = calcHasShortage();
+      if (shortageBadge) {
+        if (shortage) {
+          shortageBadge.className = "px-2.5 py-1 bg-red-500/10 text-red-500 border border-red-500/20 rounded text-[10px] font-bold uppercase tracking-widest";
+          shortageBadge.textContent = 'KHO THIẾU HỤT';
+          if (btnSave) btnSave.disabled = true;
+        } else {
+          if (chosen === 0) {
+            shortageBadge.className = "px-2.5 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded text-[10px] font-bold uppercase tracking-widest";
+            shortageBadge.textContent = 'CHƯA XÁC LẬP';
+            if (btnSave) btnSave.disabled = false;
+          } else {
+            shortageBadge.className = "px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold uppercase tracking-widest";
+            shortageBadge.textContent = 'ĐỦ CUNG ỨNG';
+            if (btnSave) btnSave.disabled = false;
+          }
+        }
+      }
+    }
+
+    function renderServices(){
+      var q = (svcSearch.value || '').toLowerCase().trim();
+      var list = services.filter(function(s){
+        return !q || s.Name.toLowerCase().includes(q) || s.Code.toLowerCase().includes(q) || s.Category.toLowerCase().includes(q);
+      });
+
+      svcGrid.innerHTML = '';
+      list.forEach(function(s){
+        var sid = s.Id != null ? s.Id : s.id;
+        var isSelected = selectedServiceIds.includes(sid);
+        var card = document.createElement('div');
+        card.className = 'group p-4 rounded-xl relative transition-all cursor-pointer border ' +
+          (isSelected ? 'border-blue-500 bg-blue-500/5 shadow-[0_0_15px_rgba(59,130,246,0.1)]' : 'border-slate-800 bg-[#051424] hover:border-blue-500/50');
+
+        card.innerHTML = `
+          ${isSelected ? `<div class="absolute -top-2.5 -right-2.5 bg-blue-500 text-slate-950 w-6 h-6 rounded-full flex items-center justify-center"><i data-lucide="check" class="w-4 h-4 font-bold"></i></div>` : ''}
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <span class="text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider ${isSelected ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-800 text-slate-400'}">Mã: ${s.Code}</span>
+              <h4 class="text-[15px] font-bold text-slate-200 mt-2.5">${s.Name}</h4>
+            </div>
+            ${!isSelected ? '<i data-lucide="plus-circle" class="w-5 h-5 text-slate-600 group-hover:text-blue-500 transition-colors"></i>' : ''}
+          </div>
+
+          <div class="mb-4 p-3 rounded-lg mt-3 ${isSelected ? 'bg-[#051424] border border-blue-500/20' : 'bg-slate-900/50'}">
+            <p class="text-[10px] font-bold mb-2.5 uppercase tracking-widest ${isSelected ? 'text-blue-400/80' : 'text-slate-500'}">Vật tư định mức</p>
+            <div class="flex flex-wrap gap-2">
+              ${(s.Materials||[]).length === 0 ? '<span class="text-[11px] text-slate-500 italic">Không có định mức</span>' : ''}
+              ${(s.Materials||[]).map(function(m){
+                var mid = m.MaterialId != null ? m.MaterialId : m.materialId;
+                var mcode = m.MaterialCode || m.materialCode || '';
+                var qty = m.DefaultQty != null ? m.DefaultQty : m.defaultQty;
+                var mat = resolveMaterialRow(mid, mcode);
+                var name = mat ? mat.name : mcode;
+                var unit = mat ? mat.unit : 'Đơn vị';
+                var stockHint = mat ? ` · tồn ${mat.stock}` : '';
+                return `<span class="flex items-center gap-1.5 text-[11px] font-medium text-slate-300 bg-slate-800 px-2.5 py-1 rounded"><i data-lucide="package" class="w-3.5 h-3.5 text-slate-500"></i>${name} (${qty} ${unit}${stockHint})</span>`;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="flex justify-between items-end mt-4">
+            <span class="text-[12px] font-mono font-medium ${isSelected ? 'text-blue-400' : 'text-slate-500'}">${s.DurationMinutes} Phút</span>
+            <p class="text-base font-bold font-mono ${isSelected ? 'text-blue-400' : 'text-slate-400'}">${money(s.Price)}</p>
+          </div>
+        `;
+
+        card.addEventListener('click', function(){
+          if(isSelected){
+            selectedServiceIds = selectedServiceIds.filter(function(id){ return id !== sid; });
+          } else {
+            selectedServiceIds.push(sid);
+          }
+          syncServiceQuotas();
+        });
+
+        svcGrid.appendChild(card);
+      });
+    }
+
+    // Tự động nạp định mức vật tư đi kèm thông qua AJAX khi thay đổi danh sách dịch vụ
+    function syncServiceQuotas() {
+      if (selectedServiceIds.length === 0) {
+        selectedMaterials = [];
+        renderAll();
+        return;
+      }
+
+      var query = selectedServiceIds.map(id => 'serviceIds=' + id).join('&');
+      fetch('/tickets/service-quotas?' + query)
+        .then(res => res.json())
+        .then(quotas => {
+          // Lưu trữ lại các vật tư thủ công tự tạo
+          var customMats = selectedMaterials.filter(m => !m.isQuota);
+
+          // Tạo mới danh sách vật tư định mức
+          var quotaMats = [];
+          quotas.forEach(function(q) {
+            var mid = q.materialId != null ? q.materialId : q.MaterialId;
+            var mcode = q.materialCode || q.MaterialCode || '';
+            var mat = resolveMaterialRow(mid, mcode);
+            var stock = q.stockOnHand != null ? Number(q.stockOnHand)
+              : (mat ? mat.stock : 0);
+
+            var existing = quotaMats.find(function(x) { return x.materialId === mid; });
+            if (existing) {
+              existing.qty += Number(q.qty != null ? q.qty : q.Qty) || 0;
+            } else {
+              quotaMats.push({
+                materialId: mid,
+                code: mcode || (mat ? mat.code : ''),
+                name: q.materialName || q.MaterialName || (mat ? mat.name : ''),
+                qty: Number(q.qty != null ? q.qty : q.Qty) || 0,
+                unit: q.unit || q.Unit || (mat ? mat.unit : ''),
+                stock: stock,
+                unitPrice: Number(q.unitPrice != null ? q.unitPrice : q.UnitPrice) || (mat ? mat.price : 0),
+                isChargedToCustomer: true,
+                isQuota: true
+              });
+            }
+          });
+
+          selectedMaterials = quotaMats.concat(customMats);
+          renderAll();
+        })
+        .catch(err => {
+          console.error("Lỗi đồng bộ định mức vật tư:", err);
+          renderAll();
+        });
+    }
+
+    // Thêm vật tư ngoài danh mục định mức thủ công
+    btnAddCustomMaterial.addEventListener('click', function() {
+      var matId = selAddMaterial.value;
+      if (!matId) {
+        HPUI.toast('Vui lòng chọn một vật tư phụ tùng!', 'warning');
+        return;
+      }
+
+      var mat = materialsLookup[matId];
+      if (!mat) return;
+
+      var existing = selectedMaterials.find(m => m.materialId === mat.id && !m.isQuota);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        selectedMaterials.push({
+          materialId: mat.id,
+          code: mat.code,
+          name: mat.name,
+          qty: 1,
+          unit: mat.unit,
+          stock: mat.stock,
+          unitPrice: mat.price,
+          isChargedToCustomer: true,
+          isQuota: false
+        });
+      }
+
+      selAddMaterial.value = "";
+      renderAll();
+      HPUI.toast('Thêm phụ tùng phụ thu thành công!', 'success');
+    });
+
+    // Render danh sách vật tư phụ tùng
+    function renderMaterialsTable() {
+      if (selectedServiceIds.length === 0) {
+        materialPanel.classList.add('hidden');
+        return;
+      }
+
+      materialPanel.classList.remove('hidden');
+      materialsTableBody.innerHTML = '';
+
+      if (selectedMaterials.length === 0) {
+        materialsTableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="p-8 text-center text-slate-500 italic">Chưa có vật tư phụ tùng nào được chọn.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      selectedMaterials.forEach((m, idx) => {
+        var isShort = m.qty > m.stock;
+        var row = document.createElement('tr');
+        row.className = `hover:bg-slate-800/30 transition-all ${isShort ? 'bg-red-500/5' : ''}`;
+
+        row.innerHTML = `
+          <td class="p-4">
+            <div>
+              <p class="font-bold text-slate-200">${m.name}</p>
+              <p class="text-[10px] text-slate-500 font-mono mt-0.5">${m.code} ${m.isQuota ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-bold uppercase tracking-wider ml-2">Định mức</span>' : '<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 font-bold uppercase tracking-wider ml-2">Ngoài danh mục</span>'}</p>
+            </div>
+          </td>
+          <td class="p-4 text-center font-mono font-bold ${m.stock === 0 ? 'text-red-400' : (m.stock < 2 ? 'text-amber-400' : 'text-emerald-400')}">
+            ${m.stock} ${m.unit}
+          </td>
+          <td class="p-4 text-center">
+            <div class="flex items-center gap-1.5 justify-center">
+              <input type="number" min="0" step="0.01" class="txt-qty w-16 bg-[#051424] border border-slate-800 rounded px-1.5 py-1 text-center font-mono text-blue-300 outline-none" value="${m.qty}" data-index="${idx}" />
+              <span class="text-[10px] text-slate-500 font-medium">${m.unit}</span>
+            </div>
+          </td>
+          <td class="p-4 text-right">
+            <input type="number" min="0" step="1000" class="txt-price w-24 bg-[#051424] border border-slate-800 rounded px-1.5 py-1 text-right font-mono text-emerald-400 outline-none" value="${m.unitPrice}" data-index="${idx}" />
+          </td>
+          <td class="p-4 text-center">
+            <input type="checkbox" class="chk-charge rounded border-slate-800 text-blue-500 focus:ring-0 focus:ring-offset-0 bg-[#051424] w-4 h-4" ${m.isChargedToCustomer ? 'checked' : ''} data-index="${idx}" />
+          </td>
+          <td class="p-4 text-center">
+            <button type="button" class="btn-del text-slate-500 hover:text-red-400 transition-colors" data-index="${idx}">
+              <i data-lucide="trash-2" class="w-4 h-4 mx-auto"></i>
+            </button>
+          </td>
+        `;
+
+        materialsTableBody.appendChild(row);
+      });
+
+      // Lắng nghe sự kiện sửa số lượng
+      materialsTableBody.querySelectorAll('.txt-qty').forEach(inp => {
+        inp.addEventListener('input', function() {
+          var idx = Number(inp.getAttribute('data-index'));
+          var val = parseFloat(inp.value);
+          selectedMaterials[idx].qty = isNaN(val) ? 0 : val;
+          renderSummary();
+        });
+      });
+
+      // Lắng nghe sự kiện sửa giá bán
+      materialsTableBody.querySelectorAll('.txt-price').forEach(inp => {
+        inp.addEventListener('input', function() {
+          var idx = Number(inp.getAttribute('data-index'));
+          var val = parseFloat(inp.value);
+          selectedMaterials[idx].unitPrice = isNaN(val) ? 0 : val;
+          renderSummary();
+        });
+      });
+
+      // Lắng nghe sự kiện đổi trạng thái tính tiền
+      materialsTableBody.querySelectorAll('.chk-charge').forEach(chk => {
+        chk.addEventListener('change', function() {
+          var idx = Number(chk.getAttribute('data-index'));
+          selectedMaterials[idx].isChargedToCustomer = chk.checked;
+          renderSummary();
+        });
+      });
+
+      // Lắng nghe sự kiện xóa vật tư thủ công
+      materialsTableBody.querySelectorAll('.btn-del').forEach(btn => {
+        btn.addEventListener('click', function() {
+          var idx = Number(btn.getAttribute('data-index'));
+          selectedMaterials.splice(idx, 1);
+          renderMaterialsTable();
+          renderSummary();
+          if (window.lucide) window.lucide.createIcons();
+        });
+      });
+    }
+
+    function renderAll(){
+      renderServices();
+      renderMaterialsTable();
+      renderSummary();
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    svcSearch.addEventListener('input', renderAll);
+
+    // ========================================================
+    // AJAX NGHIỆP VỤ: GỬI LƯU PHIẾU DỊCH VỤ VÀ TRỪ KHO LÊN BACKEND
+    // ========================================================
+    btnSave.addEventListener('click', function(){
+      var phone = document.getElementById('txtCustPhone').value.trim();
+      var name = document.getElementById('txtCustName').value.trim();
+      var plate = document.getElementById('txtPlate').value.trim();
+      var carBrand = document.getElementById('txtCarBrand').value.trim();
+      var carModel = document.getElementById('txtCarModel').value.trim();
+      var carColor = document.getElementById('txtCarColor').value.trim();
+      var assignedStaffRaw = document.getElementById('selAssignedStaff').value;
+      var assignedStaffId = assignedStaffRaw ? Number(assignedStaffRaw) : null;
+      
+      var hdnAppt = document.getElementById('hdnAppointmentId');
+      var appointmentId = hdnAppt ? Number(hdnAppt.value) : null;
+
+      if (!phone || !name || !plate) {
+        HPUI.toast('Vui lòng điền Họ tên, Số điện thoại và Biển số xe!', 'warning');
+        return;
+      }
+
+      if (selectedServiceIds.length === 0) {
+        HPUI.toast('Vui lòng chọn ít nhất một dịch vụ tiền công!', 'warning');
+        return;
+      }
+
+      btnSave.disabled = true;
+      btnSave.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Đang tạo phiếu...';
+
+      // Tạo cấu trúc dữ liệu JSON để gửi
+      var payload = {
+        AppointmentId: appointmentId,
+        AssignedStaffId: assignedStaffId,
+        CustomerName: name,
+        CustomerPhone: phone,
+        Plate: plate,
+        CarBrand: carBrand,
+        CarModel: carModel,
+        CarColor: carColor,
+        Services: selectedServiceIds.map(function(svcId){
+          return { ServiceId: svcId };
+        }),
+        Materials: selectedMaterials.map(function(m){
+          return {
+            MaterialId: m.materialId,
+            Qty: m.qty,
+            UnitPrice: m.unitPrice,
+            IsChargedToCustomer: m.isChargedToCustomer,
+            IsExtra: m.isQuota === false
+          };
+        })
+      };
+
+      fetch('/Tickets/CreateAjax', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        btnSave.disabled = false;
+        btnSave.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Lưu phiếu';
+        if (window.lucide) lucide.createIcons();
+
+        if (data.success) {
+          HPUI.toast(data.message, 'success');
+          // Chuyển hướng về trang danh sách phiếu qua SPA
+          if (window.HPUI && window.HPUI.loadPage) {
+            setTimeout(() => HPUI.loadPage(data.redirectUrl), 500);
+          } else {
+            setTimeout(() => window.location.href = data.redirectUrl, 500);
+          }
+        } else {
+          HPUI.toast(data.message, 'error');
+        }
+      })
+      .catch(err => {
+        btnSave.disabled = false;
+        btnSave.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Lưu phiếu';
+        if (window.lucide) lucide.createIcons();
+        HPUI.toast('Lỗi hệ thống khi lưu phiếu dịch vụ!', 'error');
+        console.error(err);
+      });
+    });
+
+    // Khởi tạo: lịch hẹn → chọn sẵn DV + nạp định mức/tồn; đồng bộ thông tin xe nếu đã có biển số
+    var preselected = [];
+    try {
+      preselected = JSON.parse(document.getElementById('preselectedServices').textContent || '[]');
+    } catch (e) { preselected = []; }
+
+    if (preselected.length > 0) {
+      selectedServiceIds = preselected.slice();
+      syncServiceQuotas();
+    } else {
+      renderAll();
+    }
+
+    if (txtPlate.value.trim()) {
+      setTimeout(function() { txtPlate.dispatchEvent(new Event('blur')); }, 100);
+    }
+  })();
+</script>

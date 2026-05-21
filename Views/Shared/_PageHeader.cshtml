@@ -1,0 +1,49 @@
+@* Partial mapped from src/components/layout/PageHeader.tsx *@
+@model HP_Detailing.Models.PageHeaderModel
+
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+
+    <div>
+        @if (Model?.Breadcrumbs != null && Model.Breadcrumbs.Count > 0)
+        {
+            <nav class="flex items-center gap-1.5 text-blue-500 text-[11px] font-bold tracking-widest uppercase mb-1.5 min-h-[16px]">
+                @for (int i = 0; i < Model.Breadcrumbs.Count; i++)
+                {
+                    var crumb = Model.Breadcrumbs[i];
+                    if (!string.IsNullOrWhiteSpace(crumb.Path))
+                    {
+                        <a href="@crumb.Path" class="hover:text-blue-400 transition-colors uppercase">@crumb.Label</a>
+                    }
+                    else
+                    {
+                        <span class="opacity-90">@crumb.Label</span>
+                    }
+
+                    if (i < Model.Breadcrumbs.Count - 1)
+                    {
+                        <svg class="w-3 h-3 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    }
+                }
+            </nav>
+        }
+        else if (!string.IsNullOrWhiteSpace(Model?.Subtitle))
+        {
+            <nav class="flex items-center gap-1.5 text-blue-500 text-[11px] font-bold tracking-widest uppercase mb-1.5 min-h-[16px]">
+                <span class="opacity-90">@Model.Subtitle</span>
+            </nav>
+        }
+
+        <h2 class="text-2xl sm:text-[32px] font-semibold text-white tracking-tight leading-tight">@Model?.Title</h2>
+    </div>
+
+
+    @if (!string.IsNullOrWhiteSpace(Model?.ActionsSlotHtml))
+    {
+        <div class="flex flex-wrap gap-3">
+            @Html.Raw(Model.ActionsSlotHtml)
+        </div>
+    }
+</div>
+

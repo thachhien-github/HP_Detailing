@@ -1,0 +1,209 @@
+@{
+    ViewData["Title"] = "Định mức vật tư";
+    Layout = "_Layout";
+    var dbServices = ViewBag.Services as List<HP_Detailing.Models.Service> ?? new();
+    var materials = ViewBag.Materials as List<HP_Detailing.Models.Material> ?? new();
+    var quotas = ViewBag.Quotas as List<HP_Detailing.Models.ServiceMaterialQuota> ?? new();
+    var preselectedServiceId = ViewBag.PreselectedServiceId as int?;
+}
+
+<div class="p-4 sm:p-6 lg:p-8 flex-1 h-full min-h-0 overflow-y-auto">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = "Định mức vật tư",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> {
+            new(){ Label = "Trang chủ", Path = "/" },
+            new(){ Label = "Danh mục dịch vụ", Path = "/catalog/services" },
+            new(){ Label = "Định mức vật tư" }
+        }
+    })
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div class="xl:col-span-12 mb-2 sm:mb-6">
+            @await Html.PartialAsync("_CatalogNav")
+        </div>
+
+        <div class="xl:col-span-12 space-y-6">
+            <div class="bg-[#122131] border border-blue-500/20 rounded-xl p-5 flex gap-4 items-start">
+                <div class="p-2.5 bg-blue-500/10 rounded-lg shrink-0"><i data-lucide="zap" class="w-5 h-5 text-blue-400"></i></div>
+                <div>
+                    <p class="font-bold text-blue-300 text-sm mb-1">Nghiệp vụ tự động trừ kho theo định mức</p>
+                    <p class="text-slate-400 text-xs leading-relaxed">Khi Ticket chọn dịch vụ có định mức tại đây, hệ thống tự động trừ WarehouseStock qua TicketMaterialUsage.</p>
+                </div>
+            </div>
+
+            <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/30 flex items-center gap-3">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-blue-400"></i>
+                    <h3 class="font-bold text-slate-200">Thêm định mức vật tư cho dịch vụ</h3>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dịch vụ *</label>
+                        <select id="qService" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-3 text-sm text-slate-300 focus:border-blue-500 outline-none">
+                            <option value="">-- Chọn dịch vụ --</option>
+                            @foreach (var s in dbServices) {
+                                if (preselectedServiceId == s.Id) {
+                                    <option value="@s.Id" selected>@s.Name</option>
+                                } else {
+                                    <option value="@s.Id">@s.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Vật tư *</label>
+                        <select id="qMaterial" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-3 text-sm text-slate-300 focus:border-blue-500 outline-none">
+                            <option value="">-- Chọn vật tư --</option>
+                            @foreach (var m in materials) {
+                                <option value="@m.Id" data-unit="@m.Unit">@m.Name (@(m.Unit ?? "đvt"))</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Định mức / lần *</label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="qQty" placeholder="1.0" min="0.01" step="0.01" class="flex-1 bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-3 text-sm text-blue-400 font-mono font-bold focus:border-blue-500 outline-none" />
+                            <span id="qUnit" class="text-[11px] text-slate-500 font-mono whitespace-nowrap">đvt</span>
+                        </div>
+                    </div>
+                    <button type="button" id="btnAddQuota" class="py-2.5 px-5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg flex items-center justify-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Thêm định mức
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/30 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-200 flex items-center gap-2"><i data-lucide="list" class="w-4 h-4 text-blue-400"></i> Bảng định mức (@quotas.Count)</h3>
+                    <div class="flex items-center gap-3">
+                        <select id="qFilterService" class="bg-[#0B101D] border border-slate-700/50 rounded-lg py-2 px-3 text-sm text-slate-300 focus:border-blue-500 outline-none">
+                            <option value="">Tất cả dịch vụ</option>
+                            @foreach (var s in dbServices) {
+                                if (preselectedServiceId == s.Id) {
+                                    <option value="@s.Id" selected>@s.Name</option>
+                                } else {
+                                    <option value="@s.Id">@s.Name</option>
+                                }
+                            }
+                        </select>
+                        <div class="relative">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500"></i>
+                            <input type="text" id="qSearch" placeholder="Tìm dịch vụ / vật tư..." class="bg-[#0B101D] border border-slate-700/50 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none w-56" />
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-[#1c2b3c]/30 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <th class="px-5 py-4">Dịch vụ</th>
+                                <th class="px-5 py-4">Vật tư tiêu hao</th>
+                                <th class="px-5 py-4 text-center">Định mức / lần</th>
+                                <th class="px-5 py-4 text-center w-24">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quotaTableBody" class="divide-y divide-slate-800/40">
+                            <tr><td colspan="4" class="px-5 py-12 text-center text-slate-500 text-sm">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="quotaPaging" class="px-4 py-3 border-t border-slate-800 bg-slate-900/20"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+if (window.lucide) lucide.createIcons();
+(function() {
+    var currentPage = 1;
+    var pageSize = 10;
+    var debounceTimer;
+
+    var matSel = document.getElementById('qMaterial');
+    var unitEl = document.getElementById('qUnit');
+    if (matSel && unitEl) {
+        matSel.addEventListener('change', function() {
+            unitEl.textContent = matSel.options[matSel.selectedIndex].getAttribute('data-unit') || 'đvt';
+        });
+    }
+    document.getElementById('btnAddQuota')?.addEventListener('click', function() {
+        var svcId = parseInt(document.getElementById('qService').value) || 0;
+        var matId = parseInt(document.getElementById('qMaterial').value) || 0;
+        var qty = parseFloat(document.getElementById('qQty').value) || 0;
+        if (!svcId || !matId || qty <= 0) { HPUI.toast('Vui lòng điền đầy đủ!', 'warning'); return; }
+        fetch('/catalog/quotas/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ServiceId: svcId, MaterialId: matId, DefaultQty: qty })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.success) {
+                HPUI.toast('Đã thêm định mức!', 'success');
+                loadQuotas(1);
+            } else HPUI.toast(data.message || 'Lỗi!', 'error');
+        });
+    });
+    window.deleteQuota = function(id) {
+        if (!confirm('Xóa định mức này?')) return;
+        fetch('/catalog/quotas/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(id) })
+            .then(function(r) { return r.json(); }).then(function(data) {
+                if (data.success) {
+                    HPUI.toast('Đã xóa!', 'success');
+                    loadQuotas(currentPage);
+                } else HPUI.toast(data.message || 'Lỗi!', 'error');
+            });
+    };
+
+    function renderQuotas(items) {
+        var tbody = document.getElementById('quotaTableBody');
+        if (!items || items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-5 py-12 text-center text-slate-500 text-sm">Chưa có định mức nào.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = items.map(function(q) {
+            return `
+            <tr class="quota-row hover:bg-slate-800/20" data-id="${q.id}">
+                <td class="px-5 py-4"><span class="font-bold text-slate-200">${q.serviceName || ''}</span></td>
+                <td class="px-5 py-4 text-slate-300">${q.materialName || ''}</td>
+                <td class="px-5 py-4 text-center"><span class="font-mono font-bold text-blue-400">${Number(q.defaultQty || 0).toFixed(2)}</span><span class="text-[10px] text-slate-500 ml-1">${q.unit || 'đvt'}</span></td>
+                <td class="px-5 py-4 text-center"><button type="button" onclick="deleteQuota(${q.id})" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg" title="Xóa"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+            </tr>`;
+        }).join('');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function loadQuotas(page) {
+        currentPage = page || 1;
+        var serviceId = document.getElementById('qFilterService').value || '';
+        var query = new URLSearchParams({
+            page: String(currentPage),
+            pageSize: String(pageSize),
+            serviceId: serviceId
+        });
+        fetch('/catalog/quotas/list?' + query.toString())
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                var keyword = (document.getElementById('qSearch').value || '').toLowerCase().trim();
+                var filtered = (data.items || []).filter(function(x){
+                    var hay = ((x.serviceName || '') + ' ' + (x.materialName || '')).toLowerCase();
+                    return !keyword || hay.includes(keyword);
+                });
+                renderQuotas(filtered);
+                HPUI.renderPaging('quotaPaging', data.page || 1, data.totalPages || 0, function(nextPage){
+                    loadQuotas(nextPage);
+                });
+            })
+            .catch(function(){
+                document.getElementById('quotaTableBody').innerHTML = '<tr><td colspan="4" class="px-5 py-12 text-center text-red-400 text-sm">Không tải được dữ liệu định mức.</td></tr>';
+            });
+    }
+
+    document.getElementById('qSearch')?.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function(){ loadQuotas(1); }, 250);
+    });
+    document.getElementById('qFilterService')?.addEventListener('change', function() { loadQuotas(1); });
+
+    loadQuotas(1);
+})();
+</script>

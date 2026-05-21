@@ -1,0 +1,289 @@
+@using System.Globalization
+@{
+    ViewData["Title"] = "Danh mục dịch vụ";
+    Layout = "_Layout";
+    var services = ViewBag.Services as List<HP_Detailing.Models.Service> ?? new();
+    var categories = ViewBag.Categories as List<HP_Detailing.Models.ServiceCategory> ?? new();
+    var vi = new CultureInfo("vi-VN");
+
+    string CatBadgeClass(int catId) {
+        var classes = new[] {
+            "text-blue-400 bg-blue-400/10",
+            "text-amber-400 bg-amber-400/10",
+            "text-rose-400 bg-rose-400/10",
+            "text-emerald-400 bg-emerald-400/10",
+            "text-purple-400 bg-purple-400/10"
+        };
+        return classes[Math.Abs(catId) % classes.Length];
+    }
+
+}
+
+<div class="p-4 sm:p-6 lg:p-8 flex-1 h-full min-h-0 overflow-y-auto">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = "Danh mục dịch vụ",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> {
+            new(){ Label = "Trang chủ", Path = "/" },
+            new(){ Label = "Danh mục dịch vụ" }
+        }
+    })
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div class="xl:col-span-12 mb-2 sm:mb-6">
+            @await Html.PartialAsync("_CatalogNav")
+        </div>
+
+        <div class="xl:col-span-12 space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#122131]/80 border border-slate-800 p-6 rounded-xl shadow-sm gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1 font-['Space_Grotesk']">Danh mục dịch vụ</h3>
+                    <p class="text-slate-400 text-sm">Quản lý bảng giá, thời gian thi công. Cấu hình định mức tại <a href="/catalog/quotas" class="text-blue-400 hover:underline">Định mức vật tư</a>.</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-64">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                        <input type="text" id="svcSearch" class="w-full bg-[#0B101D] border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 outline-none focus:border-blue-500/50" placeholder="Tìm dịch vụ...">
+                    </div>
+                    <button type="button" onclick="openServiceModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 whitespace-nowrap">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Thêm dịch vụ
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-[#122131]/80 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-[#0B101D] border-b border-slate-800">
+                            <tr>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mã / Tên dịch vụ</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Danh mục</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Thời gian</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Đơn giá</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Trạng thái</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/50" id="svcTableBody">
+                            <tr><td colspan="6" class="px-6 py-12 text-center text-slate-500 text-sm italic">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="svcPaging" class="px-4 py-3 border-t border-slate-800 bg-slate-900/20"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="svcModal" class="hp-modal-overlay hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+    <div class="hp-modal-content bg-[#122131] border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-[#0B101D]/50">
+            <div>
+                <h3 id="svcModalTitle" class="text-lg font-bold text-white font-['Space_Grotesk']">Thêm dịch vụ</h3>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Service Management</p>
+            </div>
+            <button type="button" onclick="HPUI.closeModal('svcModal')" class="text-slate-500 hover:text-white p-1">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-5">
+            <input type="hidden" id="svcId" value="0" />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="space-y-2 md:col-span-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tên dịch vụ *</label>
+                    <input type="text" id="svcName" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none" placeholder="VD: Rửa xe bọt tuyết VIP">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mã dịch vụ *</label>
+                    <input type="text" id="svcCode" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:border-blue-500/50 outline-none uppercase" placeholder="RX-01">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Danh mục *</label>
+                    <select id="svcCategoryId" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none">
+                        <option value="">-- Chọn danh mục --</option>
+                        @foreach (var c in categories) {
+                            <option value="@c.Id">@c.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Thời gian (phút) *</label>
+                    <input type="number" id="svcDuration" min="1" step="1" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none" placeholder="45">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Đơn giá (VNĐ) *</label>
+                    <input type="number" id="svcPrice" min="0" step="1000" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:border-blue-500/50 outline-none" placeholder="150000">
+                </div>
+            </div>
+        </div>
+        <div class="px-6 py-4 bg-[#0B101D]/80 border-t border-slate-800 flex justify-end gap-3">
+            <button type="button" onclick="HPUI.closeModal('svcModal')" class="px-5 py-2 text-sm font-bold text-slate-400 hover:text-white">Hủy</button>
+            <button type="button" id="btnSaveService" onclick="saveService()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold flex items-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i> Lưu dịch vụ
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    if (window.lucide) lucide.createIcons();
+    var currentPage = 1;
+    var pageSize = 10;
+    var debounceTimer;
+    var categoryColor = {};
+    @foreach (var c in categories) {
+        @:categoryColor[@c.Id] = "@CatBadgeClass(c.Id)";
+    }
+
+    function formatDuration(minutes) {
+        var m = Number(minutes) || 0;
+        if (m < 60) return m + ' phút';
+        if (m % 60 === 0) return (m / 60) + ' giờ';
+        return m + ' phút';
+    }
+
+    function renderServices(items) {
+        var tbody = document.getElementById('svcTableBody');
+        if (!items || items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-12 text-center text-slate-500 text-sm italic">Chưa có dịch vụ nào.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = items.map(function(s) {
+            var catCls = categoryColor[s.serviceCategoryId] || 'text-slate-400 bg-slate-400/10';
+            return `
+                <tr class="hover:bg-slate-800/30 transition-colors group svc-row"
+                    data-id="${s.id}"
+                    data-code="${s.serviceCode || ''}"
+                    data-name="${s.name || ''}"
+                    data-category-id="${s.serviceCategoryId || 0}"
+                    data-duration="${s.durationMinutes || 0}"
+                    data-price="${s.unitPrice || 0}">
+                    <td class="px-6 py-4">
+                        <p class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-tight">${s.serviceCode || ''}</p>
+                        <p class="text-sm font-bold text-white mt-0.5 group-hover:text-blue-400 transition-colors">${s.name || ''}</p>
+                    </td>
+                    <td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${catCls}">${s.categoryName || '—'}</span></td>
+                    <td class="px-6 py-4"><div class="flex items-center gap-2 text-slate-400"><i data-lucide="clock" class="w-3.5 h-3.5"></i><span class="text-xs">${formatDuration(s.durationMinutes)}</span></div></td>
+                    <td class="px-6 py-4 text-right"><span class="text-sm font-bold text-blue-400 font-mono">${Number(s.unitPrice || 0).toLocaleString('vi-VN')}đ</span></td>
+                    <td class="px-6 py-4"><span class="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Hoạt động</span></td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="/catalog/quotas?serviceId=${s.id}" class="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all" title="Định mức vật tư"><i data-lucide="flask-conical" class="w-4 h-4"></i></a>
+                            <button type="button" onclick="openServiceModal(${s.id})" class="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all" title="Sửa"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button type="button" data-name="${s.name || ''}" onclick="deleteService(${s.id}, this)" class="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all" title="Tạm ngưng"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+        }).join('');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function loadServices(page) {
+        currentPage = page || 1;
+        var keyword = document.getElementById('svcSearch').value || '';
+        var query = new URLSearchParams({
+            page: String(currentPage),
+            pageSize: String(pageSize),
+            search: keyword
+        });
+        fetch('/catalog/services/list?' + query.toString())
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                renderServices(data.items || []);
+                HPUI.renderPaging('svcPaging', data.page || 1, data.totalPages || 0, function(nextPage){
+                    loadServices(nextPage);
+                });
+            })
+            .catch(function(){
+                document.getElementById('svcTableBody').innerHTML = '<tr><td colspan="6" class="px-6 py-12 text-center text-red-400 text-sm">Không tải được dữ liệu.</td></tr>';
+            });
+    }
+
+    document.getElementById('svcSearch').addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function(){ loadServices(1); }, 300);
+    });
+
+    function openServiceModal(id) {
+        id = id || 0;
+        document.getElementById('svcId').value = id;
+        document.getElementById('svcModalTitle').textContent = id ? 'Cập nhật dịch vụ' : 'Thêm dịch vụ';
+
+        if (id) {
+            var row = document.querySelector('.svc-row[data-id="' + id + '"]');
+            if (row) {
+                document.getElementById('svcCode').value = row.getAttribute('data-code') || '';
+                document.getElementById('svcName').value = row.getAttribute('data-name') || '';
+                document.getElementById('svcCategoryId').value = row.getAttribute('data-category-id') || '';
+                document.getElementById('svcDuration').value = row.getAttribute('data-duration') || '';
+                document.getElementById('svcPrice').value = row.getAttribute('data-price') || '';
+            }
+        } else {
+            document.getElementById('svcCode').value = '';
+            document.getElementById('svcName').value = '';
+            document.getElementById('svcCategoryId').value = '';
+            document.getElementById('svcDuration').value = '';
+            document.getElementById('svcPrice').value = '';
+        }
+
+        HPUI.openModal('svcModal');
+    }
+
+    function saveService() {
+        var payload = {
+            Id: parseInt(document.getElementById('svcId').value) || 0,
+            ServiceCode: document.getElementById('svcCode').value.trim(),
+            Name: document.getElementById('svcName').value.trim(),
+            ServiceCategoryId: parseInt(document.getElementById('svcCategoryId').value) || 0,
+            DurationMinutes: parseInt(document.getElementById('svcDuration').value) || 0,
+            UnitPrice: parseFloat(document.getElementById('svcPrice').value) || 0,
+            IsActive: true
+        };
+
+        var btn = document.getElementById('btnSaveService');
+        btn.disabled = true;
+
+        fetch('/catalog/services/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.disabled = false;
+            if (data.success) {
+                HPUI.toast(data.message || 'Đã lưu dịch vụ!', 'success');
+                HPUI.closeModal('svcModal');
+                setTimeout(function() { HPUI.loadPage('/catalog/services'); }, 400);
+            } else {
+                HPUI.toast(data.message || 'Lỗi lưu dịch vụ!', 'error');
+            }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            HPUI.toast('Lỗi kết nối!', 'error');
+        });
+    }
+
+    function deleteService(id, btn) {
+        var name = btn && btn.getAttribute ? (btn.getAttribute('data-name') || '') : '';
+        if (!confirm('Tạm ngưng dịch vụ "' + name + '"? Dịch vụ sẽ không hiện khi tạo phiếu mới.')) return;
+
+        fetch('/catalog/services/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(id)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                HPUI.toast(data.message || 'Đã tạm ngưng dịch vụ.', 'success');
+                setTimeout(function() { HPUI.loadPage('/catalog/services'); }, 400);
+            } else {
+                HPUI.toast(data.message || 'Lỗi!', 'error');
+            }
+        });
+    }
+
+    loadServices(1);
+</script>

@@ -1,0 +1,204 @@
+/* ========================================
+   HP Auto Detailing - Site Styles
+   ======================================== */
+
+/* --- Base --- */
+html {
+  font-size: 14px;
+  scroll-behavior: smooth;
+}
+@media (min-width: 768px) {
+  html { font-size: 16px; }
+}
+html { position: relative; min-height: 100%; }
+body { 
+  margin: 0; 
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+input, button, select, textarea {
+  font-family: inherit;
+}
+
+/* --- Custom Scrollbar --- */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.25); border-radius: 999px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.45); }
+
+/* --- Toast --- */
+.hp-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  min-width: 320px;
+  max-width: 480px;
+  animation: toast-in 0.35s ease-out forwards;
+  transition: all 0.3s ease;
+}
+.hp-toast.removing {
+  animation: toast-out 0.3s ease-in forwards;
+}
+.hp-toast.toast-success { background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.2); color: #34d399; }
+.hp-toast.toast-error   { background: rgba(239, 68, 68, 0.08);  border-color: rgba(239, 68, 68, 0.2);  color: #f87171; }
+.hp-toast.toast-info    { background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.hp-toast.toast-warning { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+.hp-toast .toast-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+.hp-toast .toast-close {
+  margin-left: auto;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+.hp-toast .toast-close:hover { opacity: 1; }
+
+@keyframes toast-in {
+  0%   { opacity: 0; transform: translateX(40px) scale(0.95); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes toast-out {
+  0%   { opacity: 1; transform: translateX(0) scale(1); }
+  100% { opacity: 0; transform: translateX(40px) scale(0.95); }
+}
+
+/* --- Modal Overlay --- */
+.hp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(1, 16, 32, 0.8);
+  backdrop-filter: blur(4px);
+  animation: fade-in 0.2s ease-out;
+}
+.hp-modal-overlay.closing {
+  animation: fade-out 0.2s ease-in forwards;
+}
+.hp-modal-content {
+  animation: modal-zoom-in 0.25s ease-out;
+}
+.hp-modal-overlay.closing .hp-modal-content {
+  animation: modal-zoom-out 0.2s ease-in forwards;
+}
+@keyframes fade-in  { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes fade-out { 0% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes modal-zoom-in  { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes modal-zoom-out { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.95); } }
+
+/* --- Dropdown Panel (works with [data-hp-dropdown].open) --- */
+[data-hp-dropdown] [data-hp-dropdown-panel] {
+  display: none;
+}
+[data-hp-dropdown].open [data-hp-dropdown-panel] {
+  display: block;
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* --- Accordion --- */
+.hp-accordion {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.hp-accordion-header {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.2s;
+}
+.hp-accordion-header:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+.hp-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s ease;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.hp-accordion.active .hp-accordion-content {
+  max-height: 2000px; /* Large enough for any content */
+  padding-top: 1rem;
+  padding-bottom: 1.5rem;
+}
+.hp-accordion-chevron {
+  transition: transform 0.3s ease;
+}
+.hp-accordion.active .hp-accordion-chevron {
+  transform: rotate(180deg);
+}
+
+/* --- Print Styles (80mm Thermal Printer) --- */
+@media print {
+  @page {
+    margin: 0;
+    size: 80mm auto;
+  }
+  
+  html, body {
+    background: white !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .hp-print-area, .hp-print-area * {
+    visibility: visible;
+  }
+
+  .hp-print-area {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm !important;
+    padding: 2mm 4mm;
+    margin: 0;
+    background: white !important;
+    color: black !important;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+  }
+
+  /* Reset layout for print */
+  main, .hp-content-area {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+}
+
+/* --- Focus styles --- */
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/* --- Light theme support (future) --- */
+.light-theme {
+  /* placeholder for light theme overrides */
+}

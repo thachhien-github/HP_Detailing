@@ -1,0 +1,97 @@
+@model HP_Detailing.Models.StockImport
+@{ ViewData["Title"] = "Chi tiết phiếu nhập"; Layout = "_Layout"; }
+
+<div class="p-4 sm:p-6 lg:p-8 space-y-8 flex-1 h-full min-h-0 overflow-y-auto">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = $"Phiếu nhập: {Model.ImportCode}",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> {
+            new(){Label="Trang chủ",Path="/"}, new(){Label="Kho",Path="/warehouse"}, new(){Label="Lịch sử",Path="/warehouse/imports"}, new(){Label=Model.ImportCode}
+        },
+        ActionsSlotHtml = @"<button onclick=""HPUI.loadPage('/warehouse/imports')"" class=""flex items-center gap-2 px-4 py-2.5 border border-slate-700 text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold uppercase tracking-widest rounded-lg""><i data-lucide=""arrow-left"" class=""w-4 h-4""></i> Quay lại</button>"
+    })
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        @* Detail Table *@
+        <div class="lg:col-span-2">
+            <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                <div class="px-6 py-5 border-b border-slate-800 bg-slate-900/30 flex items-center gap-3">
+                    <i data-lucide="file-text" class="w-5 h-5 text-blue-400"></i>
+                    <h3 class="font-bold text-slate-200">Danh sách vật tư trong phiếu</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left min-w-[500px]">
+                        <thead><tr class="bg-[#1c2b3c]/30 border-b border-slate-800">
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mã VT</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tên vật tư</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">SL</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Đơn giá</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Thành tiền</th>
+                        </tr></thead>
+                        <tbody class="divide-y divide-slate-800/50">
+                        @if (!Model.Items.Any()) {
+                            <tr><td colspan="5" class="px-6 py-8 text-center text-slate-500 text-sm">Phiếu này không có dòng chi tiết.</td></tr>
+                        }
+                        @foreach (var item in Model.Items) {
+                            <tr class="hover:bg-slate-800/20 transition-colors">
+                                <td class="px-6 py-4 font-mono text-xs font-bold text-blue-400">@(item.Material?.MaterialCode ?? "—")</td>
+                                <td class="px-6 py-4 text-sm font-bold text-slate-200">@(item.Material?.Name ?? "—")</td>
+                                <td class="px-6 py-4 text-center font-mono font-bold text-slate-200">@item.Quantity.ToString("N1") <span class="text-[10px] text-slate-500">@(item.Material?.Unit)</span></td>
+                                <td class="px-6 py-4 text-right font-mono text-slate-400 text-xs">@item.UnitPrice.ToString("N0")</td>
+                                <td class="px-6 py-4 text-right font-mono font-bold text-emerald-400">@((item.Quantity * item.UnitPrice).ToString("N0"))đ</td>
+                            </tr>
+                        }
+                        </tbody>
+                        <tfoot>
+                            <tr class="border-t border-slate-700 bg-slate-900/30">
+                                <td colspan="4" class="px-6 py-4 text-right font-bold text-sm text-slate-400 uppercase tracking-widest">Tổng cộng:</td>
+                                <td class="px-6 py-4 text-right font-mono font-bold text-xl text-blue-400">@Model.TotalAmount.ToString("N0")đ</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @* Sidebar info *@
+        <div class="space-y-5">
+            <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 space-y-4">
+                <h3 class="font-bold text-slate-300 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4 text-blue-400"></i> Thông tin phiếu</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between gap-4"><span class="text-slate-500">Mã phiếu</span><span class="font-mono font-bold text-blue-400">@Model.ImportCode</span></div>
+                    <div class="flex justify-between gap-4"><span class="text-slate-500">Ngày nhập</span><span class="text-slate-300">@Model.ImportDate.ToString("dd/MM/yyyy HH:mm")</span></div>
+                    <div class="flex justify-between gap-4"><span class="text-slate-500">Nhà cung cấp</span><span class="text-slate-200 font-bold text-right">@(Model.Supplier?.Name ?? "—")</span></div>
+                    <div class="flex justify-between gap-4"><span class="text-slate-500">Người lập</span><span class="text-slate-300">@(Model.CreatedBy ?? "—")</span></div>
+                    <div class="flex justify-between gap-4"><span class="text-slate-500">Người nhận hàng</span><span class="text-slate-200 font-bold">@(Model.ReceivedBy ?? "—")</span></div>
+                    <div class="flex justify-between gap-4"><span class="text-slate-500">Thanh toán</span>
+                        <span class="font-bold text-[11px] px-2 py-0.5 rounded uppercase tracking-widest @(Model.PaymentStatus == "Đã thanh toán" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : Model.PaymentStatus == "Thanh toán một phần" ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20")">@(Model.PaymentStatus ?? "Chưa thanh toán")</span>
+                    </div>
+                    <div class="h-px bg-slate-800"></div>
+                    <div class="flex justify-between gap-4"><span class="text-slate-500">Trạng thái phiếu</span>
+                        <span class="font-bold text-[11px] px-2 py-0.5 rounded uppercase tracking-widest @(Model.Status == "Hoàn tất" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border border-amber-500/20")">@Model.Status</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Notes)) {
+                        <div class="pt-2 border-t border-slate-800">
+                            <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Ghi chú</p>
+                            <p class="text-slate-400 text-sm">@Model.Notes</p>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.InvoiceLink)) {
+                        <div class="pt-3 border-t border-slate-800 space-y-2">
+                            <p class="text-[10px] text-slate-500 uppercase tracking-widest">Minh chứng hóa đơn</p>
+                            <a href="@Model.InvoiceLink" target="_blank" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold text-xs uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 border border-slate-700 transition-all">
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Xem hóa đơn đã lưu
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 text-center">
+                <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest mb-1">Tổng giá trị nhập</p>
+                <p class="text-2xl font-bold text-blue-400 font-mono">@Model.TotalAmount.ToString("N0")<span class="text-base font-normal">đ</span></p>
+                <p class="text-[10px] text-slate-500 mt-2">@Model.Items.Count mặt hàng · @Model.Items.Sum(i => i.Quantity).ToString("N0") đơn vị</p>
+            </div>
+        </div>
+    </div>
+</div>
+<script>(function(){ if(window.lucide) lucide.createIcons(); })();</script>

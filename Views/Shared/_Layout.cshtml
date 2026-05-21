@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HP Auto Detailing</title>
+
+    @* Tailwind CSS v3 CDN *@
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: 'var(--primary-color)',
+                            light: 'var(--primary-color-light)',
+                            dark: 'var(--primary-color-dark)',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                    },
+                    keyframes: {
+                        'fade-in': { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        'zoom-in': { '0%': { transform: 'scale(0.95)' }, '100%': { transform: 'scale(1)' } },
+                        'slide-up': { '0%': { transform: 'translateY(10px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        'slide-down': { '0%': { transform: 'translateY(-10px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                    },
+                    animation: {
+                        'fade-in': 'fade-in 0.2s ease-out',
+                        'zoom-in': 'zoom-in 0.2s ease-out',
+                        'slide-up': 'slide-up 0.3s ease-out',
+                        'slide-down': 'slide-down 0.3s ease-out',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            /* Primary Colors */
+            --primary-color: #3b82f6;
+            --primary-color-light: rgba(59, 130, 246, 0.1);
+            --primary-color-dark: #2563eb;
+            --primary-rgb: 59, 130, 246;
+
+            /* Base Theme (Dark - Default) */
+            --bg-base: #050B14;
+            --bg-card: #122131;
+            --bg-card-alt: #1c2b3c;
+            --bg-header: rgba(11, 16, 29, 0.95);
+            --bg-sidebar: #0B101D;
+            --bg-input: #0B101D;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-main: rgba(30, 41, 59, 0.5);
+            --bg-hover: rgba(30, 41, 59, 0.4);
+        }
+
+        html.light-mode {
+            --bg-base: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-card-alt: #f8fafc;
+            --bg-header: rgba(255, 255, 255, 0.85);
+            --bg-sidebar: #ffffff;
+            --bg-input: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-main: #e2e8f0;
+            --bg-hover: #f1f5f9;
+            --scrollbar-thumb: #cbd5e1;
+        }
+
+        body { background-color: var(--bg-base); color: var(--text-main); transition: background-color 0.3s ease, color 0.3s ease; }
+        
+        /* Layout Overrides */
+        header { background-color: var(--bg-header) !important; border-color: var(--border-main) !important; backdrop-filter: blur(12px) !important; }
+        aside { background-color: var(--bg-sidebar) !important; border-color: var(--border-main) !important; }
+        main { background-color: var(--bg-base) !important; }
+        
+        /* Hardcoded Background Overrides */
+        .bg-\[\#050B14\], .bg-slate-950 { background-color: var(--bg-base) !important; }
+        .bg-\[\#122131\], .bg-slate-900, .bg-\[\#122131\]\/80 { background-color: var(--bg-card) !important; }
+        .bg-\[\#1c2b3c\], .bg-slate-800, .bg-\[\#1c2b3c\]\/50 { background-color: var(--bg-card-alt) !important; }
+        .bg-\[\#0B101D\], .bg-slate-800\/50, .bg-\[\#0B101D\]\/50 { background-color: var(--bg-input) !important; }
+        .bg-\[\#0B101D\]\/95 { background-color: var(--bg-header) !important; }
+
+        /* Text Overrides */
+        .text-slate-100, .text-white, .text-slate-200, .text-slate-300 { color: var(--text-main) !important; }
+        .text-slate-400, .text-slate-500, .text-slate-600 { color: var(--text-muted) !important; }
+        
+        /* Border Overrides */
+        .border-slate-800, .border-slate-700, .border-slate-800\/50, .border-slate-700\/50, .border-slate-700\/30 { border-color: var(--border-main) !important; }
+        
+        /* Hover/Interactive */
+        .hover\:bg-slate-800\/40:hover, .hover\:bg-slate-800\/50:hover, .hover\:bg-slate-800\/30:hover { background-color: var(--bg-hover) !important; }
+        
+        /* Dropdowns/Modals */
+        [data-hp-dropdown-panel] { background-color: var(--bg-card) !important; border-color: var(--border-main) !important; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important; }
+        
+        /* Input/Placeholder */
+        ::placeholder { color: var(--text-muted) !important; opacity: 0.6 !important; }
+        input, select, textarea { border-color: var(--border-main) !important; }
+
+        /* Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb, #1e293b);
+        }
+
+        /* Primary Color Sync */
+        .text-blue-400, .text-blue-500 { color: var(--primary-color) !important; }
+        .bg-blue-500 { background-color: var(--primary-color) !important; }
+        .bg-blue-600 { background-color: var(--primary-color-dark) !important; }
+        .border-blue-500 { border-color: var(--primary-color) !important; }
+        .border-blue-500\/50 { border-color: rgba(var(--primary-rgb), 0.5) !important; }
+        .border-blue-500\/20 { border-color: rgba(var(--primary-rgb), 0.2) !important; }
+        .bg-blue-500\/10, .bg-blue-500\/5 { background-color: var(--primary-color-light) !important; }
+    </style>
+    <script>
+        (function() {
+            // Apply Saved Color
+            const savedColor = localStorage.getItem('hp-primary-color') || 'Blue';
+            const colors = {
+                'Blue': { main: '#3b82f6', dark: '#2563eb', rgb: '59, 130, 246' },
+                'Emerald': { main: '#10b981', dark: '#059669', rgb: '16, 185, 129' },
+                'Amber': { main: '#f59e0b', dark: '#d97706', rgb: '245, 158, 11' },
+                'Rose': { main: '#f43f5e', dark: '#e11d48', rgb: '244, 63, 94' },
+                'Purple': { main: '#a855f7', dark: '#9333ea', rgb: '168, 85, 247' }
+            };
+            const theme = colors[savedColor] || colors['Blue'];
+            document.documentElement.style.setProperty('--primary-color', theme.main);
+            document.documentElement.style.setProperty('--primary-color-dark', theme.dark);
+            document.documentElement.style.setProperty('--primary-rgb', theme.rgb);
+            document.documentElement.style.setProperty('--primary-color-light', `rgba(${theme.rgb}, 0.1)`);
+
+            // Apply Saved Mode (Dark/Light)
+            const savedMode = localStorage.getItem('hp-theme-mode') || 'dark';
+            if (savedMode === 'light') {
+                document.documentElement.classList.add('light-mode');
+            }
+        })();
+    </script>
+
+
+    @* Google Fonts *@
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    @* Lucide Icons CDN *@
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="bg-[#050B14] text-slate-100 font-sans antialiased">
+    @* Navigation Progress Bar *@
+    <div id="hpNavProgress" class="fixed top-0 left-0 h-[3px] bg-blue-500 z-[300] transition-all duration-300 ease-out shadow-[0_0_10px_rgba(59,130,246,0.5)] hidden opacity-0" style="width: 0%"></div>
+
+    <div class="flex h-screen overflow-hidden bg-[#050B14] text-slate-100">
+        @await Html.PartialAsync("_Sidebar")
+
+        @* Mobile overlay *@
+        <div id="hpSidebarOverlay" class="hidden fixed inset-0 z-40 bg-[#0B101D]/80 backdrop-blur-sm lg:hidden" onclick="window.HPUI?.closeSidebar?.()"></div>
+
+        <div class="flex flex-1 flex-col overflow-hidden">
+            @await Html.PartialAsync("_Header")
+            <main class="flex-1 overflow-y-auto bg-[#050B14] custom-scrollbar">
+                <div class="mx-auto max-w-7xl pb-8 sm:px-6 lg:px-8 h-full">
+                    @RenderBody()
+                </div>
+            </main>
+        </div>
+    </div>
+
+    @* Toast container *@
+    <div id="hpToastContainer" class="fixed bottom-6 right-6 z-[200] flex flex-col-reverse gap-3 pointer-events-none"></div>
+
+    <script src="~/js/hp-ui.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

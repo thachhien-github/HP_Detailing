@@ -1,0 +1,402 @@
+@model HP_Detailing.Models.Staff
+@{ 
+    ViewData["Title"] = "Staff Detail"; Layout = "_Layout"; 
+    var initials = Model.FullName.Length > 0 ? Model.FullName.Substring(0, 1).ToUpper() : "?";
+    var profile = Model.Profile ?? new HP_Detailing.Models.StaffProfile();
+    var activeContract = Model.LaborContracts?.FirstOrDefault(c => c.Status == "Hiệu lực");
+}
+
+<div class="p-4 sm:p-6 lg:p-8 space-y-8 flex-1 h-full min-h-0 overflow-y-auto">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel
+    {
+        Title = "Hồ sơ Nhân sự",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb>
+        {
+            new() { Label = "Trang chủ", Path = "/" },
+            new() { Label = "Nhân sự", Path = "/staff" },
+            new() { Label = Model.StaffCode }
+        },
+        ActionsSlotHtml = @"<button onclick=""HPUI.loadPage('/staff')"" class=""px-4 py-2 border border-slate-700 text-slate-300 hover:bg-slate-800 transition-all text-sm rounded-lg flex items-center gap-2""><i data-lucide=""arrow-left"" class=""w-4 h-4""></i> Quay lại</button>"
+    })
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        @* Left Column: Profile Card *@
+        <div class="lg:col-span-4 xl:col-span-3 space-y-6">
+            <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                <div class="p-6 bg-gradient-to-b from-slate-900 to-[#122131] flex flex-col items-center text-center border-b border-slate-800 relative">
+                    <div class="absolute top-4 right-4">
+                        <span class="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded @(Model.IsActive ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-slate-800 text-slate-400 border border-slate-700")">
+                            @Model.Status
+                        </span>
+                    </div>
+                    <div class="w-24 h-24 rounded-full bg-slate-800 border-4 border-[#122131] shadow-xl flex items-center justify-center text-3xl font-bold text-white mb-4">
+                        @initials
+                    </div>
+                    <h2 class="text-xl font-bold text-white mb-1">@Model.FullName</h2>
+                    <p class="text-sm font-mono text-blue-400 font-medium mb-3">@Model.StaffCode</p>
+                    <span class="px-3 py-1 bg-slate-900 border border-slate-800 rounded-full text-[11px] font-bold uppercase tracking-widest text-slate-400">@(Model.Position ?? "Nhân viên")</span>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-8 h-8 rounded bg-slate-900 flex items-center justify-center text-slate-400"><i data-lucide="phone" class="w-4 h-4"></i></div>
+                        <div><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Điện thoại</p><p class="text-slate-300 font-mono">@(string.IsNullOrEmpty(Model.Phone) ? "Chưa cập nhật" : Model.Phone)</p></div>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-8 h-8 rounded bg-slate-900 flex items-center justify-center text-slate-400"><i data-lucide="award" class="w-4 h-4"></i></div>
+                        <div><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Chuyên môn</p><p class="text-slate-300">@(string.IsNullOrEmpty(Model.Specialty) ? "Chung" : Model.Specialty)</p></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
+                <h3 class="text-sm font-bold text-blue-400 mb-2">Trạng thái nhân viên</h3>
+                <p class="text-xs text-slate-400 mb-4">Nếu nhân viên nghỉ việc, vô hiệu hóa sẽ tự động chốt các hợp đồng đang hiệu lực.</p>
+                <button id="btnToggleActive" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-sm font-bold transition-all">
+                    @(Model.IsActive ? "Vô hiệu hóa (Cho nghỉ)" : "Kích hoạt lại")
+                </button>
+            </div>
+        </div>
+
+        @* Right Column: Tabs Interface *@
+        <div class="lg:col-span-8 xl:col-span-9 space-y-6">
+            <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
+                
+                @* Tab Headers *@
+                <div class="flex border-b border-slate-800 bg-slate-900/50 px-2 pt-2 gap-2 overflow-x-auto">
+                    <button class="tab-btn active px-6 py-3 text-sm font-bold border-b-2 border-blue-500 text-blue-400 transition-colors" data-target="tab-general">
+                        Thông tin chung
+                    </button>
+                    <button class="tab-btn px-6 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors" data-target="tab-profile">
+                        Hồ sơ pháp lý
+                    </button>
+                    <button class="tab-btn px-6 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors" data-target="tab-payroll">
+                        Hợp đồng & Lương
+                    </button>
+                    <button class="tab-btn px-6 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors" data-target="tab-activity">
+                        Lịch sử hoạt động
+                    </button>
+                </div>
+
+                @* Tab Contents *@
+                <div class="p-6 flex-1">
+                    
+                    @* TAB 1: GENERAL INFO *@
+                    <div id="tab-general" class="tab-content block space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Mã nhân viên <span class="text-rose-500">*</span></label><input type="text" id="editStaffCode" value="@Model.StaffCode" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all uppercase font-mono" /></div>
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Họ và tên <span class="text-rose-500">*</span></label><input type="text" id="editStaffName" value="@Model.FullName" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" /></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Số điện thoại</label><input type="tel" id="editStaffPhone" value="@Model.Phone" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all font-mono" /></div>
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Ngày sinh</label><input type="date" id="editStaffDOB" value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" /></div>
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Giới tính</label>
+                                <select id="editStaffGender" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all">
+                                    <!option value="true" @(Model.Gender ? "selected" : "")>Nam</!option>
+                                    <!option value="false" @(!Model.Gender ? "selected" : "")>Nữ</!option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Địa chỉ thường trú</label><input type="text" id="editStaffAddress" value="@Model.Address" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" /></div>
+                        
+                        <div class="h-px w-full bg-slate-800 my-6"></div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Chức vụ / Vị trí</label>
+                                <select id="editStaffPosition" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all">
+                                    <!option value="Kỹ thuật viên" @(Model.Position == "Kỹ thuật viên" ? "selected" : "")>Kỹ thuật viên</!option>
+                                    <!option value="Cố vấn dịch vụ" @(Model.Position == "Cố vấn dịch vụ" ? "selected" : "")>Cố vấn dịch vụ</!option>
+                                    <!option value="Kế toán / Lễ tân" @(Model.Position == "Kế toán / Lễ tân" ? "selected" : "")>Kế toán / Lễ tân</!option>
+                                    <!option value="Quản lý / Quản đốc" @(Model.Position == "Quản lý / Quản đốc" ? "selected" : "")>Quản lý / Quản đốc</!option>
+                                </select>
+                            </div>
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Chuyên môn</label><input type="text" id="editStaffSpecialty" value="@Model.Specialty" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" /></div>
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Ngày vào làm</label><input type="date" id="editStaffHireDate" value="@(Model.HireDate?.ToString("yyyy-MM-dd"))" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" /></div>
+                        </div>
+                    </div>
+
+                    @* TAB 2: PROFILE (Hồ sơ pháp lý) *@
+                    <div id="tab-profile" class="tab-content hidden space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Số CCCD / CMND</label><input type="text" id="editProfileIdCard" value="@profile.IdentityCard" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 font-mono focus:border-blue-500 outline-none transition-all" /></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Ngày cấp</label><input type="date" id="editProfileIssueDate" value="@(profile.IssueDate?.ToString("yyyy-MM-dd"))" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" /></div>
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Nơi cấp</label><input type="text" id="editProfileIssuePlace" value="@profile.IssuePlace" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" /></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Dân tộc</label><input type="text" id="editProfileEthnicity" value="@profile.Ethnicity" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" /></div>
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Tôn giáo</label><input type="text" id="editProfileReligion" value="@profile.Religion" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" /></div>
+                            <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Tình trạng hôn nhân</label>
+                                <select id="editProfileMarital" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all">
+                                    <!option value="false" @(!profile.MaritalStatus ? "selected" : "")>Độc thân</!option>
+                                    <!option value="true" @(profile.MaritalStatus ? "selected" : "")>Đã kết hôn</!option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* TAB 3: PAYROLL & CONTRACTS *@
+                    <div id="tab-payroll" class="tab-content hidden space-y-8">
+                        @* Active Contract Info *@
+                        <div>
+                            <h4 class="text-sm font-bold text-emerald-400 mb-4 flex items-center gap-2"><i data-lucide="file-check" class="w-5 h-5"></i> Hợp đồng hiện tại</h4>
+                            @if (activeContract != null)
+                            {
+                                <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5 flex flex-wrap gap-x-8 gap-y-4">
+                                    <div><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Mã HĐ</p><p class="text-sm font-bold text-slate-200 font-mono">@activeContract.ContractCode</p></div>
+                                    <div><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Loại HĐ</p><p class="text-sm font-medium text-slate-300">@activeContract.ContractType</p></div>
+                                    <div><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Ngày bắt đầu</p><p class="text-sm font-mono text-slate-300">@(activeContract.StartDate?.ToString("dd/MM/yyyy") ?? "--")</p></div>
+                                    <div><p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">Lương cơ bản</p><p class="text-base font-bold text-emerald-400 font-mono">@activeContract.BasicSalary.ToString("N0") VND</p></div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="bg-[#0B101D] border border-slate-700/50 rounded-xl p-6 text-center text-slate-500 text-sm">
+                                    Không có hợp đồng nào đang hiệu lực.
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="h-px w-full bg-slate-800"></div>
+
+                        @* Add Payroll Record *@
+                        <div>
+                            <h4 class="text-sm font-bold text-blue-400 mb-4 flex items-center gap-2"><i data-lucide="calculator" class="w-5 h-5"></i> Nhập Thưởng / Phạt Tháng Này</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#051424] p-5 rounded-xl border border-slate-800">
+                                <div class="space-y-2"><label class="text-[11px] font-bold text-green-500 uppercase tracking-widest">Tiền thưởng (VND)</label><input type="number" id="payrollBonus" placeholder="0" class="w-full bg-[#0B101D] border border-green-500/30 rounded-lg py-2.5 px-4 text-sm text-green-400 focus:border-green-500 outline-none transition-all font-mono" /></div>
+                                <div class="space-y-2"><label class="text-[11px] font-bold text-rose-500 uppercase tracking-widest">Tiền phạt (VND)</label><input type="number" id="payrollDeduct" placeholder="0" class="w-full bg-[#0B101D] border border-rose-500/30 rounded-lg py-2.5 px-4 text-sm text-rose-400 focus:border-rose-500 outline-none transition-all font-mono" /></div>
+                                <div class="md:col-span-2 space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Ghi chú / Lý do</label><input type="text" id="payrollNotes" placeholder="Ví dụ: Thưởng hoàn thành xuất sắc..." class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" /></div>
+                                <div class="md:col-span-2 text-right">
+                                    <button id="btnAddPayroll" class="px-5 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/30 hover:bg-blue-500 hover:text-white text-sm font-bold rounded-lg transition-all shadow-[0_0_15px_rgba(59,130,246,0.1)]">Ghi nhận Thưởng/Phạt</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    @* TAB 4: ACTIVITY *@
+                    <div id="tab-activity" class="tab-content hidden space-y-6">
+                        <h4 class="text-sm font-bold text-blue-400 mb-4 flex items-center gap-2"><i data-lucide="activity" class="w-5 h-5"></i> Dịch vụ đã thực hiện gần đây</h4>
+                        <div class="space-y-3">
+                            @if (ViewBag.RecentTickets != null && ((IEnumerable<HP_Detailing.Models.Ticket>)ViewBag.RecentTickets).Any())
+                            {
+                                foreach (var ticket in (IEnumerable<HP_Detailing.Models.Ticket>)ViewBag.RecentTickets)
+                                {
+                                    <div class="flex justify-between items-center p-4 bg-[#051424] rounded-xl border border-slate-800">
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-200">Biển số: @(string.IsNullOrEmpty(ticket.Plate) ? "N/A" : ticket.Plate) &bull; Khách: @ticket.CustomerName</p>
+                                            <p class="text-[11px] text-slate-500 mt-1">Hoàn thành: @ticket.CreatedAt.ToString("HH:mm - dd/MM/yyyy")</p>
+                                        </div>
+                                        <span class="text-xs font-bold @(ticket.Status == "completed" ? "text-emerald-400 bg-emerald-500/10" : "text-blue-400 bg-blue-500/10") px-3 py-1.5 rounded-lg border border-slate-700/50">
+                                            @ticket.Status.ToUpper()
+                                        </span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-sm text-slate-500 text-center py-6 bg-[#0B101D] rounded-xl border border-slate-800">Chưa có lịch sử dịch vụ.</div>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+                
+                @* Global Save Button for Profile & General *@
+                <div id="saveBar" class="p-5 border-t border-slate-800 bg-slate-900/30 flex justify-end">
+                    <button id="btnSaveFullProfile" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg transition-all shadow-[0_0_15px_rgba(59,130,246,0.2)] flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i> Lưu Thông Tin Hồ Sơ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        if (window.lucide) lucide.createIcons();
+        var staffId = @Model.Id;
+
+        // Tabs Logic
+        const tabs = document.querySelectorAll('.tab-btn');
+        const contents = document.querySelectorAll('.tab-content');
+        const saveBar = document.getElementById('saveBar');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active styling from all tabs
+                tabs.forEach(t => {
+                    t.classList.remove('border-blue-500', 'text-blue-400');
+                    t.classList.add('border-transparent', 'text-slate-500');
+                });
+                // Hide all content
+                contents.forEach(c => c.classList.add('hidden'));
+
+                // Activate clicked tab
+                tab.classList.remove('border-transparent', 'text-slate-500');
+                tab.classList.add('border-blue-500', 'text-blue-400');
+                
+                // Show matching content
+                const target = tab.getAttribute('data-target');
+                document.getElementById(target).classList.remove('hidden');
+
+                // Hide Save button if on Payroll tab (it has its own button)
+                if(target === 'tab-payroll') saveBar.classList.add('hidden');
+                else saveBar.classList.remove('hidden');
+            });
+        });
+
+        // Save Full Profile Data
+        var btnSave = document.getElementById('btnSaveFullProfile');
+        if (btnSave && !btnSave.hasAttribute('data-init')) {
+            btnSave.setAttribute('data-init', 'true');
+            btnSave.addEventListener('click', function() {
+                var code = document.getElementById('editStaffCode').value.trim();
+                var name = document.getElementById('editStaffName').value.trim();
+
+                if (!code || !name) {
+                    HPUI.toast('Vui lòng nhập Mã NV và Họ Tên!', 'warning');
+                    return;
+                }
+
+                btnSave.disabled = true;
+                var orgHtml = btnSave.innerHTML;
+                btnSave.innerHTML = 'Đang lưu...';
+
+                var payload = {
+                    StaffId: staffId,
+                    StaffCode: code,
+                    FullName: name,
+                    Phone: document.getElementById('editStaffPhone').value.trim(),
+                    Position: document.getElementById('editStaffPosition').value,
+                    Specialty: document.getElementById('editStaffSpecialty').value.trim(),
+                    Address: document.getElementById('editStaffAddress').value.trim(),
+                    DateOfBirth: document.getElementById('editStaffDOB').value || null,
+                    Gender: document.getElementById('editStaffGender').value === 'true',
+                    HireDate: document.getElementById('editStaffHireDate').value || null,
+                    
+                    IdentityCard: document.getElementById('editProfileIdCard').value.trim(),
+                    IssueDate: document.getElementById('editProfileIssueDate').value || null,
+                    IssuePlace: document.getElementById('editProfileIssuePlace').value.trim(),
+                    Ethnicity: document.getElementById('editProfileEthnicity').value.trim(),
+                    Religion: document.getElementById('editProfileReligion').value.trim(),
+                    MaritalStatus: document.getElementById('editProfileMarital').value === 'true'
+                };
+
+                fetch('/Staff/UpdateFullProfileAjax', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        HPUI.toast('Đã lưu hồ sơ thành công!', 'success');
+                        setTimeout(function(){
+                            if (window.HPUI && window.HPUI.loadPage) window.HPUI.loadPage('/staff/detail/' + staffId);
+                            else window.location.reload();
+                        }, 500);
+                    } else {
+                        btnSave.disabled = false;
+                        btnSave.innerHTML = orgHtml;
+                        HPUI.toast(data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    btnSave.disabled = false;
+                    btnSave.innerHTML = orgHtml;
+                    HPUI.toast('Lỗi kết nối!', 'error');
+                });
+            });
+        }
+
+        // Add Payroll Logic
+        var btnAddPayroll = document.getElementById('btnAddPayroll');
+        if (btnAddPayroll && !btnAddPayroll.hasAttribute('data-init')) {
+            btnAddPayroll.setAttribute('data-init', 'true');
+            btnAddPayroll.addEventListener('click', function() {
+                var bonus = document.getElementById('payrollBonus').value.trim();
+                var deduct = document.getElementById('payrollDeduct').value.trim();
+                var notes = document.getElementById('payrollNotes').value.trim();
+
+                if (!bonus && !deduct) {
+                    HPUI.toast('Vui lòng nhập số tiền thưởng hoặc phạt.', 'warning');
+                    return;
+                }
+
+                btnAddPayroll.disabled = true;
+                btnAddPayroll.innerHTML = 'Đang xử lý...';
+
+                var d = new Date();
+                fetch('/Staff/AddPayrollAjax', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        StaffId: staffId,
+                        Month: d.getMonth() + 1,
+                        Year: d.getFullYear(),
+                        Bonus: bonus ? parseFloat(bonus) : 0,
+                        Deduction: deduct ? parseFloat(deduct) : 0,
+                        Notes: notes
+                    })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        HPUI.toast('Đã ghi nhận thưởng/phạt cho tháng này!', 'success');
+                        document.getElementById('payrollBonus').value = '';
+                        document.getElementById('payrollDeduct').value = '';
+                        document.getElementById('payrollNotes').value = '';
+                    } else {
+                        HPUI.toast(data.message, 'error');
+                    }
+                    btnAddPayroll.disabled = false;
+                    btnAddPayroll.innerHTML = 'Ghi nhận Thưởng/Phạt';
+                })
+                .catch(err => {
+                    btnAddPayroll.disabled = false;
+                    btnAddPayroll.innerHTML = 'Ghi nhận Thưởng/Phạt';
+                    HPUI.toast('Lỗi kết nối!', 'error');
+                });
+            });
+        }
+
+        // Toggle Active Logic
+        var btnToggle = document.getElementById('btnToggleActive');
+        if (btnToggle && !btnToggle.hasAttribute('data-init')) {
+            btnToggle.setAttribute('data-init', 'true');
+            btnToggle.addEventListener('click', function() {
+                if (!confirm('Bạn có chắc muốn thay đổi trạng thái của nhân viên này? Việc cho nghỉ sẽ tự động chốt các hợp đồng đang hiệu lực.')) return;
+                
+                btnToggle.disabled = true;
+                btnToggle.innerHTML = 'Đang xử lý...';
+
+                fetch('/Staff/ToggleActive', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Id: staffId })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        HPUI.toast('Đã thay đổi trạng thái!', 'success');
+                        setTimeout(function(){
+                            if (window.HPUI && window.HPUI.loadPage) window.HPUI.loadPage('/staff/detail/' + staffId);
+                            else window.location.reload();
+                        }, 500);
+                    } else {
+                        btnToggle.disabled = false;
+                        btnToggle.innerHTML = 'Thử lại';
+                        HPUI.toast(data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    btnToggle.disabled = false;
+                    btnToggle.innerHTML = 'Thử lại';
+                    HPUI.toast('Lỗi kết nối!', 'error');
+                });
+            });
+        }
+    })();
+</script>

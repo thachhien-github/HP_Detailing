@@ -1,0 +1,161 @@
+@model HP_Detailing.Models.WarehouseStock
+@{ ViewData["Title"] = $"Vật tư: {Model.Material?.Name}"; Layout = "_Layout";
+   var m = Model.Material!;
+   var usageLog = ViewBag.UsageLog as List<HP_Detailing.Models.TicketMaterialUsage> ?? new();
+   var isOut = Model.QuantityOnHand == 0;
+   var isLow = !isOut && Model.QuantityOnHand <= Model.ReorderLevel;
+   var statusText = isOut ? "Hết hàng" : isLow ? "Sắp hết" : "Còn hàng";
+   var statusClass = isOut ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : isLow ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+}
+
+<div class="p-4 sm:p-6 lg:p-8 space-y-8 flex-1 h-full min-h-0 overflow-y-auto">
+    @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel {
+        Title = $"Vật tư: {m.Name}",
+        Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb> {
+            new(){Label="Trang chủ",Path="/"}, new(){Label="Kho",Path="/warehouse"}, new(){Label=m.MaterialCode}
+        },
+        ActionsSlotHtml = $@"<button onclick=""deleteMaterial({m.Id})"" class=""flex items-center gap-2 px-4 py-2.5 border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 transition-all text-xs font-bold uppercase tracking-widest rounded-lg""><i data-lucide=""trash-2"" class=""w-4 h-4""></i> Xóa vật tư</button><button onclick=""HPUI.loadPage('/warehouse')"" class=""flex items-center gap-2 px-4 py-2.5 border border-slate-700 text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold uppercase tracking-widest rounded-lg""><i data-lucide=""arrow-left"" class=""w-4 h-4""></i> Quay lại</button>"
+    })
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        @* Left: Info + Stock card *@
+        <div class="space-y-6">
+            @* Stock Summary *@
+            <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 text-center space-y-4">
+                <div class="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto">
+                    <i data-lucide="package" class="w-8 h-8 text-blue-400"></i>
+                </div>
+                <div>
+                    <p class="font-mono text-xs font-bold text-slate-500 mb-1">@m.MaterialCode</p>
+                    <h2 class="text-xl font-bold text-white">@m.Name</h2>
+                </div>
+                <span class="inline-flex px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-widest @statusClass">@statusText</span>
+                <div class="grid grid-cols-2 gap-4 text-center pt-2 border-t border-slate-800">
+                    <div>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Tồn kho</p>
+                        <p class="text-2xl font-bold font-mono @(isOut ? "text-rose-400" : isLow ? "text-amber-400" : "text-emerald-400")">@Model.QuantityOnHand.ToString("N1")</p>
+                        <p class="text-[10px] text-slate-500">@(m.Unit ?? "đơn vị")</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Định mức</p>
+                        <p class="text-2xl font-bold font-mono text-slate-300">@Model.ReorderLevel.ToString("N0")</p>
+                        <p class="text-[10px] text-slate-500">ngưỡng cảnh báo</p>
+                    </div>
+                </div>
+            </div>
+
+            @* Usage History mini *@
+            <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-800 bg-[#1c2b3c]/50">
+                    <h4 class="text-sm font-bold text-slate-300 flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-blue-400"></i> Lịch sử sử dụng</h4>
+                </div>
+                <div class="divide-y divide-slate-800/50 max-h-72 overflow-y-auto">
+                    @if (!usageLog.Any()) {
+                        <p class="text-center text-slate-500 text-sm py-8">Chưa có lịch sử sử dụng.</p>
+                    }
+                    @foreach (var u in usageLog) {
+                        <div class="px-5 py-3 flex justify-between items-center hover:bg-slate-800/20 transition-colors">
+                            <div>
+                                <p class="text-xs font-bold text-slate-200">@(u.Ticket?.TicketCode ?? $"Phiếu #{u.TicketId}")</p>
+                                <p class="text-[10px] text-slate-500">@(u.Ticket?.Plate ?? "—")</p>
+                            </div>
+                            <span class="text-sm font-mono font-bold text-rose-400">-@u.Quantity.ToString("N2") @(m.Unit)</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* Right: Edit form *@
+        <div class="lg:col-span-2">
+            <div class="bg-[#122131] border border-slate-800 rounded-xl overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-800 bg-slate-900/30 flex items-center gap-3">
+                    <i data-lucide="edit-3" class="w-5 h-5 text-blue-400"></i>
+                    <h3 class="font-bold text-slate-200">Chỉnh sửa thông tin vật tư</h3>
+                </div>
+                <div class="p-6 space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mã vật tư</label>
+                            <input type="text" value="@m.MaterialCode" disabled class="w-full bg-slate-900/50 border border-slate-700/30 rounded-lg py-2.5 px-4 text-sm text-slate-500 font-mono opacity-60 cursor-not-allowed" />
+                            <p class="text-[10px] text-slate-600">Không thể thay đổi mã sau khi tạo.</p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tên vật tư *</label>
+                            <input type="text" id="editName" value="@m.Name" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" />
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Đơn vị tính</label>
+                            <input type="text" id="editUnit" value="@(m.Unit ?? "")" placeholder="Lọ, Cái, Lít..." class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" />
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Đơn giá (VNĐ)</label>
+                            <input type="number" id="editPrice" value="@m.UnitPrice" min="0" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-blue-400 font-mono font-bold focus:border-blue-500 outline-none transition-all" />
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Định mức cảnh báo (Reorder Level)</label>
+                        <input type="number" id="editReorder" value="@Model.ReorderLevel" min="0" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 font-mono focus:border-blue-500 outline-none transition-all" />
+                        <p class="text-[10px] text-slate-500">Khi tồn kho xuống dưới con số này → hiện cảnh báo màu vàng.</p>
+                    </div>
+
+                    @* Giá trị tồn kho tính toán *@
+                    <div class="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Giá trị tồn hiện tại</p>
+                            <p class="text-xl font-bold text-blue-400 font-mono">@((Model.QuantityOnHand * m.UnitPrice).ToString("N0"))<span class="text-sm font-normal text-slate-400"> VNĐ</span></p>
+                        </div>
+                        <i data-lucide="trending-up" class="w-8 h-8 text-blue-400/30"></i>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button id="btnUpdate" onclick="updateMaterial(@m.Id)" class="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                            <i data-lucide="save" class="w-4 h-4"></i> Lưu thay đổi
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    if (window.lucide) lucide.createIcons();
+
+    window.updateMaterial = function(id) {
+        var name    = document.getElementById('editName').value.trim();
+        var unit    = document.getElementById('editUnit').value.trim();
+        var price   = parseFloat(document.getElementById('editPrice').value) || 0;
+        var reorder = parseFloat(document.getElementById('editReorder').value) || 5;
+        if (!name) { HPUI.toast('Tên vật tư không được để trống!', 'warning'); return; }
+
+        var btn = document.getElementById('btnUpdate');
+        btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Đang lưu...'; lucide.createIcons();
+
+        fetch('/warehouse/materials/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ Id: id, Name: name, Unit: unit, UnitPrice: price, ReorderLevel: reorder })
+        }).then(r => r.json()).then(data => {
+            btn.disabled = false; btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Lưu thay đổi'; lucide.createIcons();
+            if (data.success) { HPUI.toast('Đã cập nhật vật tư thành công!', 'success'); }
+            else { HPUI.toast(data.message || 'Có lỗi xảy ra!', 'error'); }
+        }).catch(() => { btn.disabled = false; btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Lưu thay đổi'; lucide.createIcons(); HPUI.toast('Lỗi kết nối!', 'error'); });
+    };
+
+    window.deleteMaterial = function(id) {
+        if (!confirm('Bạn chắc chắn muốn xóa vật tư này? Dữ liệu lịch sử sẽ được giữ lại.')) return;
+        fetch('/warehouse/materials/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(id)
+        }).then(r => r.json()).then(data => {
+            if (data.success) { HPUI.toast('Đã xóa vật tư!', 'success'); setTimeout(() => HPUI.loadPage('/warehouse'), 500); }
+            else { HPUI.toast(data.message || 'Có lỗi!', 'error'); }
+        });
+    };
+})();
+</script>
