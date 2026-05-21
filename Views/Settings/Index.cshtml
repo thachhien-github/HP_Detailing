@@ -257,7 +257,7 @@
                         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
                         <input type="text" id="accSearch" class="w-full bg-[#0B101D] border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 outline-none focus:border-blue-500/50 transition-all" placeholder="Tìm tài khoản...">
                     </div>
-                    <button onclick="openAccModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors whitespace-nowrap">
+                    <button id="btnAddAccount" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors whitespace-nowrap">
                         <i data-lucide="plus" class="w-4 h-4"></i> Thêm mới
                     </button>
                 </div>
@@ -307,24 +307,25 @@
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex items-center justify-end gap-2">
-                                            <button onclick="openAccModal('@acc.Id', '@acc.UserName', '@acc.FullName', '@acc.Email', '@acc.Role')" class="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all" title="Chỉnh sửa">
+                                            <button class="btn-edit-acc p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all" title="Chỉnh sửa"
+                                                    data-id="@acc.Id" data-username="@acc.UserName" data-fullname="@acc.FullName" data-email="@acc.Email" data-role="@acc.Role">
                                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
                                             </button>
                                             @if (acc.IsActive && acc.UserName != "admin_hpd")
                                             {
-                                                <button onclick="deleteAccount('@acc.Id')" class="p-2 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-all" title="Khóa tài khoản">
+                                                <button class="btn-lock-acc p-2 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-all" title="Khóa tài khoản" data-id="@acc.Id">
                                                     <i data-lucide="lock" class="w-4 h-4"></i>
                                                 </button>
                                             }
                                             else if (!acc.IsActive)
                                             {
-                                                <button onclick="activateAccount('@acc.Id')" class="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all" title="Mở khóa tài khoản">
+                                                <button class="btn-unlock-acc p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all" title="Mở khóa tài khoản" data-id="@acc.Id">
                                                     <i data-lucide="unlock" class="w-4 h-4"></i>
                                                 </button>
                                             }
                                             @if (acc.UserName != "admin_hpd")
                                             {
-                                                <button onclick="hardDeleteAccount('@acc.Id')" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all" title="Xóa vĩnh viễn">
+                                                <button class="btn-del-acc p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all" title="Xóa vĩnh viễn" data-id="@acc.Id">
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
                                             }
@@ -379,10 +380,10 @@
                             <div class="grid grid-cols-4 gap-3">
                                 @foreach (var r in Model.AvailableRoles)
                                 {
-                                    <label class="cursor-pointer">
+                                    <label class="cursor-pointer group">
                                         <input type="radio" name="accRole" value="@r" class="peer hidden" @(r=="Admin" ? "checked" : "")>
-                                        <div class="p-3 border border-slate-800 rounded-xl bg-[#0B101D]/50 peer-checked:border-blue-500/50 peer-checked:bg-blue-500/5 transition-all text-center">
-                                            <p class="text-xs font-bold text-slate-400 peer-checked:text-blue-400">@r</p>
+                                        <div class="p-3 border border-slate-800 rounded-xl bg-[#0B101D]/50 group-hover:border-slate-600 group-hover:bg-slate-800/50 peer-checked:!border-blue-500/50 peer-checked:!bg-blue-500/10 transition-all text-center">
+                                            <p class="text-xs font-bold text-slate-400 group-hover:text-slate-200 peer-checked:!text-blue-400 transition-colors">@r</p>
                                         </div>
                                     </label>
                                 }
@@ -413,7 +414,7 @@
                 </div>
                 <div class="px-6 py-4 bg-[#0B101D]/80 border-t border-slate-800 flex justify-end gap-3">
                     <button onclick="HPUI.closeModal('accModal')" class="px-5 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors">Hủy</button>
-                    <button onclick="saveAccount()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">Lưu thông tin</button>
+                    <button id="btnSaveAccount" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">Lưu thông tin</button>
                 </div>
             </div>
         </div>
@@ -663,10 +664,9 @@
     </div>
 </div>
 
-@section Scripts {
 <script>
-    // Khởi động lại theme buttons sau khi trang load
-    document.addEventListener('DOMContentLoaded', function () {
+(function() {
+        // ─── Theme / Color / Language buttons ───
         const savedMode = localStorage.getItem('hp-theme-mode') || 'dark';
         document.querySelectorAll('.theme-mode-btn').forEach(btn => {
             if (btn.dataset.mode === savedMode) {
@@ -686,7 +686,7 @@
             if (icon) icon.classList.toggle('hidden', btn.dataset.lang !== savedLang);
         });
 
-        // Search account table
+        // ─── Search account table ───
         const searchInput = document.getElementById('accSearch');
         if (searchInput) {
             searchInput.addEventListener('input', function () {
@@ -697,110 +697,120 @@
             });
         }
 
-        if (window.lucide) lucide.createIcons();
-    });
-</script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // Check if we need to open a specific tab (e.g. from redirect)
-            const urlParams = new URLSearchParams(window.location.search);
-            const tab = urlParams.get('tab');
-            if (tab) {
-                HPUI.switchTab('settingsTabs', tab);
-            }
+        // ─── Tab from URL ───
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab) {
+            HPUI.switchTab('settingsTabs', tab);
+        }
+
+        // ─── Account CRUD buttons (event delegation) ───
+        // Nút Thêm mới
+        const btnAdd = document.getElementById('btnAddAccount');
+        if (btnAdd) {
+            btnAdd.addEventListener('click', function () {
+                document.getElementById('accId').value = '';
+                document.getElementById('accUserName').value = '';
+                document.getElementById('accUserName').removeAttribute('readonly');
+                document.getElementById('accFullName').value = '';
+                document.getElementById('accEmail').value = '';
+                document.getElementById('accPassword').value = '';
+                const firstRole = document.querySelector('input[name="accRole"]');
+                if (firstRole) firstRole.checked = true;
+                HPUI.openModal('accModal');
+            });
+        }
+
+        // Nút Sửa
+        document.querySelectorAll('.btn-edit-acc').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.getElementById('accId').value = this.dataset.id || '';
+                document.getElementById('accUserName').value = this.dataset.username || '';
+                document.getElementById('accUserName').setAttribute('readonly', 'readonly');
+                document.getElementById('accFullName').value = this.dataset.fullname || '';
+                document.getElementById('accEmail').value = this.dataset.email || '';
+                document.getElementById('accPassword').value = '';
+                const role = this.dataset.role;
+                if (role) {
+                    const radio = document.querySelector('input[name="accRole"][value="' + role + '"]');
+                    if (radio) radio.checked = true;
+                }
+                HPUI.openModal('accModal');
+            });
         });
 
-        function openAccModal(id, username, fullname, email, role) {
-            document.getElementById('accId').value = id || '';
-            document.getElementById('accUserName').value = username || '';
-            document.getElementById('accFullName').value = fullname || '';
-            document.getElementById('accEmail').value = email || '';
-            document.getElementById('accPassword').value = '';
+        // Nút Khóa
+        document.querySelectorAll('.btn-lock-acc').forEach(btn => {
+            btn.addEventListener('click', async function () {
+                const id = this.dataset.id;
+                if (!confirm('Bạn có chắc chắn muốn KHÓA tài khoản này không?')) return;
+                try {
+                    const res = await fetch('/settings/accounts/delete/' + id, { method: 'POST' });
+                    const result = await res.json();
+                    HPUI.toast(result.message, result.success ? 'success' : 'error');
+                    if (result.success) setTimeout(() => window.location.href = '/settings?tab=accounts', 800);
+                } catch (e) { HPUI.toast('Lỗi kết nối máy chủ', 'error'); }
+            });
+        });
 
-            if (role) {
-                const radio = document.querySelector(`input[name="accRole"][value="${role}"]`);
-                if (radio) radio.checked = true;
-            }
+        // Nút Mở khóa
+        document.querySelectorAll('.btn-unlock-acc').forEach(btn => {
+            btn.addEventListener('click', async function () {
+                const id = this.dataset.id;
+                if (!confirm('Mở khóa tài khoản này?')) return;
+                try {
+                    const res = await fetch('/settings/accounts/activate/' + id, { method: 'POST' });
+                    const result = await res.json();
+                    HPUI.toast(result.message, result.success ? 'success' : 'error');
+                    if (result.success) setTimeout(() => window.location.href = '/settings?tab=accounts', 800);
+                } catch (e) { HPUI.toast('Lỗi kết nối máy chủ', 'error'); }
+            });
+        });
 
-            HPUI.openModal('accModal');
+        // Nút Xóa vĩnh viễn
+        document.querySelectorAll('.btn-del-acc').forEach(btn => {
+            btn.addEventListener('click', async function () {
+                const id = this.dataset.id;
+                if (!confirm('CẢNH BÁO: Xóa vĩnh viễn tài khoản này? Không thể hoàn tác!')) return;
+                try {
+                    const res = await fetch('/settings/accounts/hard-delete/' + id, { method: 'POST' });
+                    const result = await res.json();
+                    HPUI.toast(result.message, result.success ? 'success' : 'error');
+                    if (result.success) setTimeout(() => window.location.href = '/settings?tab=accounts', 800);
+                } catch (e) { HPUI.toast('Lỗi kết nối máy chủ', 'error'); }
+            });
+        });
+
+        // Nút Lưu trong modal
+        const btnSave = document.getElementById('btnSaveAccount');
+        if (btnSave) {
+            btnSave.addEventListener('click', async function () {
+                const data = {
+                    id: document.getElementById('accId').value,
+                    userName: document.getElementById('accUserName').value,
+                    fullName: document.getElementById('accFullName').value,
+                    email: document.getElementById('accEmail').value,
+                    password: document.getElementById('accPassword').value,
+                    role: (document.querySelector('input[name="accRole"]:checked') || {}).value || ''
+                };
+                try {
+                    const res = await fetch('/settings/accounts/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        HPUI.toast(result.message, 'success');
+                        HPUI.closeModal('accModal');
+                        setTimeout(() => window.location.href = '/settings?tab=accounts', 800);
+                    } else {
+                        HPUI.toast(result.message, 'error');
+                    }
+                } catch (e) { HPUI.toast('Lỗi kết nối máy chủ', 'error'); }
+            });
         }
 
-        async function saveAccount() {
-            const data = {
-                id: document.getElementById('accId').value,
-                userName: document.getElementById('accUserName').value,
-                fullName: document.getElementById('accFullName').value,
-                email: document.getElementById('accEmail').value,
-                password: document.getElementById('accPassword').value,
-                role: document.querySelector('input[name="accRole"]:checked')?.value || ''
-            };
-
-            try {
-                const response = await fetch('/settings/accounts/save', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    HPUI.toast(result.message, 'success');
-                    HPUI.closeModal('accModal');
-                    setTimeout(() => window.location.href = '/settings?tab=accounts', 1000);
-                } else {
-                    HPUI.toast(result.message, 'error');
-                }
-            } catch (err) {
-                HPUI.toast('Lỗi kết nối máy chủ', 'error');
-            }
-        }
-
-        async function deleteAccount(id) {
-            if (!confirm('Bạn có chắc chắn muốn KHÓA tài khoản này không?')) return;
-            try {
-                const response = await fetch(`/settings/accounts/delete/${id}`, { method: 'POST' });
-                const result = await response.json();
-                if (result.success) {
-                    HPUI.toast(result.message, 'success');
-                    setTimeout(() => window.location.href = '/settings?tab=accounts', 1000);
-                } else {
-                    HPUI.toast(result.message, 'error');
-                }
-            } catch (err) {
-                HPUI.toast('Lỗi kết nối máy chủ', 'error');
-            }
-        }
-
-        async function activateAccount(id) {
-            if (!confirm('Mở khóa tài khoản này?')) return;
-            try {
-                const response = await fetch(`/settings/accounts/activate/${id}`, { method: 'POST' });
-                const result = await response.json();
-                if (result.success) {
-                    HPUI.toast(result.message, 'success');
-                    setTimeout(() => window.location.href = '/settings?tab=accounts', 1000);
-                } else {
-                    HPUI.toast(result.message, 'error');
-                }
-            } catch (err) {
-                HPUI.toast('Lỗi kết nối máy chủ', 'error');
-            }
-        }
-
-        async function hardDeleteAccount(id) {
-            if (!confirm('CẢNH BÁO: Xóa vĩnh viễn tài khoản này khỏi hệ thống? Hành động này không thể hoàn tác!')) return;
-            try {
-                const response = await fetch(`/settings/accounts/hard-delete/${id}`, { method: 'POST' });
-                const result = await response.json();
-                if (result.success) {
-                    HPUI.toast(result.message, 'success');
-                    setTimeout(() => window.location.href = '/settings?tab=accounts', 1000);
-                } else {
-                    HPUI.toast(result.message, 'error');
-                }
-            } catch (err) {
-                HPUI.toast('Lỗi kết nối máy chủ', 'error');
-            }
-        }
-    </script>
-}
+        if (window.lucide) lucide.createIcons();
+})();
+</script>

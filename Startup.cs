@@ -1,5 +1,6 @@
 using HP_Detailing.Data;
 using HP_Detailing.Models;
+using HP_Detailing.Hubs;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ namespace HP_Detailing
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+            services.AddSignalR();
 
             // Configure Entity Framework Core with SQL Server
             services.AddDbContext<HP_DetailingDbContext>(options =>
@@ -75,6 +77,8 @@ namespace HP_Detailing
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<NotificationHub>("/notificationHub");
+
                 // --- Custom routes matching React router paths ---
                 endpoints.MapControllerRoute(name: "login",           pattern: "login",                   defaults: new { controller = "Account", action = "Login" });
                 endpoints.MapControllerRoute(name: "tickets-new",     pattern: "tickets/new",             defaults: new { controller = "Tickets", action = "Create" });

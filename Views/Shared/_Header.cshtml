@@ -38,65 +38,22 @@
                     <button type="button" class="p-2 text-slate-400 hover:text-white transition-colors relative group rounded-lg hover:bg-slate-800/50" data-hp-dropdown-toggle="notifications">
                         <span class="sr-only">View notifications</span>
                         <i data-lucide="bell" class="w-5 h-5"></i>
-                        <span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-blue-500 ring-2 ring-[#0B101D] group-hover:scale-110 transition-transform"></span>
+                        <span id="noti-badge" class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-blue-500 ring-2 ring-[#0B101D] group-hover:scale-110 transition-transform hidden"></span>
                     </button>
 
                     <div class="absolute right-0 mt-3 w-80 sm:w-[400px] bg-[#122131] border border-slate-700/50 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] z-50 overflow-hidden" data-hp-dropdown-panel>
                         <div class="px-5 py-4 border-b border-slate-700/50 bg-[#0B101D]/80 backdrop-blur-md flex items-center justify-between">
                             <div>
                                 <h3 class="text-sm font-bold text-white">Thông báo</h3>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">3 tin nhắn mới</p>
+                                <p id="noti-count-text" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">0 tin nhắn mới</p>
                             </div>
-                            <button type="button" class="text-[10px] uppercase font-bold text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/5 px-2 py-1 rounded-md border border-blue-500/20">Đã đọc tất cả</button>
+                            <button id="noti-mark-all-btn" type="button" class="text-[10px] uppercase font-bold text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/5 px-2 py-1 rounded-md border border-blue-500/20">Đã đọc tất cả</button>
                         </div>
-                        <div class="max-h-[420px] overflow-y-auto w-full custom-scrollbar">
-                            <div class="group relative flex gap-4 p-4 hover:bg-slate-800/40 transition-all border-b border-slate-800/30 cursor-pointer bg-blue-500/[0.03]">
-                                <div class="shrink-0 mt-0.5">
-                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center border bg-emerald-500/10 border-emerald-500/20 text-emerald-400">
-                                        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-1 min-w-0 pr-6">
-                                    <div class="flex items-center gap-2">
-                                        <p class="text-sm font-bold text-white">Dịch vụ hoàn tất</p>
-                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></span>
-                                    </div>
-                                    <p class="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">Xe Mercedes GLC 300 (51H-123.45) đã hoàn thành gói đánh bóng Ceramic.</p>
-                                    <p class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-tight">10 phút trước</p>
-                                </div>
-                            </div>
-                            <div class="group relative flex gap-4 p-4 hover:bg-slate-800/40 transition-all border-b border-slate-800/30 cursor-pointer">
-                                <div class="shrink-0 mt-0.5">
-                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center border bg-blue-500/10 border-blue-500/20 text-blue-400">
-                                        <i data-lucide="calendar-clock" class="w-5 h-5"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-1 min-w-0 pr-6">
-                                    <div class="flex items-center gap-2">
-                                        <p class="text-sm font-bold text-white">Lịch hẹn mới</p>
-                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></span>
-                                    </div>
-                                    <p class="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">Khách hàng Nguyễn Văn A đặt lịch hẹn rửa xe ngày 20/05.</p>
-                                    <p class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-tight">30 phút trước</p>
-                                </div>
-                            </div>
-                            <div class="group relative flex gap-4 p-4 hover:bg-slate-800/40 transition-all cursor-pointer">
-                                <div class="shrink-0 mt-0.5">
-                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center border bg-amber-500/10 border-amber-500/20 text-amber-400">
-                                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-1 min-w-0 pr-6">
-                                    <div class="flex items-center gap-2">
-                                        <p class="text-sm font-bold text-white">Kho sắp hết hàng</p>
-                                    </div>
-                                    <p class="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">Dung dịch rửa xe bọt tuyết còn 2 thùng. Cần nhập thêm.</p>
-                                    <p class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-tight">1 giờ trước</p>
-                                </div>
-                            </div>
+                        <div id="noti-list" class="max-h-[420px] overflow-y-auto w-full custom-scrollbar">
+                            <div class="p-4 text-center text-xs text-slate-500">Đang tải thông báo...</div>
                         </div>
                         <div class="p-3 border-t border-slate-700/50 bg-[#0B101D]/50 text-center">
-                            <button type="button" class="text-xs font-bold text-slate-400 hover:text-white transition-all py-1 w-full hover:bg-slate-800/40 rounded-lg tracking-widest uppercase">Xem tất cả thông báo</button>
+                            <button type="button" id="noti-clear-btn" class="text-xs font-bold text-slate-400 hover:text-white transition-all py-1 w-full hover:bg-slate-800/40 rounded-lg tracking-widest uppercase">Đóng</button>
                         </div>
                     </div>
                 </div>
@@ -187,3 +144,206 @@
         </div>
     </div>
 </header>
+
+@* ── SignalR Client + Notifications Logic ── *@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+(function () {
+    // ── helpers ────────────────────────────────────────────────
+    var badge        = document.getElementById('noti-badge');
+    var countText    = document.getElementById('noti-count-text');
+    var list         = document.getElementById('noti-list');
+    var markAllBtn   = document.getElementById('noti-mark-all-btn');
+    var clearBtn     = document.getElementById('noti-clear-btn');
+    var unreadCount  = 0;
+
+    function updateBadge(count) {
+        unreadCount = Math.max(0, count);
+        if (badge) {
+            badge.classList.toggle('hidden', unreadCount === 0);
+        }
+        if (countText) {
+            countText.textContent = unreadCount + ' tin nhắn mới';
+        }
+    }
+
+    // ── icon per type ───────────────────────────────────────────
+    function iconForType(type) {
+        var map = {
+            'Appointment': { icon: 'calendar-clock',  bg: 'bg-blue-500/10',    border: 'border-blue-500/20',    text: 'text-blue-400' },
+            'Ticket':      { icon: 'clipboard-list',  bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400' },
+            'Warehouse':   { icon: 'package-check',   bg: 'bg-amber-500/10',   border: 'border-amber-500/20',   text: 'text-amber-400' },
+        };
+        return map[type] || { icon: 'bell', bg: 'bg-slate-700/30', border: 'border-slate-700/50', text: 'text-slate-400' };
+    }
+
+    // ── relative time ───────────────────────────────────────────
+    function relativeTime(dateStr) {
+        var then = new Date(dateStr);
+        var diff = Math.floor((Date.now() - then.getTime()) / 1000);
+        if (diff < 60)   return diff + ' giây trước';
+        if (diff < 3600) return Math.floor(diff / 60) + ' phút trước';
+        if (diff < 86400) return Math.floor(diff / 3600) + ' giờ trước';
+        return Math.floor(diff / 86400) + ' ngày trước';
+    }
+
+    // ── render single notification row ──────────────────────────
+    function buildRow(n) {
+        var cfg  = iconForType(n.type);
+        var dot  = n.isRead ? '' : '<span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] flex-shrink-0"></span>';
+        var bg   = n.isRead ? '' : 'bg-blue-500/[0.03]';
+
+        var row = document.createElement('div');
+        row.className = 'group relative flex gap-4 p-4 hover:bg-slate-800/40 transition-all border-b border-slate-800/30 cursor-pointer ' + bg;
+        row.setAttribute('data-noti-id', n.id);
+        row.innerHTML =
+            '<div class="shrink-0 mt-0.5">' +
+                '<div class="w-10 h-10 rounded-xl flex items-center justify-center border ' + cfg.bg + ' ' + cfg.border + ' ' + cfg.text + '">' +
+                    '<i data-lucide="' + cfg.icon + '" class="w-5 h-5"></i>' +
+                '</div>' +
+            '</div>' +
+            '<div class="flex-1 min-w-0">' +
+                '<div class="flex items-center gap-2">' +
+                    '<p class="text-sm font-bold text-white">' + (n.title || '') + '</p>' +
+                    dot +
+                '</div>' +
+                '<p class="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">' + (n.message || '') + '</p>' +
+                '<p class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-tight">' + relativeTime(n.createdAt) + '</p>' +
+            '</div>';
+
+        // click → mark as read + navigate
+        row.addEventListener('click', function () {
+            var id = n.id;
+            if (!n.isRead) {
+                fetch('/Notifications/MarkAsRead', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded',
+                               'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' },
+                    body: 'id=' + id
+                }).catch(function(){});
+                n.isRead = true;
+                row.classList.remove('bg-blue-500/[0.03]');
+                var dotEl = row.querySelector('.w-1\\.5');
+                if (dotEl) dotEl.remove();
+                updateBadge(unreadCount - 1);
+            }
+            if (n.actionUrl) {
+                setTimeout(function () { HPUI.loadPage(n.actionUrl); }, 150);
+            }
+        });
+
+        return row;
+    }
+
+    // ── render full list ────────────────────────────────────────
+    function renderList(items, totalUnread) {
+        if (!list) return;
+        list.innerHTML = '';
+        if (!items || items.length === 0) {
+            list.innerHTML = '<div class="p-6 text-center text-xs text-slate-500">Chưa có thông báo nào.</div>';
+        } else {
+            items.forEach(function (n) { list.appendChild(buildRow(n)); });
+        }
+        updateBadge(totalUnread);
+        // Re-init lucide icons in the new rows
+        if (window.lucide) lucide.createIcons({ nameAttr: 'data-lucide', attrs: { class: 'lucide-icon' } });
+    }
+
+    // ── prepend single notification (realtime push) ─────────────
+    function prependNotification(n) {
+        if (!list) return;
+        // Remove empty state placeholder if present
+        var placeholder = list.querySelector('.text-center');
+        if (placeholder && list.childElementCount === 1) placeholder.remove();
+        var row = buildRow(n);
+        list.insertBefore(row, list.firstChild);
+        if (window.lucide) lucide.createIcons({ nameAttr: 'data-lucide', attrs: { class: 'lucide-icon' } });
+        updateBadge(unreadCount + 1);
+    }
+
+    // ── load from API (fallback / initial) ──────────────────────
+    function loadNotifications() {
+        fetch('/Notifications/List')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data && data.success) {
+                    renderList(data.items, data.unreadCount);
+                }
+            })
+            .catch(function () {
+                if (list) list.innerHTML = '<div class="p-4 text-center text-xs text-slate-500">Không thể tải thông báo.</div>';
+            });
+    }
+
+    // ── mark all as read ────────────────────────────────────────
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            fetch('/Notifications/MarkAllAsRead', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded',
+                           'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
+            })
+            .then(function () {
+                // Remove all unread dots + backgrounds
+                list.querySelectorAll('[data-noti-id]').forEach(function (row) {
+                    row.classList.remove('bg-blue-500/[0.03]');
+                    var dot = row.querySelector('.w-1\\.5');
+                    if (dot) dot.remove();
+                });
+                updateBadge(0);
+                if (window.HPUI) HPUI.toast('Đã đánh dấu tất cả thông báo là đã đọc.', 'success');
+            })
+            .catch(function () {});
+        });
+    }
+
+    // ── close button ────────────────────────────────────────────
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var dd = clearBtn.closest('[data-hp-dropdown]');
+            if (dd) dd.classList.remove('open');
+        });
+    }
+
+    // ── load on dropdown open ───────────────────────────────────
+    var bellBtn = document.querySelector('[data-hp-dropdown-toggle="notifications"]');
+    if (bellBtn) {
+        bellBtn.addEventListener('click', function () {
+            var dd = bellBtn.closest('[data-hp-dropdown]');
+            // Only reload if dropdown is currently closed (about to open)
+            if (dd && !dd.classList.contains('open')) {
+                loadNotifications();
+            }
+        });
+    }
+
+    // ── SignalR connection ──────────────────────────────────────
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl('/notificationHub')
+        .withAutomaticReconnect()
+        .configureLogging(signalR.LogLevel.Warning)
+        .build();
+
+    connection.on('ReceiveNotification', function (n) {
+        prependNotification(n);
+        if (window.HPUI) {
+            HPUI.toast(n.title + ': ' + n.message, 'info');
+        }
+    });
+
+    connection.start().catch(function (err) {
+        console.warn('SignalR connection failed, using AJAX fallback.', err);
+    });
+
+    // ── initial load on page ready ──────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
+        loadNotifications();
+    });
+    // Also run immediately in case DOMContentLoaded already fired (AJAX nav)
+    if (document.readyState !== 'loading') {
+        loadNotifications();
+    }
+})();
+</script>

@@ -449,4 +449,18 @@ namespace HP_Detailing.Models
 
         public string? Note { get; set; }            // Ghi chú riêng cho vật tư này
     }
+
+    public class Notification
+    {
+        public int Id { get; set; }
+        [Required]
+        public string Title { get; set; } = string.Empty;
+        [Required]
+        public string Message { get; set; } = string.Empty;
+        public string? Type { get; set; } // e.g. "Ticket", "Appointment", "Warehouse"
+        public bool IsRead { get; set; } = false;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string? ActionUrl { get; set; } // Link to open details
+        public string? TargetUserId { get; set; } // User that this notification is for (null for general admin/all)
+    }
 }

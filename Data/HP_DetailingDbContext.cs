@@ -36,6 +36,7 @@ namespace HP_Detailing.Data
         public DbSet<TicketMaterialUsage> TicketMaterialUsages => Set<TicketMaterialUsage>();
         public DbSet<AuditSession> AuditSessions => Set<AuditSession>();
         public DbSet<AuditSessionItem> AuditSessionItems => Set<AuditSessionItem>();
+        public DbSet<Notification> Notifications => Set<Notification>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

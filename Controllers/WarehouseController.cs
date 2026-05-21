@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using HP_Detailing.Data;
 using HP_Detailing.Models;
 using System.Text.Json;
+using Microsoft.AspNetCore.SignalR;
+using HP_Detailing.Hubs;
+using HP_Detailing.Extensions;
 
 namespace HP_Detailing.Controllers
 {
@@ -11,7 +14,13 @@ namespace HP_Detailing.Controllers
     public class WarehouseController : Controller
     {
         private readonly HP_DetailingDbContext _context;
-        public WarehouseController(HP_DetailingDbContext context) { _context = context; }
+        private readonly IHubContext<NotificationHub> _hubContext;
+
+        public WarehouseController(HP_DetailingDbContext context, IHubContext<NotificationHub> hubContext)
+        {
+            _context = context;
+            _hubContext = hubContext;
+        }
 
         // GET /warehouse
         public IActionResult Index()
@@ -200,7 +209,7 @@ namespace HP_Detailing.Controllers
         }
 
         [HttpPost("warehouse/imports/save")]
-        public IActionResult SaveImport([FromBody] ImportSaveRequest req)
+        public async Task<IActionResult> SaveImport([FromBody] ImportSaveRequest req)
         {
             if (req.Lines == null || req.Lines.Count == 0)
                 return Json(new { success = false, message = "Phiếu nhập phải có ít nhất 1 mặt hàng." });
@@ -230,7 +239,7 @@ namespace HP_Detailing.Controllers
                         LastUsedAt = DateTime.Now
                     };
                     _context.Suppliers.Add(supplier);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                 }
             }
 
@@ -251,7 +260,7 @@ namespace HP_Detailing.Controllers
                 PaymentStatus = req.PaymentStatus ?? "Chưa thanh toán"
             };
             _context.StockImports.Add(import);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             foreach (var line in req.Lines)
             {
@@ -270,7 +279,18 @@ namespace HP_Detailing.Controllers
                     _context.WarehouseStocks.Add(new WarehouseStock { MaterialId = line.MaterialId, QuantityOnHand = line.Quantity, ReorderLevel = 5 });
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            // Gửi thông báo nhập kho thành công
+            await NotificationHelper.SendNotificationAsync(
+                _context,
+                _hubContext,
+                "Nhập kho thành công",
+                $"Đã nhập kho phiếu {import.ImportCode} trị giá {import.TotalAmount:N0}đ.",
+                "Warehouse",
+                $"/warehouse/imports/{import.Id}"
+            );
+
             return Json(new { success = true, importId = import.Id, importCode = import.ImportCode });
         }
 

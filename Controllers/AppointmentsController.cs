@@ -6,6 +6,8 @@ using HP_Detailing.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using HP_Detailing.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using HP_Detailing.Hubs;
 
 namespace HP_Detailing.Controllers
 {
@@ -18,10 +20,12 @@ namespace HP_Detailing.Controllers
     public class AppointmentsController : Controller
     {
         private readonly HP_Detailing.Data.HP_DetailingDbContext _context;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public AppointmentsController(HP_Detailing.Data.HP_DetailingDbContext context)
+        public AppointmentsController(HP_Detailing.Data.HP_DetailingDbContext context, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         // ========================================================
@@ -106,7 +110,7 @@ namespace HP_Detailing.Controllers
         // AJAX API: Create (Tạo lịch hẹn mới qua AJAX)
         // ========================================================
         [HttpPost]
-        public IActionResult Create([FromBody] AppointmentRequest request)
+        public async Task<IActionResult> Create([FromBody] AppointmentRequest request)
         {
             try
             {
@@ -133,7 +137,17 @@ namespace HP_Detailing.Controllers
                 };
 
                 _context.Appointments.Add(newApt);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                // Gửi thông báo realtime khi có lịch hẹn mới
+                await NotificationHelper.SendNotificationAsync(
+                    _context,
+                    _hubContext,
+                    "Lịch hẹn mới",
+                    $"Khách hàng {newApt.CustomerName} ({newApt.Plate ?? "Không có biển số"}) vừa đặt lịch hẹn lúc {newApt.AppointmentTime:dd/MM/yyyy HH:mm}.",
+                    "Appointment",
+                    "/appointments"
+                );
 
                 return Json(new { success = true, message = "Lưu lịch đặt hẹn thành công!" });
             }
@@ -147,7 +161,7 @@ namespace HP_Detailing.Controllers
         // AJAX API: UpdateStatus (Cập nhật trạng thái lịch hẹn)
         // ========================================================
         [HttpPost]
-        public IActionResult UpdateStatus([FromBody] UpdateAptStatusRequest request)
+        public async Task<IActionResult> UpdateStatus([FromBody] UpdateAptStatusRequest request)
         {
             try
             {
@@ -163,7 +177,17 @@ namespace HP_Detailing.Controllers
                 }
 
                 apt.Status = request.Status;
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                string statusText = request.Status == "arrived" ? "đã tiếp nhận xe" : (request.Status == "cancelled" ? "đã hủy" : request.Status);
+                await NotificationHelper.SendNotificationAsync(
+                    _context,
+                    _hubContext,
+                    "Cập nhật lịch hẹn",
+                    $"Lịch hẹn {apt.AppointmentCode} của khách hàng {apt.CustomerName} đã chuyển sang trạng thái: {statusText}.",
+                    "Appointment",
+                    "/appointments"
+                );
 
                 return Json(new { success = true, message = "Cập nhật trạng thái lịch hẹn thành công!" });
             }

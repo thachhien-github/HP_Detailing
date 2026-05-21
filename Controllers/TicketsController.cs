@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using HP_Detailing.Extensions;
+using Microsoft.AspNetCore.SignalR;
+using HP_Detailing.Hubs;
 
 namespace HP_Detailing.Controllers
 {
@@ -21,11 +23,13 @@ namespace HP_Detailing.Controllers
     {
         private readonly HP_Detailing.Data.HP_DetailingDbContext _context;
         private readonly ILogger<TicketsController> _logger;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public TicketsController(HP_Detailing.Data.HP_DetailingDbContext context, ILogger<TicketsController> logger)
+        public TicketsController(HP_Detailing.Data.HP_DetailingDbContext context, ILogger<TicketsController> logger, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         // ========================================================
@@ -224,7 +228,7 @@ namespace HP_Detailing.Controllers
         // BẮT LỖI: Try-catch chống crash khi gọi AJAX SPA ngầm
         // ========================================================
         [HttpPost]
-        public IActionResult AddService([FromBody] AddServiceRequest request)
+        public async Task<IActionResult> AddService([FromBody] AddServiceRequest request)
         {
             try
             {
@@ -245,14 +249,24 @@ namespace HP_Detailing.Controllers
                     Status = "not_started"
                 };
                 _context.TicketServices.Add(ticketService);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 var warnings = new List<string>();
                 HP_Detailing.Data.TicketMaterialService.ApplyQuotasForService(
                     _context, ticket.Id, service.Id, warnings);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 var totalAmount = HP_Detailing.Data.InvoiceSync.SyncFromTicket(_context, ticket.Id);
+
+                // Gửi thông báo phát sinh dịch vụ
+                await NotificationHelper.SendNotificationAsync(
+                    _context,
+                    _hubContext,
+                    "Dịch vụ bổ sung",
+                    $"Phiếu {ticket.TicketCode} của khách hàng {ticket.CustomerName} đã được thêm dịch vụ: {service.Name}.",
+                    "Ticket",
+                    $"/tickets/{ticket.Id}"
+                );
 
                 return Json(new
                 {
@@ -275,7 +289,7 @@ namespace HP_Detailing.Controllers
         // NGHIỆP VỤ: Đổi trạng thái phiếu và ghi nhận CSDL
         // ========================================================
         [HttpPost]
-        public IActionResult UpdateStatus([FromBody] UpdateStatusRequest request)
+        public async Task<IActionResult> UpdateStatus([FromBody] UpdateStatusRequest request)
         {
             try
             {
@@ -291,7 +305,7 @@ namespace HP_Detailing.Controllers
                 }
 
                 ticket.Status = request.Status;
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 int invoiceId = 0;
                 if (request.Status == "completed")
@@ -300,6 +314,16 @@ namespace HP_Detailing.Controllers
                     var invoice = _context.Invoices.FirstOrDefault(i => i.TicketId == ticket.Id);
                     if (invoice != null) invoiceId = invoice.Id;
                 }
+
+                string statusText = request.Status == "completed" ? "đã hoàn thành" : (request.Status == "in_progress" ? "đang thi công" : request.Status);
+                await NotificationHelper.SendNotificationAsync(
+                    _context,
+                    _hubContext,
+                    "Cập nhật trạng thái phiếu",
+                    $"Phiếu tiếp nhận {ticket.TicketCode} của khách hàng {ticket.CustomerName} đã chuyển sang trạng thái: {statusText}.",
+                    "Ticket",
+                    $"/tickets/{ticket.Id}"
+                );
 
                 return Json(new { success = true, message = "Cập nhật tiến độ thi công thành công!", invoiceId = invoiceId });
             }
@@ -427,7 +451,7 @@ namespace HP_Detailing.Controllers
         // NGHIỆP VỤ: Lưu Xe -> Lưu Ticket -> Lưu TicketServices -> Lưu TicketMaterialUsages -> Trừ Kho -> Tạo Invoice UNPAID
         // ========================================================
         [HttpPost]
-        public IActionResult CreateAjax([FromBody] CreateTicketAjaxRequest request)
+        public async Task<IActionResult> CreateAjax([FromBody] CreateTicketAjaxRequest request)
         {
             try
             {
@@ -485,7 +509,7 @@ namespace HP_Detailing.Controllers
                 };
 
                 _context.Tickets.Add(newTicket);
-                _context.SaveChanges(); // Lưu lấy ID Ticket
+                await _context.SaveChangesAsync(); // Lưu lấy ID Ticket
 
                 // 3. Lưu từng dịch vụ (tiền công)
                 foreach (var svcReq in request.Services)
@@ -537,7 +561,7 @@ namespace HP_Detailing.Controllers
                 HP_Detailing.Data.TicketMaterialService.ApplyExtraMaterials(
                     _context, newTicket.Id, extras, warnings);
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 // 5. Nếu phiếu này tạo từ lịch hẹn, chuyển lịch sang arrived
                 if (request.AppointmentId.HasValue && request.AppointmentId.Value > 0)
@@ -546,10 +570,20 @@ namespace HP_Detailing.Controllers
                     if (apt != null) apt.Status = "arrived";
                 }
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 // 6. Tạo / đồng bộ hóa đơn UNPAID + chi tiết InvoiceService
                 HP_Detailing.Data.InvoiceSync.SyncFromTicket(_context, newTicket.Id);
+
+                // Gửi thông báo realtime khi tạo phiếu tiếp nhận mới
+                await NotificationHelper.SendNotificationAsync(
+                    _context,
+                    _hubContext,
+                    "Phiếu tiếp nhận mới",
+                    $"Phiếu tiếp nhận {newTicket.TicketCode} của khách hàng {newTicket.CustomerName} ({newTicket.Plate}) đã được tạo.",
+                    "Ticket",
+                    $"/tickets/{newTicket.Id}"
+                );
 
                 return Json(new { success = true, message = "Tạo phiếu dịch vụ và xuất kho vật tư thành công!", warnings, redirectUrl = "/tickets" });
             }

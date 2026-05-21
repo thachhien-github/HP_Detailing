@@ -252,6 +252,12 @@ namespace HP_Detailing.Data
                         await userManager.AddToRoleAsync(adminUser, "Admin");
                     }
                 }
+                else
+                {
+                    // Force reset password to admin123
+                    var token = await userManager.GeneratePasswordResetTokenAsync(adminUser);
+                    await userManager.ResetPasswordAsync(adminUser, token, "admin123");
+                }
             }
             catch (Exception ex)
             {
