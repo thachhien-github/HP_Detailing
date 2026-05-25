@@ -17,6 +17,20 @@
         }
     });
 
+    // 1.5 Gallery Lightbox Enhancement
+    var galleryItems = document.querySelectorAll('#gallery .relative');
+    galleryItems.forEach(function(item) {
+        item.addEventListener('click', function() {
+            var img = item.querySelector('img');
+            if (img) {
+                var modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4';
+                modal.innerHTML = '<img src="' + img.src + '" alt="' + img.alt + '" class="max-w-4xl max-h-[90vh] object-contain rounded-xl" /><button onclick="this.closest(\'.fixed\').remove()" class="absolute top-4 right-4 text-white hover:text-primary transition-colors"><span class="material-symbols-outlined text-3xl">close</span></button>';
+                document.body.appendChild(modal);
+            }
+        });
+    });
+
     if(!form) return;
 
     // 2. Booking form submit AJAX integration
