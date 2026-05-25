@@ -108,8 +108,10 @@ namespace HP_Detailing.Controllers
 
         // ========================================================
         // AJAX API: Create (Tạo lịch hẹn mới qua AJAX)
+        // Cho phép khách chưa đăng nhập đặt lịch qua trang công khai
         // ========================================================
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Create([FromBody] AppointmentRequest request)
         {
             try

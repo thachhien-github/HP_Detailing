@@ -5,6 +5,7 @@ using HP_Detailing.Models;
 using HP_Detailing.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace HP_Detailing.Controllers
@@ -32,8 +33,24 @@ namespace HP_Detailing.Controllers
         // BẮT LỖI: Try-catch bao bọc chặt chẽ để trả về trang lỗi thân thiện nếu mất kết nối CSDL
         // ========================================================
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult Index()
         {
+            // Nếu chưa đăng nhập, trả về trang chủ công khai (landing page)
+            if (!User?.Identity?.IsAuthenticated ?? true)
+            {
+                // Load active services (with category) for booking dropdown & pricing table
+                var services = _context.Services
+                    .Include(s => s.ServiceCategory)
+                    .Where(s => s.IsActive)
+                    .OrderBy(s => s.ServiceCategoryId)
+                    .ThenBy(s => s.UnitPrice)
+                    .ToList();
+                ViewBag.Services = services;
+                ViewData["Title"] = "HP Auto - Trang chủ";
+                return View("PublicIndex");
+            }
+
             try
             {
                 // Lấy ngày hôm nay theo giờ hệ thống local

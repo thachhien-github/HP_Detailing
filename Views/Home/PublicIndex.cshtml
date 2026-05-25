@@ -1,0 +1,642 @@
+@{
+    ViewData["Title"] = "HP Auto Detailing | Precision in Every Polish";
+    Layout = "_PublicLayout";
+}
+
+<!-- Section 1: Navigation -->
+<nav class="docked full-width top-0 sticky z-50 bg-surface/80 glass-nav border-b border-outline-variant/30 shadow-lg">
+    <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-[1440px] mx-auto">
+        <a href="/" class="flex items-center">
+            <img src="/images/logo.png" alt="HP Auto Detailing Logo" class="h-10 md:h-12 w-auto object-contain drop-shadow-md hover:scale-105 transition-transform" />
+        </a>
+        <div class="hidden md:flex gap-lg items-center">
+            <a class="text-primary font-bold border-b-2 border-primary-container text-label-bold font-label-bold uppercase" href="#services">Dịch vụ</a>
+            <a class="text-on-surface-variant hover:text-on-surface transition-colors text-label-bold font-label-bold uppercase" href="#news">Tin tức</a>
+            <a class="text-on-surface-variant hover:text-on-surface transition-colors text-label-bold font-label-bold uppercase" href="#contact">Về chúng tôi</a>
+        </div>
+        <div class="flex gap-2 md:gap-4 items-center">
+            <a href="/login" class="text-on-surface hover:text-primary transition-colors text-[12px] md:text-label-bold font-label-bold uppercase tracking-widest border border-outline-variant/30 px-3 md:px-5 py-2 rounded-full text-center hover:bg-white/5">
+                Đăng nhập
+            </a>
+            <a href="#booking" class="bg-primary-container text-on-primary-container px-4 md:px-6 py-2 rounded-full text-[12px] md:text-label-bold font-label-bold uppercase tracking-widest btn-primary active:scale-95 transition-all text-center inline-block">
+                Đặt lịch ngay
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Section 2: Hero Section -->
+<header class="relative h-[85vh] w-full flex items-center overflow-hidden">
+    <img alt="Hero Image" class="absolute inset-0 w-full h-full object-cover z-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArjD7ZA1e2u-NnhPm0l5OJLsy2CANBciVpIqj3Cvt_uDf_6oeIY6mRUHdDz1oNywsrcBlnvbiK6-HtwGWPS607J2qYHBVKMlQ_Z9Semjm-rpYphx1jVUEkXwbJx1OQOd2Cr-NwB42rABinedBgkc7bCLmfLFeTTasvOXFwA0AuX_ATbp4s6W2sOpsB2g2GPY1l8Yl1s6wnHKGdQNfxzmau4dYLCDOQMlSuuEyYCsyGKktLl92v27q6fNTfkBLTKSNiHuMjBgYSvYKI"/>
+    <div class="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent z-10"></div>
+    <div class="relative z-20 px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto w-full">
+        <div class="max-w-2xl">
+            <span class="text-primary font-label-bold text-label-bold uppercase tracking-[0.3em] mb-4 block">Professional Studio</span>
+            <h1 class="text-display-lg-mobile md:text-display-lg font-display-lg text-white mb-6 leading-tight">
+                Precision in Every Polish.<br/>
+                <span class="text-primary">Premium Car Care</span> in HP Auto Detailing
+            </h1>
+            <p class="text-body-lg font-body-lg text-on-surface-variant mb-10 max-w-lg">
+                Đẳng cấp chăm sóc xe hơi chuyên nghiệp với công nghệ hàng đầu và đội ngũ kỹ thuật viên tâm huyết.
+            </p>
+            <div class="flex flex-wrap gap-md">
+                <a href="#booking" class="btn-primary text-white px-8 py-4 rounded-lg font-label-bold text-label-bold uppercase tracking-widest flex items-center gap-2">
+                    <span>Đặt lịch ngay</span>
+                    <span class="material-symbols-outlined">calendar_today</span>
+                </a>
+                <a href="#services" class="btn-secondary text-white px-8 py-4 rounded-lg font-label-bold text-label-bold uppercase tracking-widest text-center">
+                    Khám phá dịch vụ
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- New Section: Stats Counter -->
+<section class="bg-surface-container border-y border-outline-variant/20 py-12">
+    <div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop grid grid-cols-2 md:grid-cols-4 gap-gutter">
+        <div class="stat-item relative flex flex-col items-center text-center px-4">
+            <span class="text-display-lg-mobile font-display-lg text-primary leading-none mb-2">1500+</span>
+            <span class="text-label-bold text-on-surface-variant uppercase tracking-wider">Xe đã chăm sóc</span>
+        </div>
+        <div class="stat-item relative flex flex-col items-center text-center px-4">
+            <span class="text-display-lg-mobile font-display-lg text-primary leading-none mb-2">10+</span>
+            <span class="text-label-bold text-on-surface-variant uppercase tracking-wider">Năm kinh nghiệm</span>
+        </div>
+        <div class="stat-item relative flex flex-col items-center text-center px-4">
+            <span class="text-display-lg-mobile font-display-lg text-primary leading-none mb-2">100%</span>
+            <span class="text-label-bold text-on-surface-variant uppercase tracking-wider">Khách hàng hài lòng</span>
+        </div>
+        <div class="stat-item relative flex flex-col items-center text-center px-4">
+            <span class="text-display-lg-mobile font-display-lg text-primary leading-none mb-2">24/7</span>
+            <span class="text-label-bold text-on-surface-variant uppercase tracking-wider">Hỗ trợ kỹ thuật</span>
+        </div>
+    </div>
+</section>
+
+<!-- Section 3: Services Showroom -->
+<section id="services" class="py-xl px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto">
+    <div class="flex justify-between items-end mb-lg">
+        <div>
+            <h2 class="text-headline-md font-headline-md mb-2">Dịch vụ của chúng tôi</h2>
+            <div class="w-24 h-1 bg-primary"></div>
+        </div>
+        <a class="text-primary font-label-bold text-label-bold uppercase hover:underline" href="#pricing">Xem bảng giá dịch vụ</a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+        <!-- Card 1 -->
+        <div class="high-gloss-card rounded-xl overflow-hidden group">
+            <div class="relative h-64 overflow-hidden">
+                <img alt="Ceramic Coating" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA42ZWym8yEWcCHMbH8WKG31FkAnaRZXzGnu16x9K9I7VcWdxzHjtBHYAlqa538BE2D7q4OoiT-OjuzrYOZ-okSaFSOPJNhwUrdZ9dfhY1TWD92fb8uZe-UHa6yHhNLoi2-2ZMBgSnabibYoQF70AOIZJbOYY7UhrBhyEFqfnatmQqy66g0EmI4re3h4qWsjlttn8U47-Ob3iQCoTydpee0GWw-e9ZtbE9SrHiZNRam748cE-LjebPftPj4MG59LmAn83QPaBmJ3voA"/>
+                <div class="absolute top-4 left-4">
+                    <span class="bg-surface-dim/80 backdrop-blur-md px-3 py-1 rounded text-caption font-label-bold text-primary border border-primary/20 uppercase">Premium</span>
+                </div>
+            </div>
+            <div class="p-md rim-light">
+                <h3 class="text-headline-sm font-headline-sm mb-2">Ceramic Coating</h3>
+                <p class="text-body-md font-body-md text-on-surface-variant mb-6">Bảo vệ sơn xe tối ưu với lớp phủ gốm cứng cáp, mang lại vẻ bóng bẩy trường tồn.</p>
+                <div class="performance-gauge mb-6">
+                    <div class="gauge-segment"></div>
+                    <div class="gauge-segment"></div>
+                    <div class="gauge-segment"></div>
+                    <div class="gauge-segment"></div>
+                    <div class="gauge-segment bg-secondary-container"></div>
+                </div>
+                <a href="#booking" class="flex items-center gap-2 text-primary font-label-bold text-label-bold uppercase group-hover:gap-4 transition-all">
+                    Tìm hiểu thêm <span class="material-symbols-outlined">arrow_forward</span>
+                </a>
+            </div>
+        </div>
+        <!-- Card 2 -->
+        <div class="high-gloss-card rounded-xl overflow-hidden group">
+            <div class="relative h-64 overflow-hidden">
+                <img alt="PPF" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjbt00hBBMPORyv1JsYGUkehZmGKhxE9TNNqg8qlL9Aeeis3ZFuv95smfKSylkC5d67YmoF5mTd54X-l3CAdNzTAmUqV0ALYKMNpBG4lC_tFMbl3JxHry9JXqtuOXUycE4_05Z7qNYa6kV6JXkQoBagjWAvbQ-iTyIV_80RJX_Nw74L32ndoxAP43qnLKk7zvnOh6iCjAA-VAAe5T85D371Gd53VY4ODyxQ7keZYLa0KU80PvnG1zVI5w4vBJlKJTAUwU9eXEoRyJL"/>
+                <div class="absolute top-4 left-4">
+                    <span class="bg-surface-dim/80 backdrop-blur-md px-3 py-1 rounded text-caption font-label-bold text-primary border border-primary/20 uppercase">Extreme</span>
+                </div>
+            </div>
+            <div class="p-md rim-light">
+                <h3 class="text-headline-sm font-headline-sm mb-2">Paint Protection Film</h3>
+                <p class="text-body-md font-body-md text-on-surface-variant mb-6">Màng bảo vệ PPF tự phục hồi vết xước, chống lại các tác nhân va đập và môi trường.</p>
+                <div class="performance-gauge mb-6">
+                    <div class="gauge-segment"></div>
+                    <div class="gauge-segment"></div>
+                    <div class="gauge-segment"></div>
+                    <div class="gauge-segment"></div>
+                    <div class="gauge-segment"></div>
+                </div>
+                <a href="#booking" class="flex items-center gap-2 text-primary font-label-bold text-label-bold uppercase group-hover:gap-4 transition-all">
+                    Tìm hiểu thêm <span class="material-symbols-outlined">arrow_forward</span>
+                </a>
+            </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="high-gloss-card rounded-xl overflow-hidden group">
+            <div class="relative h-64 overflow-hidden">
+                <img alt="Interior" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqIDwVPrgznEOHT0YTAjny6-NvaOHFUiSOZy4sy_EUBRBM5sltFIMlSGlZiW4h4ChtxqpGBcTo7CPJyNnHUuJCwSCRuk4h1oSo92dxvzroOGLa-AvzcaczoCyy92fjs2IMfdXLD71hJfFnYlHYmiiRLCRsWmuVRwJ323b8yxM0BJuDxMTuSNfGhnKou7i--nnZGsdGZ16y3weG0BSYzRDOCkUPsQvEIUz6oDHTQVNtP8Q4qn-MtjtEmNzOFqRdpqr0wa7K4J9MBqxT"/>
+                <div class="absolute top-4 left-4">
+                    <span class="bg-surface-dim/80 backdrop-blur-md px-3 py-1 rounded text-caption font-label-bold text-primary border border-primary/20 uppercase">Comfort</span>
+                </div>
+            </div>
+            <div class="p-md rim-light">
+                <h3 class="text-headline-sm font-headline-sm mb-2">Chăm sóc nội thất</h3>
+                <p class="text-body-md font-body-md text-on-surface-variant mb-6">Làm sạch sâu và dưỡng da cao cấp, giữ cho không gian cabin luôn như mới.</p>
+                <div class="performance-gauge mb-6">
+                    <div class="gauge-segment"></div>
+                    <div class="gauge-segment"></div>
+                    <div class="gauge-segment"></div>
+                    <div class="gauge-segment bg-secondary-container"></div>
+                    <div class="gauge-segment bg-secondary-container"></div>
+                </div>
+                <a href="#booking" class="flex items-center gap-2 text-primary font-label-bold text-label-bold uppercase group-hover:gap-4 transition-all">
+                    Tìm hiểu thêm <span class="material-symbols-outlined">arrow_forward</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- New Section: Before/After Comparison -->
+<section class="py-xl bg-surface-container-lowest">
+    <div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop">
+        <div class="text-center mb-lg">
+            <h2 class="text-headline-md font-headline-md mb-2">Sự khác biệt rõ rệt</h2>
+            <p class="text-body-lg text-on-surface-variant max-w-2xl mx-auto">Tận mắt chứng kiến sự lột xác của xế cưng sau khi được HP Auto Detailing chăm sóc tỉ mỉ.</p>
+        </div>
+        <div class="relative max-w-5xl mx-auto rounded-2xl overflow-hidden border border-outline-variant/30 shadow-2xl">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-outline-variant/20">
+                <div class="relative">
+                    <img alt="Before Detailing" class="w-full h-[400px] object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0rx-BxnVIMJJIpQWLatLntGy4PMGey6_IMKNoVj_RpxzwVxUEvUeOsK25EVNgrSDgrksxZkMOYvnWMCuYM5HYTzi1mxIXJbp6wbfoWo5l9RBYZlFHCkhM0m5B5DPgzpSy43v5PwuzXqqbIqk_iamsSQYi_Q8fCcKuOZRny2y_8ewIqOUmmxxKKRgRO9ZXNVqPQtLBHfHkX1vzmLpPHLU6DHY8CD0HDUNSdQDkdDut4jbj11-F13_h36zF1MavpHgpbx3IYGvS9aUB"/>
+                    <div class="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm px-4 py-1 rounded-full text-label-bold uppercase text-white">Trước</div>
+                </div>
+                <div class="relative">
+                    <img alt="After Detailing" class="w-full h-[400px] object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArjD7ZA1e2u-NnhPm0l5OJLsy2CANBciVpIqj3Cvt_uDf_6oeIY6mRUHdDz1oNywsrcBlnvbiK6-HtwGWPS607J2qYHBVKMlQ_Z9Semjm-rpYphx1jVUEkXwbJx1OQOd2Cr-NwB42rABinedBgkc7bCLmfLFeTTasvOXFwA0AuX_ATbp4s6W2sOpsB2g2GPY1l8Yl1s6wnHKGdQNfxzmau4dYLCDOQMlSuuEyYCsyGKktLl92v27q6fNTfkBLTKSNiHuMjBgYSvYKI"/>
+                    <div class="absolute bottom-4 right-4 bg-primary px-4 py-1 rounded-full text-label-bold uppercase text-on-primary font-bold">Sau</div>
+                </div>
+            </div>
+            <!-- Interactive Slider Overlay Simulated -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex flex-col items-center pointer-events-none">
+                <div class="w-1 h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div>
+                <div class="w-12 h-12 rounded-full bg-white shadow-xl flex items-center justify-center text-black pointer-events-auto cursor-col-resize">
+                    <span class="material-symbols-outlined">unfold_more</span>
+                </div>
+                <div class="w-1 h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- New Section: Pricing Tables -->
+<section id="pricing" class="py-xl px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto">
+    <div class="text-center mb-lg">
+        <h2 class="text-headline-md font-headline-md mb-2">Bảng giá dịch vụ</h2>
+        <div class="w-24 h-1 bg-primary mx-auto mb-4"></div>
+        <p class="text-body-lg text-on-surface-variant">Lựa chọn gói dịch vụ phù hợp nhất với nhu cầu và ngân sách của bạn.</p>
+    </div>
+    <div class="relative pt-8 px-4">
+        <!-- Navigation Buttons -->
+        <button id="prevPriceBtn" class="absolute left-0 top-[55%] -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-surface-container-high/80 hover:bg-primary/95 text-white flex items-center justify-center border border-outline-variant/30 hover:border-primary shadow-lg transition-all focus:outline-none select-none">
+            <span class="material-symbols-outlined font-bold">chevron_left</span>
+        </button>
+        <button id="nextPriceBtn" class="absolute right-0 top-[55%] -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-surface-container-high/80 hover:bg-primary/95 text-white flex items-center justify-center border border-outline-variant/30 hover:border-primary shadow-lg transition-all focus:outline-none select-none">
+            <span class="material-symbols-outlined font-bold">chevron_right</span>
+        </button>
+
+        <!-- Carousel Container -->
+        <div id="pricingCarousel" class="flex flex-nowrap overflow-x-auto gap-8 items-stretch pb-12 pt-6 px-16 snap-x snap-mandatory scrollbar-none scroll-smooth">
+            @{
+                var servicesList = ViewBag.Services as List<HP_Detailing.Models.Service>;
+                if (servicesList != null && servicesList.Any())
+                {
+                    var groupedServices = servicesList
+                        .Where(s => s.ServiceCategory != null)
+                        .GroupBy(s => s.ServiceCategory)
+                        .OrderBy(g => g.Key.Id)
+                        .ToList();
+
+                    int catIndex = 0;
+                    foreach (var group in groupedServices)
+                    {
+                        var category = group.Key;
+                        var servicesInCat = group.OrderBy(s => s.UnitPrice).ToList();
+                        var minPrice = servicesInCat.Any() ? servicesInCat.Min(s => s.UnitPrice) : 0;
+                        bool isFeatured = catIndex == 1; // Mark the second category as featured/popular
+                        catIndex++;
+
+                        <div class="price-carousel-card transition-all duration-300 origin-center flex flex-col min-w-[280px] sm:min-w-[340px] md:min-w-[360px] snap-center @(isFeatured ? "featured" : "")">
+                            @if (isFeatured)
+                            {
+                                <div class="high-gloss-card price-card featured p-lg rounded-2xl flex flex-col relative border border-primary/50 h-full flex-grow shadow-[0_15px_30px_rgba(255,86,37,0.15)]">
+                                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-4 py-1 rounded-full text-caption font-bold uppercase tracking-widest whitespace-nowrap z-20">Phổ biến nhất</div>
+                                    <h3 class="text-headline-sm font-headline-sm mb-2 text-primary">@category.Name</h3>
+                                    <p class="text-body-md text-on-surface-variant mb-6">Giải pháp phục hồi và bảo vệ xe chuyên sâu.</p>
+                                    <div class="text-display-lg-mobile font-display-lg text-white mb-8">
+                                        <span class="text-body-lg font-bold">Từ</span> @((minPrice / 1000000.0m).ToString("0.#"))M <span class="text-caption">VNĐ</span>
+                                    </div>
+                                    <ul class="space-y-4 mb-10 flex-grow">
+                                        @foreach (var svc in servicesInCat)
+                                        {
+                                            <li class="flex items-start justify-between gap-3 text-body-md border-b border-outline-variant/10 pb-2">
+                                                <div class="flex items-start gap-2">
+                                                    <span class="material-symbols-outlined text-primary mt-0.5">check_circle</span>
+                                                    <span>@svc.Name</span>
+                                                </div>
+                                                <span class="font-bold text-primary whitespace-nowrap">@svc.UnitPrice.ToString("#,##0") đ</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                    <a href="#booking" class="btn-primary w-full py-4 rounded-lg font-label-bold uppercase text-white text-center block">Chọn @category.Name</a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="high-gloss-card p-lg rounded-2xl flex flex-col border border-outline-variant/30 h-full flex-grow">
+                                    <h3 class="text-headline-sm font-headline-sm mb-2">@category.Name</h3>
+                                    <p class="text-body-md text-on-surface-variant mb-6">Dịch vụ chăm sóc xe chất lượng cao.</p>
+                                    <div class="text-display-lg-mobile font-display-lg text-white mb-8">
+                                        <span class="text-body-lg font-bold">Từ</span> @((minPrice / 1000000.0m).ToString("0.#"))M <span class="text-caption">VNĐ</span>
+                                    </div>
+                                    <ul class="space-y-4 mb-10 flex-grow">
+                                        @foreach (var svc in servicesInCat)
+                                        {
+                                            <li class="flex items-start justify-between gap-3 text-body-md border-b border-outline-variant/10 pb-2">
+                                                <div class="flex items-start gap-2">
+                                                    <span class="material-symbols-outlined text-primary mt-0.5">check_circle</span>
+                                                    <span>@svc.Name</span>
+                                                </div>
+                                                <span class="font-bold text-white whitespace-nowrap">@svc.UnitPrice.ToString("#,##0") đ</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                    <a href="#booking" class="btn-secondary w-full py-3 rounded-lg font-label-bold uppercase text-center block hover:text-white">Chọn @category.Name</a>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-8 text-on-surface-variant w-full">
+                        Không có thông tin dịch vụ.
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Style and Carousel Script -->
+    <style>
+        /* Hide default scrollbars */
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Prevent global Layout hover/scale conflicts inside the carousel */
+        #pricingCarousel .high-gloss-card:hover {
+            transform: none !important; /* disable translateY jump */
+        }
+        #pricingCarousel .price-card.featured {
+            transform: none !important; /* disable double scaling */
+        }
+
+        /* Scale and highlight visual effects for carousel cards */
+        .price-carousel-card {
+            opacity: 0.6;
+            transform: scale(0.9);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* When the user is NOT hovering the carousel, the JS determines the active center card */
+        #pricingCarousel:not(:hover) .price-carousel-card.active-card {
+            opacity: 1;
+            transform: scale(1.05);
+            z-index: 5;
+        }
+
+        /* When the user IS hovering the carousel, dim everything by default... */
+        #pricingCarousel:hover .price-carousel-card {
+            opacity: 0.5;
+            transform: scale(0.9);
+            z-index: 1;
+        }
+
+        /* ...and only highlight the EXACT card being hovered, stealing the spotlight */
+        #pricingCarousel .price-carousel-card:hover {
+            opacity: 1 !important;
+            transform: scale(1.08) !important;
+            z-index: 20 !important;
+        }
+        
+        /* Soften inner card transition to match */
+        .price-carousel-card .high-gloss-card {
+            transition: border-color 0.4s, box-shadow 0.4s;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const carousel = document.getElementById('pricingCarousel');
+            const prevBtn = document.getElementById('prevPriceBtn');
+            const nextBtn = document.getElementById('nextPriceBtn');
+
+            if (!carousel) return;
+
+            function updateCardHighlight() {
+                const cards = carousel.querySelectorAll('.price-carousel-card');
+                if (cards.length === 0) return;
+
+                const carouselRect = carousel.getBoundingClientRect();
+                const carouselCenter = carouselRect.left + carouselRect.width / 2;
+
+                let closestCard = null;
+                let minDistance = Infinity;
+
+                cards.forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    const cardCenter = rect.left + rect.width / 2;
+                    const distance = Math.abs(carouselCenter - cardCenter);
+
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestCard = card;
+                    }
+                });
+
+                cards.forEach(card => {
+                    if (card === closestCard) {
+                        card.classList.add('active-card');
+                    } else {
+                        card.classList.remove('active-card');
+                    }
+                });
+            }
+
+            // Scroll action
+            prevBtn.addEventListener('click', () => {
+                const cards = carousel.querySelectorAll('.price-carousel-card');
+                if (cards.length > 0) {
+                    const cardWidth = cards[0].offsetWidth + 32; // card width + gap
+                    carousel.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                const cards = carousel.querySelectorAll('.price-carousel-card');
+                if (cards.length > 0) {
+                    const cardWidth = cards[0].offsetWidth + 32; // card width + gap
+                    carousel.scrollBy({ left: cardWidth, behavior: 'smooth' });
+                }
+            });
+
+            // Update highlighting on scroll and resize
+            carousel.addEventListener('scroll', updateCardHighlight);
+            window.addEventListener('resize', updateCardHighlight);
+
+            // Run initial check with a short delay for layout to settle
+            setTimeout(updateCardHighlight, 300);
+        });
+    </script>
+</section>
+
+<!-- Section 4: News & Updates -->
+<section id="news" class="bg-surface-container-low py-xl px-margin-mobile md:px-margin-desktop">
+    <div class="max-w-[1440px] mx-auto">
+        <h2 class="text-headline-md font-headline-md mb-lg text-center">Tin tức &amp; Chia sẻ</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+            <article class="space-y-4 group cursor-pointer">
+                <div class="aspect-video rounded-lg overflow-hidden border border-outline-variant/20">
+                    <img alt="News 1" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDe_HDXK2aS1MnvySXV4gjlZIimnh_hmL2lxqDucEvaGe2Js7qsm5cILGIVkMzD48NMJV8f_aVZVrUW9yFUtVqykTqdyvJWUGiyswgPO7s6HdzjZbSl3DbcYXOfYVkmjK2ijmjPvX9w0tGzPWiz5lWpxazbiv9urYqKahhxFVmTcI6yczSX73oK1jfPqi1OsTdLQXhfGn7KXyUkmKD5MqYKzpbTJVLhvinHL5kqGMCQwUqLnY9_UQaa9TGoeTz4on7XJvxha-PBsX_U"/>
+                </div>
+                <span class="text-primary text-caption font-label-bold uppercase">Chăm sóc xe</span>
+                <h4 class="text-body-lg font-headline-sm group-hover:text-primary transition-colors">5 Mẹo bảo quản lớp phủ Ceramic trong mùa mưa</h4>
+                <p class="text-body-md font-body-md text-on-surface-variant line-clamp-2">Làm thế nào để duy trì độ bóng và khả năng chống nước của Ceramic khi thời tiết thất thường...</p>
+            </article>
+            <article class="space-y-4 group cursor-pointer">
+                <div class="aspect-video rounded-lg overflow-hidden border border-outline-variant/20">
+                    <img alt="News 2" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANarscwMVlRblqwaQUnN_UvoWbKk0o8iPUdc4jWf2ciBZulHuZOeb-Q9VGOJRy_qJZ7hAkkEJFrpEfp4M26ZU64we2Gp4_958SYKlVoEqNzjKTIENRp0_0W1oD1dALaFeZGPVzUZnguy9NxkDNZ0udSgBsns0qgc9iCBqhcrDfDcXKVPPzdtPBIHn27tn2aoFNM0HKJR7mFvnoYcF1GWL2SoSmTukJkP2n5lBxoBlD2WGqTU4Wpoc2AhGJVRK-zeXAWrjryMEddsQ1"/>
+                </div>
+                <span class="text-primary text-caption font-label-bold uppercase">Studio News</span>
+                <h4 class="text-body-lg font-headline-sm group-hover:text-primary transition-colors">HP Auto nâng cấp hệ thống đèn sấy hồng ngoại mới</h4>
+                <p class="text-body-md font-body-md text-on-surface-variant line-clamp-2">Chúng tôi không ngừng đầu tư trang thiết bị để rút ngắn thời gian thi công mà vẫn đảm bảo chất lượng.</p>
+            </article>
+            <article class="space-y-4 group cursor-pointer">
+                <div class="aspect-video rounded-lg overflow-hidden border border-outline-variant/20">
+                    <img alt="News 3" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0rx-BxnVIMJJIpQWLatLntGy4PMGey6_IMKNoVj_RpxzwVxUEvUeOsK25EVNgrSDgrksxZkMOYvnWMCuYM5HYTzi1mxIXJbp6wbfoWo5l9RBYZlFHCkhM0m5B5DPgzpSy43v5PwuzXqqbIqk_iamsSQYi_Q8fCcKuOZRny2y_8ewIqOUmmxxKKRgRO9ZXNVqPQtLBHfHkX1vzmLpPHLU6DHY8CD0HDUNSdQDkdDut4jbj11-F13_h36zF1MavpHgpbx3IYGvS9aUB"/>
+                </div>
+                <span class="text-primary text-caption font-label-bold uppercase">Review</span>
+                <h4 class="text-body-lg font-headline-sm group-hover:text-primary transition-colors">Đánh giá thực tế phim PPF Pro-Shield sau 2 năm</h4>
+                <p class="text-body-md font-body-md text-on-surface-variant line-clamp-2">Cùng xem khả năng bảo vệ của màng phim sau thời gian dài sử dụng thực tế tại Việt Nam.</p>
+            </article>
+            <article class="space-y-4 group cursor-pointer">
+                <div class="aspect-video rounded-lg overflow-hidden border border-outline-variant/20">
+                    <img alt="News 4" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDznx1ViaHQZPbbDSrcWE0QXTnDyecCe5qFh1CFg1Tgtf82vCIRu103UMigZDu-UvZGpTwRoZhRch3qyWK3rav4katu6WC8OXC27VbTOqxSE3ZU-lZ0T6Qc63OWVz2_M3n7TdNBq4tSWjLa6G0vPwo95yanqHPXtRBDo78OjCR5L1e0he2SU5ZlVyh57npih9Hsu6MXYnvPTyV9clgwLmvaM-eeVgq0X2DEJjsd69O5tAx2MN-1bitxcx_BRt6viVeEJbnOnYXK474Z"/>
+                </div>
+                <span class="text-primary text-caption font-label-bold uppercase">Thị trường</span>
+                <h4 class="text-body-lg font-headline-sm group-hover:text-primary transition-colors">Xu hướng Detailing xe sang năm 2024</h4>
+                <p class="text-body-md font-body-md text-on-surface-variant line-clamp-2">Cá nhân hóa và bảo vệ toàn diện là hai từ khóa chính mà chủ xe đang hướng tới.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- Section 5: Featured Video -->
+<section class="py-xl px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto">
+    <div class="grid md:grid-cols-5 gap-lg items-center text-left">
+        <div class="md:col-span-2 space-y-6">
+            <span class="text-primary font-label-bold text-label-bold uppercase tracking-[0.2em]">Video Thực Tế</span>
+            <h2 class="text-headline-md font-headline-md text-white leading-tight">Trải nghiệm dịch vụ tại HP Auto Detailing</h2>
+            <div class="w-20 h-1 bg-primary"></div>
+            <p class="text-body-lg text-on-surface-variant leading-relaxed">
+                Tận mắt chứng kiến quy trình chăm sóc xe tỉ mỉ chuẩn quốc tế. Từ khâu vệ sinh chi tiết 15 bước, hiệu chỉnh sơn 2 bước chuyên sâu cho đến khi hoàn thành lớp phủ Ceramic bảo vệ bền bỉ.
+            </p>
+            <div class="space-y-4 pt-2">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary text-xl">verified</span>
+                    <span class="text-body-md font-semibold text-white">Quy trình chuẩn German Technology</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary text-xl">brush</span>
+                    <span class="text-body-md font-semibold text-white">Hệ thống đèn sấy hồng ngoại hiện đại</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary text-xl">groups</span>
+                    <span class="text-body-md font-semibold text-white">Kỹ thuật viên hơn 10 năm kinh nghiệm</span>
+                </div>
+            </div>
+            <div class="pt-4">
+                <a href="#booking" class="btn-primary text-white px-6 py-3 rounded-lg font-label-bold text-label-bold uppercase tracking-widest inline-flex items-center gap-2">
+                    <span>Đặt lịch ngay</span>
+                    <span class="material-symbols-outlined text-base">calendar_today</span>
+                </a>
+            </div>
+        </div>
+        <div class="md:col-span-3">
+            <div class="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-outline-variant/30 aspect-video">
+                <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" class="absolute top-0 left-0 w-full h-full" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/ExOI7NPYmCo?si=PGtHuLv7MtSnu8qs" title="YouTube video player"></iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section 6: Booking Form -->
+<section id="booking" class="py-xl bg-surface-container overflow-hidden">
+    <div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop grid md:grid-cols-2 gap-lg items-center">
+        <div class="relative">
+            <h2 class="text-display-lg-mobile md:text-headline-md font-headline-md mb-6">Đặt lịch hẹn ngay</h2>
+            <p class="text-body-lg font-body-lg text-on-surface-variant mb-8">Để lại thông tin, đội ngũ tư vấn của HP Auto Detailing sẽ liên hệ xác nhận trong vòng 30 phút.</p>
+            <div class="space-y-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">call</span>
+                    </div>
+                    <div>
+                        <p class="text-caption font-label-bold uppercase text-on-surface-variant">Hotline 24/7</p>
+                        <p class="text-body-lg font-bold">0987.654.321</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">verified</span>
+                    </div>
+                    <div>
+                        <p class="text-caption font-label-bold uppercase text-on-surface-variant">Cam kết chất lượng</p>
+                        <p class="text-body-lg font-bold">Bảo hành điện tử chính hãng</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="high-gloss-card p-lg rounded-2xl rim-light text-left">
+            <form id="bookingForm" class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                <div class="space-y-2">
+                    <label class="text-caption font-label-bold uppercase text-on-surface-variant">Họ tên</label>
+                    <input name="CustomerName" required class="input-dark w-full px-4 py-3 rounded-lg text-white" placeholder="Nguyễn Văn A" type="text"/>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-caption font-label-bold uppercase text-on-surface-variant">Số điện thoại</label>
+                    <input name="CustomerPhone" required class="input-dark w-full px-4 py-3 rounded-lg text-white" placeholder="0901 234 567" type="tel"/>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-caption font-label-bold uppercase text-on-surface-variant">Biển số xe</label>
+                    <input name="Plate" class="input-dark w-full px-4 py-3 rounded-lg text-white" placeholder="51A-123.45" type="text"/>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-caption font-label-bold uppercase text-on-surface-variant">Thời gian</label>
+                    <input name="AppointmentTime" required class="input-dark w-full px-4 py-3 rounded-lg text-white" type="datetime-local"/>
+                </div>
+                <div class="md:col-span-2 space-y-2">
+                    <label class="text-caption font-label-bold uppercase text-on-surface-variant">Dịch vụ yêu cầu</label>
+                    <select name="Services" class="input-dark w-full px-4 py-3 rounded-lg text-white bg-black">
+                        @if (ViewBag.Services != null)
+                        {
+                            foreach (var s in (System.Collections.Generic.List<HP_Detailing.Models.Service>)ViewBag.Services)
+                            {
+                                <option value="@s.ServiceCode">@s.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="md:col-span-2 space-y-2">
+                    <label class="text-caption font-label-bold uppercase text-on-surface-variant">Ghi chú thêm</label>
+                    <textarea name="Note" class="input-dark w-full px-4 py-3 rounded-lg text-white resize-none" placeholder="Yêu cầu đặc biệt cho xế cưng của bạn..." rows="3"></textarea>
+                </div>
+                <div class="md:col-span-2 pt-4">
+                    <button class="btn-primary w-full py-4 rounded-lg text-white font-label-bold text-label-bold uppercase tracking-widest flex justify-center items-center gap-2" type="submit">
+                        <span>Gửi yêu cầu</span>
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </div>
+                <div id="bookingMsg" class="md:col-span-2 mt-4 text-center font-bold"></div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Section 7: Location & Contact -->
+<section id="contact" class="py-xl px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto">
+    <div class="grid md:grid-cols-3 gap-lg">
+        <div class="md:col-span-2 rounded-2xl overflow-hidden border border-outline-variant/30 h-[450px]">
+            <iframe allowfullscreen="" data-location="Ho Chi Minh City" height="100%" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3546.3982294021025!2d106.63289627451778!3d10.819147058405328!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752943d5fa0ff9%3A0x87a88cf260642f55!2sTeratron%20Laptop!5e1!3m2!1svi!2s!4v1779690992315!5m2!1svi!2s" style="border:0;" width="100%"></iframe>
+        </div>
+        <div class="space-y-8 flex flex-col justify-center text-left">
+            <div>
+                <h2 class="text-headline-md font-headline-md mb-4 text-white">Liên hệ với chúng tôi</h2>
+                <p class="text-body-md text-on-surface-variant">Ghé thăm studio để được tư vấn và kiểm tra tình trạng sơn xe miễn phí.</p>
+            </div>
+            <div class="space-y-4">
+                <div class="flex gap-4">
+                    <span class="material-symbols-outlined text-primary text-2xl">location_on</span>
+                    <div>
+                        <p class="font-bold text-white">Địa chỉ</p>
+                        <p class="text-on-surface-variant">123 Đường Số 7, Quận Tân Bình, TP. HCM</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <span class="material-symbols-outlined text-primary text-2xl">phone_in_talk</span>
+                    <div>
+                        <p class="font-bold text-white">Điện thoại</p>
+                        <p class="text-on-surface-variant">0987 654 321</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <span class="material-symbols-outlined text-primary text-2xl">schedule</span>
+                    <div>
+                        <p class="font-bold text-white">Giờ làm việc</p>
+                        <p class="text-on-surface-variant">T2 - CN: 08:00 - 18:30</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-md">
+                <a class="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-on-surface" href="#">
+                    <svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg>
+                </a>
+                <a class="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-on-surface" href="#">
+                    <svg class="w-5 h-5 fill-current" viewbox="0 0 24 24"><path d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63z"></path></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section 8: Footer -->
+<footer class="w-full py-lg px-margin-mobile md:px-margin-desktop bg-surface-container-lowest border-t border-outline-variant/20 text-left">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter max-w-[1440px] mx-auto">
+        <div class="space-y-4">
+            <div class="text-headline-sm font-headline-sm font-extrabold text-on-surface uppercase tracking-tighter">HP Auto Detailing</div>
+            <p class="text-body-md font-body-md text-on-surface-variant">© 2024 HP Auto Detailing. Precision in Every Polish.</p>
+        </div>
+        <div>
+            <h5 class="text-label-bold font-label-bold uppercase tracking-widest mb-6 text-primary">Dịch vụ</h5>
+            <ul class="space-y-4 text-on-surface-variant text-body-md">
+                <li><a class="hover:text-primary transition-colors" href="#services">Ceramic Coating</a></li>
+                <li><a class="hover:text-primary transition-colors" href="#services">PPF Protection</a></li>
+                <li><a class="hover:text-primary transition-colors" href="#services">Interior Care</a></li>
+                <li><a class="hover:text-primary transition-colors" href="#services">Window Tinting</a></li>
+            </ul>
+        </div>
+        <div>
+            <h5 class="text-label-bold font-label-bold uppercase tracking-widest mb-6 text-primary">Hệ sinh thái</h5>
+            <ul class="space-y-4 text-on-surface-variant text-body-md">
+                <li><a class="hover:text-primary transition-colors" href="#news">Tin tức &amp; Blogs</a></li>
+                <li><a class="hover:text-primary transition-colors" href="#contact">Về chúng tôi</a></li>
+                <li><a class="hover:text-primary transition-colors" href="#">Chính sách bảo hành</a></li>
+                <li><a class="hover:text-primary transition-colors" href="#contact">Liên hệ</a></li>
+            </ul>
+        </div>
+        <div>
+            <h5 class="text-label-bold font-label-bold uppercase tracking-widest mb-6 text-primary">Newsletter</h5>
+            <p class="text-body-md mb-4 text-on-surface-variant">Đăng ký nhận ưu đãi đặc biệt mỗi tháng.</p>
+            <div class="flex gap-2">
+                <input class="input-dark flex-1 px-4 py-2 rounded text-white text-body-md" placeholder="Email của bạn" type="email"/>
+                <button class="bg-primary text-on-primary-container p-2 rounded hover:scale-105 transition-transform flex items-center justify-center">
+                    <span class="material-symbols-outlined">send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="~/js/public-home.js"></script>

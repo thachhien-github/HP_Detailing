@@ -1,0 +1,20 @@
+/* Minimal design tokens from DESIGN.md for public homepage */
+:root{
+  --surface:#131313;
+  --on-surface:#e5e2e1;
+  --primary:#ffb5a0; /* safety orange */
+  --primary-dark:#ff5625;
+}
+body{background:var(--surface);color:var(--on-surface)}
+header h1{font-family:Montserrat,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+.badge{z-index:10}
+/* simple responsive tweaks */
+@media (min-width:768px){
+  header .max-w-2xl{max-width:680px}
+}
+
+/* small utility for rim light */
+.rim-light{box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+
+/* booking message */
+#bookingMsg{color:var(--primary);font-weight:600}
