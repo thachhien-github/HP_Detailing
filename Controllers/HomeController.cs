@@ -34,7 +34,7 @@ namespace HP_Detailing.Controllers
         // ========================================================
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Index()
+        public IActionResult Index(string? date = null, string shift = "all")
         {
             // Nếu chưa đăng nhập, trả về trang chủ công khai (landing page)
             if (!User?.Identity?.IsAuthenticated ?? true)
@@ -53,54 +53,99 @@ namespace HP_Detailing.Controllers
 
             try
             {
-                // Lấy ngày hôm nay theo giờ hệ thống local
-                var today = DateTime.UtcNow.Date;
+                // ── Parse ngày lọc (mặc định = hôm nay theo local time VN) ──
+                var localOffset = TimeSpan.FromHours(7); // UTC+7
+                var filterDate = DateTime.TryParse(date, out var parsedDate)
+                    ? parsedDate.Date
+                    : DateTime.UtcNow.Add(localOffset).Date;
 
-                // Khởi tạo ViewModel chứa dữ liệu live từ cơ sở dữ liệu
-                var dashboardData = new HomeDashboardViewModel();
+                // ── Tính mốc thời gian theo ca trực (lưu dưới dạng UTC để so sánh DB) ──
+                DateTime filterFrom, filterTo;
+                switch (shift)
+                {
+                    case "morning":
+                        filterFrom = filterDate.AddHours(7).Add(-localOffset);   // 07:00 VN
+                        filterTo   = filterDate.AddHours(12).Add(-localOffset);  // 12:00 VN
+                        break;
+                    case "afternoon":
+                        filterFrom = filterDate.AddHours(12).Add(-localOffset);
+                        filterTo   = filterDate.AddHours(18).Add(-localOffset);
+                        break;
+                    case "evening":
+                        filterFrom = filterDate.AddHours(18).Add(-localOffset);
+                        filterTo   = filterDate.AddHours(23).Add(-localOffset);
+                        break;
+                    default: // "all" – cả ngày
+                        filterFrom = filterDate.Add(-localOffset);
+                        filterTo   = filterDate.AddDays(1).Add(-localOffset);
+                        break;
+                }
 
-                // 1. Tính tổng doanh thu thực tế từ các hoá đơn đã thanh toán (PAID)
-                dashboardData.TotalRevenue = _context.Invoices
-                    .Where(i => i.Status == "PAID")
-                    .Sum(i => i.TotalAmount);
+                var dashboardData = new HomeDashboardViewModel
+                {
+                    FilterDate = filterDate,
+                    FilterShift = shift,
+                    FilterFrom  = filterFrom,
+                    FilterTo    = filterTo,
 
-                // 2. Đếm số lượng phiếu tiếp nhận đã thi công hoàn thành
-                dashboardData.CompletedTickets = _context.Tickets
-                    .Count(t => t.Status == "completed");
+                    // 1. Doanh thu: chỉ lấy hóa đơn PAID có PaidAt trong khoảng lọc
+                    TotalRevenue = _context.Invoices
+                        .Where(i => i.Status == "PAID"
+                                    && i.PaidAt.HasValue
+                                    && i.PaidAt.Value >= filterFrom
+                                    && i.PaidAt.Value < filterTo)
+                        .Sum(i => (decimal?)i.TotalAmount) ?? 0m,
 
-                // 3. Đếm số lượng xe đang trong xưởng thi công (in_progress)
-                dashboardData.InProgressCars = _context.Tickets
-                    .Count(t => t.Status == "in_progress");
+                    // 2. Phiếu hoàn thành trong khoảng lọc
+                    CompletedTickets = _context.Tickets
+                        .Count(t => t.Status == "completed"
+                                    && t.CreatedAt >= filterFrom
+                                    && t.CreatedAt < filterTo),
 
-                // 4. Lấy danh sách lịch đặt hẹn hôm nay (lọc theo ngày)
-                var todayAppointments = _context.Appointments
-                    .Where(a => a.AppointmentTime.Date == today)
-                    .OrderBy(a => a.AppointmentTime)
-                    .ToList();
+                    // 3. Xe đang thi công: real-time, không lọc theo thời gian
+                    InProgressCars = _context.Tickets
+                        .Count(t => t.Status == "in_progress"),
 
-                dashboardData.TodayAppointmentsCount = todayAppointments.Count;
-                dashboardData.TodayAppointmentsList = todayAppointments;
+                    // 4. Lịch hẹn trong khoảng lọc
+                    TodayAppointmentsCount = _context.Appointments
+                        .Count(a => a.AppointmentTime >= filterFrom && a.AppointmentTime < filterTo),
 
-                // 5. Lấy danh sách 5 Phiếu tiếp nhận dịch vụ mới nhất hiển thị lên bảng điều khiển
-                dashboardData.RecentTickets = _context.Tickets
-                    .OrderByDescending(t => t.CreatedAt)
-                    .Take(5)
-                    .ToList();
+                    TodayAppointmentsList = _context.Appointments
+                        .Where(a => a.AppointmentTime >= filterFrom && a.AppointmentTime < filterTo)
+                        .OrderBy(a => a.AppointmentTime)
+                        .ToList(),
 
-                // Trả về view kèm theo dữ liệu live đã nạp đầy đủ
+                    // 5. Phiếu dịch vụ gần đây trong khoảng ngày đang chọn
+                    RecentTickets = _context.Tickets
+                        .Where(t => t.CreatedAt >= filterFrom && t.CreatedAt < filterTo)
+                        .OrderByDescending(t => t.CreatedAt)
+                        .Take(10)
+                        .ToList()
+                };
+
                 return View(dashboardData);
             }
             catch (Exception ex)
             {
-                // Ghi nhận lỗi hệ thống chi tiết vào log phục vụ chẩn đoán
                 _logger.LogError(ex, "LỖI TRUY VẤN DỮ LIỆU DASHBOARD HỆ THỐNG");
-
-                // Trả về trang lỗi mặc định thay vì làm treo ứng dụng đột ngột
                 return RedirectToAction("Error");
             }
         }
 
+        [AllowAnonymous]
         public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [AllowAnonymous]
+        public IActionResult Terms()
+        {
+            return View();
+        }
+
+        [AllowAnonymous]
+        public IActionResult WarrantyPolicy()
         {
             return View();
         }

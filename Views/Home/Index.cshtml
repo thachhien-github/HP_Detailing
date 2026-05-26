@@ -6,29 +6,100 @@
     @* ===== PAGE HEADER ===== *@
     @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel
     {
-        Title = "Chào buổi sáng, HP Auto!",
+        Title = Model.IsToday
+            ? "Tổng quan hôm nay"
+            : "Tổng quan ngày " + Model.FilterDate.ToString("dd/MM/yyyy"),
         Breadcrumbs = new System.Collections.Generic.List<HP_Detailing.Models.PageHeaderBreadcrumb>
         {
-            new HP_Detailing.Models.PageHeaderBreadcrumb { Label = "Hệ thống HP Auto" }
+            new HP_Detailing.Models.PageHeaderBreadcrumb { Label = Model.ShiftLabel }
         },
-        ActionsSlotHtml = @"
-            <button onclick=""HPUI.toast('Đang khởi tạo báo cáo ngày...','info'); setTimeout(function(){ HPUI.toast('Báo cáo ngày 15/05 đã sẵn sàng!','success'); },1500);"" class=""px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-sm font-bold text-slate-300 hover:border-blue-500/50 transition-all flex items-center gap-2"">
-                <i data-lucide=""download"" class=""w-4 h-4""></i> Báo cáo ngày
-            </button>
-            <a href=""/tickets/new"" class=""px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2"">
-                <i data-lucide=""plus"" class=""w-4 h-4""></i> Tạo phiếu mới
-            </a>"
+        ActionsSlotHtml = "<a href=\"/tickets/new\" class=\"px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2\"><i data-lucide=\"plus\" class=\"w-4 h-4\"></i> Tạo phiếu mới</a>"
     })
+
+    @* ===== FILTER TOOLBAR ===== *@
+    <form id="dashboardFilterForm" method="get" action="/" class="flex flex-wrap items-end gap-3 bg-[#122131]/60 border border-slate-800 rounded-xl p-4">
+        @* Ngày *@
+        <div class="flex flex-col gap-1.5 flex-1 min-w-[140px]">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Ngày
+            </label>
+            <input type="date" name="date" id="filterDate"
+                   value="@Model.FilterDate.ToString("yyyy-MM-dd")"
+                   class="bg-[#0B101D] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 outline-none transition-all" />
+        </div>
+
+        @* Nút chọn nhanh ngày *@
+        <div class="flex flex-col gap-1.5">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest opacity-0 select-none">Nhanh</label>
+            <div class="flex gap-1.5">
+                <button type="button" onclick="setToday()"
+                        class="px-3 py-2 text-xs font-bold rounded-lg border transition-all @(Model.IsToday ? "bg-blue-500/20 border-blue-500/50 text-blue-400" : "border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-300")">
+                    Hôm nay
+                </button>
+                <button type="button" onclick="setYesterday()"
+                        class="px-3 py-2 text-xs font-bold rounded-lg border border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-300 transition-all">
+                    Hôm qua
+                </button>
+            </div>
+        </div>
+
+        @* Ca trực *@
+        <div class="flex flex-col gap-1.5 flex-1 min-w-[180px]">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                <i data-lucide="clock" class="w-3.5 h-3.5"></i> Ca trực
+            </label>
+            <select name="shift" id="filterShift"
+                    class="bg-[#0B101D] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 outline-none transition-all">
+                @if (Model.FilterShift == "all") {
+                    <option value="all" selected>Cả ngày</option>
+                } else {
+                    <option value="all">Cả ngày</option>
+                }
+                @if (Model.FilterShift == "morning") {
+                    <option value="morning" selected>Ca Sáng (7:00 – 12:00)</option>
+                } else {
+                    <option value="morning">Ca Sáng (7:00 – 12:00)</option>
+                }
+                @if (Model.FilterShift == "afternoon") {
+                    <option value="afternoon" selected>Ca Chiều (12:00 – 18:00)</option>
+                } else {
+                    <option value="afternoon">Ca Chiều (12:00 – 18:00)</option>
+                }
+                @if (Model.FilterShift == "evening") {
+                    <option value="evening" selected>Ca Tối (18:00 – 23:00)</option>
+                } else {
+                    <option value="evening">Ca Tối (18:00 – 23:00)</option>
+                }
+            </select>
+        </div>
+
+        @* Nút áp dụng *@
+        <div class="flex flex-col gap-1.5">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest opacity-0 select-none">Apply</label>
+            <button type="submit"
+                    class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-[0_0_12px_rgba(59,130,246,0.3)]">
+                <i data-lucide="filter" class="w-4 h-4"></i> Lọc dữ liệu
+            </button>
+        </div>
+
+        @* Badge kết quả *@
+        <div class="ml-auto flex items-center gap-2 self-end pb-0.5">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Đang xem:</span>
+            <span class="text-[11px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-lg">
+                @Model.FilterDate.ToString("dd/MM/yyyy") · @Model.ShiftLabel
+            </span>
+        </div>
+    </form>
 
     @* ===== STAT CARDS ===== *@
     <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
         @{
             var stats = new[]
             {
-                new { title = "Xe trong xưởng", value = Model.InProgressCars.ToString(), unit = "xe", tag = "+12%", tagCss = "text-emerald-400 bg-emerald-500/10", icon = "car", iconCss = "bg-blue-500/10 border-blue-500/20 text-blue-500", hoverCss = "hover:border-blue-500/50", progress = "" },
-                new { title = "Lịch hẹn hôm nay", value = Model.TodayAppointmentsCount.ToString(), unit = "lịch", tag = "Khẩn cấp", tagCss = "text-amber-400 bg-amber-500/10", icon = "clock", iconCss = "bg-amber-500/10 border-amber-500/20 text-amber-500", hoverCss = "hover:border-amber-500/50", progress = "" },
-                new { title = "Doanh thu tháng", value = Model.TotalRevenue.ToString("N0"), unit = "VNĐ", tag = "Mục tiêu 85%", tagCss = "text-blue-400 bg-blue-400/10", icon = "circle-dollar-sign", iconCss = "bg-blue-500/10 border-blue-500/20 text-blue-500", hoverCss = "hover:border-blue-500/50", progress = "" },
-                new { title = "Dịch vụ hoàn thành", value = Model.CompletedTickets.ToString(), unit = "vé", tag = "", tagCss = "", icon = "check-circle-2", iconCss = "bg-emerald-500/10 border-emerald-500/20 text-emerald-500", hoverCss = "hover:border-emerald-500/50", progress = "92" },
+                new { title = "Xe trong xưởng", value = Model.InProgressCars.ToString(), unit = "xe", tag = "Real-time", tagCss = "text-blue-400 bg-blue-500/10", icon = "car", iconCss = "bg-blue-500/10 border-blue-500/20 text-blue-500", hoverCss = "hover:border-blue-500/50", progress = "" },
+                new { title = "Lịch hẹn", value = Model.TodayAppointmentsCount.ToString(), unit = "lịch", tag = Model.ShiftLabel, tagCss = "text-amber-400 bg-amber-500/10", icon = "clock", iconCss = "bg-amber-500/10 border-amber-500/20 text-amber-500", hoverCss = "hover:border-amber-500/50", progress = "" },
+                new { title = "Doanh thu", value = Model.TotalRevenue.ToString("N0"), unit = "VNĐ", tag = "", tagCss = "", icon = "circle-dollar-sign", iconCss = "bg-emerald-500/10 border-emerald-500/20 text-emerald-500", hoverCss = "hover:border-emerald-500/50", progress = "" },
+                new { title = "Dịch vụ hoàn thành", value = Model.CompletedTickets.ToString(), unit = "phiếu", tag = "", tagCss = "", icon = "check-circle-2", iconCss = "bg-purple-500/10 border-purple-500/20 text-purple-400", hoverCss = "hover:border-purple-500/50", progress = "" },
             };
         }
         @foreach (var stat in stats)
@@ -42,15 +113,6 @@
                     {
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded @stat.tagCss">@stat.tag</span>
                     }
-                    else if (!string.IsNullOrEmpty(stat.progress))
-                    {
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="text-[10px] font-bold text-emerald-400">@(stat.progress)%</span>
-                            <div class="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                <div class="bg-emerald-500 h-full rounded-full transition-all" style="width: @(stat.progress)%"></div>
-                            </div>
-                        </div>
-                    }
                 </div>
                 <div class="mt-5">
                     <p class="text-slate-500 text-[11px] font-bold tracking-widest uppercase mb-1">@stat.title</p>
@@ -62,6 +124,7 @@
             </div>
         }
     </section>
+
 
     @* ===== ACTIVE SERVICES TABLE ===== *@
     <section class="space-y-5">
@@ -269,12 +332,32 @@
 
     <script>
         (function(){
-            // Standard initialization handled by HPUI.reinit()
-            
             window.HPUI = window.HPUI || {};
+
+            // ── Filter toolbar helpers ──────────────────────────────────
+            function formatDate(d) {
+                var yyyy = d.getFullYear();
+                var mm   = String(d.getMonth() + 1).padStart(2, '0');
+                var dd   = String(d.getDate()).padStart(2, '0');
+                return yyyy + '-' + mm + '-' + dd;
+            }
+
+            window.setToday = function () {
+                document.getElementById('filterDate').value = formatDate(new Date());
+                document.getElementById('dashboardFilterForm').submit();
+            };
+
+            window.setYesterday = function () {
+                var d = new Date();
+                d.setDate(d.getDate() - 1);
+                document.getElementById('filterDate').value = formatDate(d);
+                document.getElementById('dashboardFilterForm').submit();
+            };
+
+            // ── QR Payment modal ────────────────────────────────────────
             HPUI.toggleQR = function(val) {
                 var qrArea = document.getElementById('qrArea');
-                var qrImg = document.getElementById('qrImage');
+                var qrImg  = document.getElementById('qrImage');
                 if (val === 'transfer') {
                     qrImg.src = HPUI.generateQR(1100000, 'Thanh toan bill HP-0942');
                     qrArea.classList.remove('hidden');

@@ -1,0 +1,60 @@
+@{
+    ViewData["Title"] = "Chính sách bảo hành";
+    Layout = "_PublicLayout";
+}
+
+<div class="pt-24 pb-12 px-margin-mobile md:px-margin-desktop bg-[#060B14] min-h-screen">
+    <div class="max-w-[1000px] mx-auto bg-[#0B101D] p-8 md:p-12 rounded-3xl border border-outline-variant/30 shadow-2xl relative overflow-hidden">
+        
+        <!-- Decoration -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px]"></div>
+
+        <div class="relative z-10 space-y-8 text-on-surface-variant">
+            <div class="flex items-center gap-4 mb-2">
+                <i data-lucide="shield-check" class="w-10 h-10 text-emerald-400"></i>
+                <h1 class="text-3xl md:text-4xl font-display font-bold text-white">Chính sách bảo hành</h1>
+            </div>
+            <p class="text-sm border-b border-outline-variant/30 pb-6">Đảm bảo quyền lợi tối đa cho khách hàng trải nghiệm dịch vụ tại HP Auto Detailing.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Phủ Ceramic -->
+                <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-lg font-bold text-emerald-400 mb-4 flex items-center gap-2"><i data-lucide="droplets" class="w-5 h-5"></i> Phủ Ceramic (Graphene)</h3>
+                    <ul class="space-y-3 text-sm leading-relaxed">
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-1 shrink-0"></i> Thời gian bảo hành: Tùy gói (từ 2 đến 5 năm).</li>
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-1 shrink-0"></i> Bảo dưỡng định kỳ miễn phí mỗi 6 tháng trong thời gian bảo hành.</li>
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-1 shrink-0"></i> Điều kiện: Không sử dụng hóa chất tẩy rửa mạnh ngoài hệ thống HP. Không bị xước do va quẹt vật lý.</li>
+                    </ul>
+                </div>
+
+                <!-- Dán Phim PPF -->
+                <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-lg font-bold text-emerald-400 mb-4 flex items-center gap-2"><i data-lucide="layers" class="w-5 h-5"></i> Dán phim PPF</h3>
+                    <ul class="space-y-3 text-sm leading-relaxed">
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-1 shrink-0"></i> Thời gian bảo hành: 5 đến 10 năm tùy chất liệu (TPU/Tph).</li>
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-1 shrink-0"></i> Phạm vi: Bong tróc, ố vàng, nổi bọt khí do lỗi kỹ thuật thi công.</li>
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-1 shrink-0"></i> Không bảo hành các vết rách do đâm đụng, tai nạn.</li>
+                    </ul>
+                </div>
+                
+                <!-- Dán Phim Cách Nhiệt -->
+                <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-lg font-bold text-emerald-400 mb-4 flex items-center gap-2"><i data-lucide="sun" class="w-5 h-5"></i> Phim Cách Nhiệt (3M/V-Kool)</h3>
+                    <ul class="space-y-3 text-sm leading-relaxed">
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-1 shrink-0"></i> Thời gian bảo hành điện tử chính hãng: 10 năm.</li>
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-1 shrink-0"></i> Phạm vi: Phồng rộp, nứt nẻ, loang màu, giảm độ cách nhiệt bất thường.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-8 p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                <h4 class="text-white font-bold mb-2">Quy trình yêu cầu bảo hành</h4>
+                <p class="text-sm leading-relaxed">Quý khách vui lòng mang xe kèm Phiếu bảo hành (hoặc cung cấp Biển số xe để tra cứu hệ thống) đến cơ sở HP Auto Detailing gần nhất. Kỹ thuật viên sẽ kiểm tra và xử lý hoàn toàn miễn phí nếu đáp ứng điều kiện bảo hành.</p>
+            </div>
+            
+            <div class="mt-12 pt-8 flex justify-center">
+                <a href="/" class="btn-secondary text-white px-8 py-3 rounded-lg font-label-bold text-label-bold uppercase tracking-widest text-center">Trở về trang chủ</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,52 @@
+@{
+    ViewData["Title"] = "Điều khoản dịch vụ";
+    Layout = "_PublicLayout";
+}
+
+<div class="pt-24 pb-12 px-margin-mobile md:px-margin-desktop bg-[#060B14] min-h-screen">
+    <div class="max-w-[1000px] mx-auto bg-[#0B101D] p-8 md:p-12 rounded-3xl border border-outline-variant/30 shadow-2xl relative overflow-hidden">
+        
+        <!-- Decoration -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px]"></div>
+
+        <div class="relative z-10 space-y-8 text-on-surface-variant">
+            <h1 class="text-3xl md:text-4xl font-display font-bold text-white mb-2">Điều khoản dịch vụ</h1>
+            <p class="text-sm">Cập nhật lần cuối: @DateTime.Now.ToString("dd/MM/yyyy")</p>
+            
+            <div class="space-y-6">
+                <section>
+                    <h2 class="text-xl font-bold text-blue-400 mb-3">1. Quy định chung</h2>
+                    <p class="leading-relaxed">Khi sử dụng dịch vụ tại HP Auto Detailing, quý khách đồng ý với các điều khoản được quy định dưới đây. Chúng tôi có quyền từ chối cung cấp dịch vụ nếu quý khách vi phạm các điều khoản này.</p>
+                </section>
+                
+                <section>
+                    <h2 class="text-xl font-bold text-blue-400 mb-3">2. Trách nhiệm của khách hàng</h2>
+                    <ul class="list-disc pl-5 space-y-2 leading-relaxed">
+                        <li>Cung cấp thông tin chính xác khi đặt lịch hẹn.</li>
+                        <li>Ký biên bản bàn giao và xác nhận tình trạng xe trước khi thi công.</li>
+                        <li>Thanh toán đầy đủ phí dịch vụ sau khi nghiệm thu hoàn tất.</li>
+                        <li>Không để các vật dụng có giá trị trong xe. Chúng tôi không chịu trách nhiệm đối với tài sản cá nhân bị mất mát.</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 class="text-xl font-bold text-blue-400 mb-3">3. Trách nhiệm của HP Auto Detailing</h2>
+                    <ul class="list-disc pl-5 space-y-2 leading-relaxed">
+                        <li>Cam kết sử dụng hóa chất và vật tư đúng tiêu chuẩn.</li>
+                        <li>Đảm bảo quy trình thi công an toàn, không gây hư hại đến cấu trúc nguyên bản của xe.</li>
+                        <li>Bảo mật thông tin cá nhân của khách hàng theo quy định pháp luật.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-bold text-blue-400 mb-3">4. Chính sách hủy lịch & hoàn tiền</h2>
+                    <p class="leading-relaxed">Quý khách có thể hủy lịch miễn phí trước 24 giờ. Nếu đã đặt cọc, tiền cọc sẽ được hoàn lại hoặc bảo lưu cho lần dịch vụ tiếp theo.</p>
+                </section>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-outline-variant/30 flex justify-center">
+                <a href="/" class="btn-secondary text-white px-8 py-3 rounded-lg font-label-bold text-label-bold uppercase tracking-widest text-center">Trở về trang chủ</a>
+            </div>
+        </div>
+    </div>
+</div>

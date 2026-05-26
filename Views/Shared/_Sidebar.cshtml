@@ -26,20 +26,35 @@
             @{
                 var navItems = new[]
                 {
-                    new { href = "/", icon = "layout-dashboard", label = "Tổng quan" },
-                    new { href = "/appointments", icon = "calendar-clock", label = "Lịch hẹn" },
-                    new { href = "/tickets", icon = "clipboard-list", label = "Tiếp nhận dịch vụ" },
-                    new { href = "/catalog", icon = "grid", label = "Danh mục dịch vụ" },
-                    new { href = "/cars", icon = "car", label = "Quản lý phương tiện" },
-                    new { href = "/warehouse", icon = "warehouse", label = "Kho phụ tùng" },
-                    new { href = "/staff", icon = "users", label = "Nhân sự" },
-                    new { href = "/financial", icon = "receipt", label = "Hóa đơn & Thanh toán" },
-                    new { href = "/analytics", icon = "bar-chart-3", label = "Báo cáo & Phân tích" },
+                    new { href = "/", icon = "layout-dashboard", label = "Tổng quan", roles = new string[] { } },
+                    new { href = "/appointments", icon = "calendar-clock", label = "Lịch hẹn", roles = new string[] { } },
+                    new { href = "/tickets", icon = "clipboard-list", label = "Tiếp nhận dịch vụ", roles = new[] { "Admin", "ThuNgan" } },
+                    new { href = "/catalog", icon = "grid", label = "Danh mục dịch vụ", roles = new[] { "Admin" } },
+                    new { href = "/cars", icon = "car", label = "Quản lý phương tiện", roles = new string[] { } },
+                    new { href = "/warehouse", icon = "warehouse", label = "Kho phụ tùng", roles = new[] { "Admin", "QuanLyKho" } },
+                    new { href = "/staff", icon = "users", label = "Nhân sự", roles = new[] { "Admin" } },
+                    new { href = "/financial", icon = "receipt", label = "Hóa đơn & Thanh toán", roles = new[] { "Admin", "ThuNgan" } },
+                    new { href = "/analytics", icon = "bar-chart-3", label = "Báo cáo & Phân tích", roles = new[] { "Admin" } },
                 };
             }
 
             @foreach (var item in navItems)
             {
+                // Kiểm tra quyền (Role-Based Access Control cho giao diện)
+                if (item.roles.Length > 0)
+                {
+                    bool hasRole = false;
+                    foreach (var role in item.roles)
+                    {
+                        if (User.IsInRole(role))
+                        {
+                            hasRole = true;
+                            break;
+                        }
+                    }
+                    if (!hasRole) continue; // Ẩn menu nếu không có quyền
+                }
+
                 var active = item.href == "/"
                     ? (requestPath == "/" || requestPath == "") && requestPath != "/login"
                     : requestPath.StartsWith(item.href, System.StringComparison.OrdinalIgnoreCase);
@@ -60,20 +75,26 @@
     </div>
 
     <div class="p-4 flex flex-col gap-2 mt-auto border-t border-slate-800/50">
-        <a href="/tickets/new"
-           class="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 text-sm font-bold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] mb-2"
-           onclick="window.HPUI?.closeSidebar?.()">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            Tạo phiếu mới
-        </a>
+        @if (User.IsInRole("Admin") || User.IsInRole("ThuNgan"))
+        {
+            <a href="/tickets/new"
+               class="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 text-sm font-bold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] mb-2"
+               onclick="window.HPUI?.closeSidebar?.()">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Tạo phiếu mới
+            </a>
+        }
 
         <div class="space-y-1">
-            <a href="/settings"
-               class="group flex items-center rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800/50 hover:text-white transition-colors @(requestPath.StartsWith("/settings", System.StringComparison.OrdinalIgnoreCase) ? "bg-slate-800/50 text-white" : "")"
-               onclick="window.HPUI?.closeSidebar?.()">
-                <i data-lucide="settings" class="w-[18px] h-[18px] mr-3 text-slate-500 group-hover:text-slate-300"></i>
-                Cài đặt
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a href="/settings"
+                   class="group flex items-center rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800/50 hover:text-white transition-colors @(requestPath.StartsWith("/settings", System.StringComparison.OrdinalIgnoreCase) ? "bg-slate-800/50 text-white" : "")"
+                   onclick="window.HPUI?.closeSidebar?.()">
+                    <i data-lucide="settings" class="w-[18px] h-[18px] mr-3 text-slate-500 group-hover:text-slate-300"></i>
+                    Cài đặt
+                </a>
+            }
             <a href="/Account/Logout"
                class="group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800/50 hover:text-white transition-colors"
                onclick="window.HPUI?.closeSidebar?.()">
