@@ -237,6 +237,38 @@ Hệ thống áp dụng mô hình kiến trúc **MVC (Model – View – Control
 | **Typography** | Google Fonts | — | Inter, Space Grotesk, JetBrains Mono |
 | **Compression** | Brotli + Gzip | Built-in | Nén response giảm 50–70% dung lượng |
 
+### 3.2.1. Kỹ thuật nổi bật đã triển khai
+
+Project này không chỉ là một hệ thống CRUD thông thường mà đã được đầu tư theo hướng kiến trúc hiện đại, có thể flex tốt với yêu cầu phát triển dài hạn:
+
+1. **Code First + Migrations**  
+   - Toàn bộ schema được xây dựng từ code C# thông qua EF Core `DbContext` và các migration file.
+   - Hỗ trợ cập nhật database theo phiên bản một cách kiểm soát, dễ maintain và deploy.
+   - Có tính năng tự động migrate + seed dữ liệu mẫu khi khởi động ứng dụng.
+
+2. **ASP.NET Core Identity + Role-Based Authorization**  
+   - Tích hợp xác thực người dùng và phân quyền theo vai trò như `Admin`, `Receptionist`, `Foreman`, `Technician`, `Warehouse`.
+   - Hỗ trợ kiểm soát truy cập theo từng màn hình, đảm bảo bảo mật và dễ mở rộng.
+
+3. **RESTful MVC + API-friendly structure**  
+   - Hệ thống được thiết kế theo hướng MVC chuẩn, đồng thời các thao tác nghiệp vụ được tổ chức rõ ràng, dễ mở rộng thành REST API trong tương lai.
+   - Các controller được tách theo module nghiệp vụ: `Tickets`, `Warehouse`, `Financial`, `Appointments`, `Analytics`, ...
+
+4. **SignalR Real-Time Notification**  
+   - Tích hợp `NotificationHub` để gửi thông báo tức thì cho các vai trò liên quan khi trạng thái phiếu thay đổi.
+   - Đây là điểm nhấn kỹ thuật giúp hệ thống tương tác tốt hơn, gần với môi trường doanh nghiệp thực tế.
+
+5. **Dependency Injection & Service Layer**  
+   - Sử dụng DI chuẩn của ASP.NET Core, cấu hình service ở `Startup.cs` / `Program.cs` giúp code dễ test, dễ mở rộng và tách biệt logic.
+   - Các nghiệp vụ phức tạp như xuất kho, đồng bộ hóa đơn, khởi tạo dữ liệu được xử lý qua service riêng.
+
+6. **EF Core + LINQ + Business Logic Mapping**  
+   - Tận dụng EF Core và LINQ để xử lý truy vấn dữ liệu hiệu quả, kết hợp với các ViewModel cho tầng presentation.
+   - Hỗ trợ tối ưu truy vấn, giảm độ ràng buộc giữa dữ liệu và giao diện.
+
+7. **Production-ready Architecture**  
+   - Có cấu trúc mô-đun rõ ràng, hỗ trợ triển khai production, caching, compression, và dễ tích hợp thêm tính năng như SMS, payment gateway, báo cáo Excel/PDF trong giai đoạn sau.
+
 ## 3.3. Sơ đồ Cơ sở dữ liệu (Database Schema)
 
 ### Nhóm: Nhân sự
