@@ -1,4 +1,4 @@
-# HỆ THỐNG QUẢN LÝ TRUNG TÂM CHĂM SÓC XE HƠI  
+# HỆ THỐNG QUẢN LÝ TRUNG TÂM CHĂM SÓC XE Ô TÔ  
 ## HP AUTO DETAILING MANAGEMENT SYSTEM
 
 > **Phiên bản:** 1.0 — Production Release  
