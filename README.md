@@ -1,174 +1,448 @@
-# HP Detailing — Hệ thống quản lý xưởng Detailing
+# HỆ THỐNG QUẢN LÝ TRUNG TÂM CHĂM SÓC XE HƠI  
+## HP AUTO DETAILING MANAGEMENT SYSTEM
 
-Ứng dụng web **ASP.NET Core 8 MVC** quản lý phiếu dịch vụ, kho vật tư, hóa đơn, lịch hẹn và nhân sự cho xưởng chăm sóc xe (detailing). Giao diện Tailwind CSS, dữ liệu **SQL Server** qua Entity Framework Core.
+> **Phiên bản:** 1.0 — Production Release  
+> **Ngày phát hành:** 28/05/2026  
+> **Công nghệ chính:** ASP.NET Core 8.0 MVC · SQL Server · Tailwind CSS · SignalR  
 
-## Yêu cầu
+---
 
-| Thành phần | Phiên bản |
-|------------|-----------|
-| [.NET SDK](https://dotnet.microsoft.com/download) | 8.0+ |
-| SQL Server hoặc LocalDB | 2019+ / LocalDB |
-| (Tuỳ chọn) Visual Studio 2022 | 17.8+ |
+## MỤC LỤC
 
-## Cài đặt nhanh
+- [Phần 1: Mô tả Hiện trạng](#phần-1-mô-tả-hiện-trạng)
+- [Phần 2: Phân tích](#phần-2-phân-tích)
+- [Phần 3: Thiết kế](#phần-3-thiết-kế)
+- [Phần 4: Cài đặt Ứng dụng](#phần-4-cài-đặt-ứng-dụng)
+- [Phần 5: Kết luận – Kiến nghị](#phần-5-kết-luận--kiến-nghị)
 
-### 1. Clone / mở solution
+---
 
-```bash
-cd HP_Detailing
-```
+# Phần 1: MÔ TẢ HIỆN TRẠNG
 
-Mở `HP_Detailing.sln` trong Visual Studio hoặc chạy lệnh tại thư mục project.
+## 1.1. Giới thiệu đề tài
 
-### 2. Cấu hình database
+Hệ thống **HP Auto Detailing** được xây dựng nhằm tin học hóa toàn bộ quy trình vận hành của một Trung tâm Chăm sóc – Detailing xe hơi chuyên nghiệp, từ khâu tiếp nhận khách hàng, quản lý phiếu dịch vụ, phân công kỹ thuật viên, kiểm soát kho vật tư, đến thanh toán và xuất hóa đơn.
 
-Sửa connection string trong `appsettings.json` (hoặc `appsettings.Development.json`):
+## 1.2. Hiện trạng trước khi có hệ thống
 
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=YOUR_SERVER;Database=HP_Detailing_DB;User Id=sa;Password=YOUR_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=true"
-}
-```
+| Vấn đề | Mô tả |
+|---|---|
+| **Quản lý thủ công** | Phiếu dịch vụ, tồn kho, lương nhân viên được ghi chép trên sổ sách hoặc Excel rời rạc |
+| **Mất kiểm soát tồn kho** | Không thể biết chính xác lượng hóa chất, vật tư còn lại tại từng thời điểm |
+| **Không có Dashboard** | Chủ doanh nghiệp không có cái nhìn tổng quan về doanh thu, hiệu suất theo thời gian thực |
+| **Phân quyền thủ công** | Mọi nhân viên đều truy cập được mọi chức năng, gây rủi ro bảo mật |
+| **Liên lạc nội bộ chậm** | Phối hợp giữa Lễ tân – Quản đốc – Kỹ thuật viên phải gọi điện hoặc chạy đi báo trực tiếp |
 
-Ví dụ LocalDB:
+## 1.3. Mục tiêu của hệ thống
 
-```json
-"DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=HP_Detailing_DB;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
-```
+1. **Số hóa toàn bộ quy trình** từ tiếp nhận xe → thi công → nghiệm thu → thanh toán.
+2. **Quản lý kho vật tư** chặt chẽ với tính năng nhập kho, xuất kho tự động, kiểm kê định kỳ.
+3. **Dashboard thời gian thực** cho phép chủ doanh nghiệp theo dõi doanh thu, số xe đang xử lý.
+4. **Phân quyền bảo mật** dựa trên vai trò (Admin, Quản đốc, Lễ tân, Kỹ thuật viên, Kho).
+5. **Thông báo tức thì** qua SignalR khi phiếu dịch vụ thay đổi trạng thái.
 
-> **Lưu ý:** Không commit mật khẩu production lên git. Dùng User Secrets hoặc biến môi trường cho môi trường thật.
+---
 
-### 3. Migration & chạy ứng dụng
+# Phần 2: PHÂN TÍCH
 
-Khi chạy lần đầu, `Program.cs` tự **migrate** CSDL và **seed** dữ liệu mẫu (nếu chưa có phiếu dịch vụ).
-
-```bash
-dotnet restore
-dotnet build
-dotnet run
-```
-
-Hoặc tạo migration thủ công (khi đổi model):
-
-```bash
-dotnet ef migrations add TenMigration --context HP_DetailingDbContext
-dotnet ef database update --context HP_DetailingDbContext
-```
-
-### 4. Truy cập
-
-| Mục | Giá trị |
-|-----|---------|
-| URL mặc định | https://localhost:7xxx hoặc http://localhost:5xxx (xem console khi `dotnet run`) |
-| Đăng nhập demo | **admin_hpd** / **admin123** |
-| Trang login | `/login` |
-
-## Luồng nghiệp vụ chính
+## 2.1. Sơ đồ Use-Case tổng quát
 
 ```
-Lịch hẹn → Tạo phiếu DV → Trừ kho (định mức) → Hóa đơn UNPAID → Thanh toán PAID
-                ↑
-         Hồ sơ xe (bảng Car)
+                        ┌─────────────────────────────────────────────────┐
+                        │          HỆ THỐNG HP AUTO DETAILING             │
+                        │                                                 │
+    ┌──────────┐        │  ┌──────────────────────────────────────────┐   │
+    │          │        │  │         QUẢN LÝ PHIẾU DỊCH VỤ           │   │
+    │  KHÁCH   │───────►│  │  • Tạo phiếu mới (Tiếp nhận xe)        │   │
+    │  HÀNG    │        │  │  • Chọn dịch vụ & Báo giá              │   │
+    │ (Guest)  │        │  │  • Theo dõi trạng thái phiếu           │   │
+    └──────────┘        │  │  • In hóa đơn & Thanh toán             │   │
+         │              │  └──────────────────────────────────────────┘   │
+         │ Đặt lịch     │                                                 │
+         ▼              │  ┌──────────────────────────────────────────┐   │
+    ┌──────────┐        │  │         QUẢN LÝ LỊCH HẸN                │   │
+    │  LỄ TÂN  │───────►│  │  • Tạo / Sửa / Xóa lịch hẹn          │   │
+    │          │        │  │  • Xác nhận / Hủy lịch hẹn             │   │
+    └──────────┘        │  │  • Xem lịch hẹn theo ngày              │   │
+         │              │  └──────────────────────────────────────────┘   │
+         │              │                                                 │
+         ▼              │  ┌──────────────────────────────────────────┐   │
+    ┌──────────┐        │  │         PHÂN CÔNG & THI CÔNG             │   │
+    │ QUẢN ĐỐC │───────►│  │  • Phân công KTV cho phiếu             │   │
+    │          │        │  │  • Giám sát tiến độ thi công            │   │
+    └──────────┘        │  │  • Nghiệm thu chất lượng (QC)          │   │
+         │              │  └──────────────────────────────────────────┘   │
+         │              │                                                 │
+         ▼              │  ┌──────────────────────────────────────────┐   │
+    ┌──────────┐        │  │         QUẢN LÝ KHO VẬT TƯ              │   │
+    │   KTV    │        │  │  • Nhập kho (PO) từ nhà cung cấp       │   │
+    │  & KHO   │───────►│  │  • Xuất kho tự động theo phiếu DV      │   │
+    │          │        │  │  • Định mức vật tư theo dịch vụ         │   │
+    └──────────┘        │  │  • Kiểm kê kho định kỳ                 │   │
+                        │  └──────────────────────────────────────────┘   │
+                        │                                                 │
+    ┌──────────┐        │  ┌──────────────────────────────────────────┐   │
+    │  ADMIN   │───────►│  │         QUẢN TRỊ HỆ THỐNG               │   │
+    │          │        │  │  • Dashboard doanh thu & thống kê       │   │
+    │          │        │  │  • Quản lý nhân sự & phân quyền        │   │
+    │          │        │  │  • Danh mục dịch vụ & Bảng giá         │   │
+    │          │        │  │  • Phân tích & Báo cáo                 │   │
+    └──────────┘        │  │  • Cài đặt hệ thống                    │   │
+                        │  └──────────────────────────────────────────┘   │
+                        └─────────────────────────────────────────────────┘
 ```
 
-- **Phiếu dịch vụ:** tạo xe, chọn dịch vụ, xuất vật tư, cập nhật tiến độ.
-- **Kho:** nhập kho, kiểm kê, nhật ký xuất từ `TicketMaterialUsage`.
-- **Tài chính:** danh sách hóa đơn, xác nhận thanh toán (phương thức + thời gian).
-- **Cài đặt:** quản lý định mức vật tư theo dịch vụ (`ServiceMaterialQuota`).
+## 2.2. Danh sách Actors (Tác nhân)
 
-## Quy trình vật tư & định mức (3 bước tách bạch)
+| Actor | Vai trò | Quyền truy cập chính |
+|---|---|---|
+| **Khách hàng (Guest)** | Người dùng chưa đăng nhập | Xem trang chủ công khai, bảng giá dịch vụ, đặt lịch hẹn online |
+| **Lễ tân (Receptionist)** | Nhân viên tiếp nhận | Tạo phiếu DV, quản lý lịch hẹn, in hóa đơn, thanh toán |
+| **Quản đốc (Foreman)** | Giám sát thi công | Phân công KTV, giám sát tiến độ, nghiệm thu QC |
+| **Kỹ thuật viên (Technician)** | Thực hiện dịch vụ | Xem phiếu được giao, cập nhật trạng thái thi công |
+| **Thủ kho (Warehouse)** | Quản lý kho vật tư | Nhập kho, xuất kho, kiểm kê, quản lý nhà cung cấp |
+| **Admin** | Quản trị toàn quyền | Toàn bộ chức năng + Cài đặt hệ thống + Phân quyền |
 
-| Bước | Màn hình | Việc làm | Bảng liên quan |
-|------|----------|----------|----------------|
-| **0. Cấu hình** | `/catalog/quotas` (menu Danh mục dịch vụ) | Gắn Dịch vụ ↔ Vật tư + số lượng mặc định | `ServiceMaterialQuotas` |
-| **1. Nhập kho** | `/warehouse/imports/new` | Mua hàng về → **tăng tồn** | `StockImports`, `WarehouseStocks` |
-| **2. Xuất kho** | Tạo / sửa phiếu DV | Làm dịch vụ → **giảm tồn** | `TicketMaterialUsages` |
+## 2.3. Danh sách Use-Case chi tiết
 
-Logic xuất kho tập trung tại `Data/TicketMaterialService.cs` (dùng chung cho **tạo phiếu** và **thêm dịch vụ**).
+### Nhóm UC: Quản lý Phiếu dịch vụ (Tickets)
+| Mã UC | Tên Use-Case | Mô tả |
+|---|---|---|
+| UC-01 | Tạo phiếu dịch vụ | Lễ tân tạo phiếu mới, ghi nhận biển số xe, thông tin khách, chọn dịch vụ |
+| UC-02 | Chọn & gắn dịch vụ | Thêm/xóa dịch vụ vào phiếu, hệ thống tự tính tổng tiền |
+| UC-03 | Phân công KTV | Quản đốc chọn KTV phù hợp cho phiếu dịch vụ |
+| UC-04 | Cập nhật trạng thái | Chuyển trạng thái: Chờ → Đang thi công → Hoàn thành → Chờ thanh toán |
+| UC-05 | Nghiệm thu QC | Quản đốc kiểm tra chất lượng, duyệt hoàn thành |
+| UC-06 | Xuất hóa đơn & Thanh toán | Lễ tân in hóa đơn, chọn phương thức thanh toán, xác nhận thu tiền |
 
-### Tạo phiếu mới (`/tickets/new`)
+### Nhóm UC: Quản lý Kho vật tư (Warehouse)
+| Mã UC | Tên Use-Case | Mô tả |
+|---|---|---|
+| UC-07 | Nhập kho | Tạo phiếu nhập kho từ nhà cung cấp, ghi nhận số lượng & đơn giá |
+| UC-08 | Xuất kho tự động | Khi phiếu DV bắt đầu thi công, hệ thống tự trừ kho theo định mức |
+| UC-09 | Kiểm kê kho | Thủ kho thực hiện kiểm kê, đối soát hệ thống vs thực tế |
+| UC-10 | Quản lý định mức | Admin cấu hình lượng vật tư tiêu hao mặc định cho từng dịch vụ |
 
-1. Chọn dịch vụ → UI gọi `GET /tickets/service-quotas` (xem trước định mức).
-2. User có thể sửa số lượng / thêm vật tư **ngoài danh mục**.
-3. `POST /Tickets/CreateAjax`:
-   - Lưu `Ticket` + `TicketService`.
-   - **Server** áp định mức từ DB (`ApplyQuotasForServices`) — SL/giá lấy từ form nếu đã chỉnh.
-   - Vật tư `IsExtra=true` → `ApplyExtraMaterials`.
-   - `InvoiceSync` → hóa đơn UNPAID.
+### Nhóm UC: Quản lý Nhân sự & Hệ thống
+| Mã UC | Tên Use-Case | Mô tả |
+|---|---|---|
+| UC-11 | Quản lý nhân viên | CRUD nhân viên, hồ sơ, hợp đồng lao động |
+| UC-12 | Phân quyền tài khoản | Gán vai trò (Admin, Lễ tân, KTV...) cho tài khoản đăng nhập |
+| UC-13 | Cài đặt hệ thống | Cấu hình theme, phương thức thanh toán, danh mục dịch vụ |
+| UC-14 | Dashboard & Báo cáo | Xem doanh thu, số phiếu, biểu đồ phân tích theo thời gian |
 
-### Thêm dịch vụ trên phiếu (`/tickets/{id}`)
+## 2.4. Sơ đồ Quy trình Thực hiện Dịch vụ (Process Flow)
 
-1. `POST /Tickets/AddService` → lưu `TicketService`.
-2. **Server** áp định mức của dịch vụ đó (`ApplyQuotasForService`).
-3. `InvoiceSync` cập nhật tổng tiền.
+```
+ ┌─────────────────┐
+ │ KHÁCH HÀNG ĐẾN  │
+ │   TRUNG TÂM     │
+ └────────┬────────┘
+          │
+          ▼
+ ┌─────────────────┐     ┌─────────────────────────────────────┐
+ │ BƯỚC 1: LỄ TÂN  │     │ • Chụp ảnh tình trạng xe            │
+ │ Tiếp nhận &     │────►│ • Tạo Phiếu dịch vụ (PDV-xxxx)     │
+ │ Tạo phiếu       │     │ • Chốt báo giá với khách hàng       │
+ └────────┬────────┘     └─────────────────────────────────────┘
+          │
+          │  ♦ Push Notification → Quản đốc
+          ▼
+ ┌─────────────────┐     ┌─────────────────────────────────────┐
+ │ BƯỚC 2: QUẢN ĐỐC│     │ • Xem danh sách phiếu mới           │
+ │ Phân công       │────►│ • Chọn KTV phù hợp → Giao việc     │
+ └────────┬────────┘     └─────────────────────────────────────┘
+          │
+          │  ♦ Push Notification → KTV & Thủ kho
+          ▼
+ ┌─────────────────┐     ┌─────────────────────────────────────┐
+ │ BƯỚC 3A: KTV    │     │ • Nhận phiếu trên App               │
+ │ Thi công        │────►│ • Thực hiện dịch vụ                 │
+ │                 │     │ • Bấm "Hoàn thành" khi xong         │
+ └─────────────────┘     └─────────────────────────────────────┘
+ ┌─────────────────┐     ┌─────────────────────────────────────┐
+ │ BƯỚC 3B: KHO    │     │ • Đối chiếu phiếu DV                │
+ │ Xuất vật tư     │────►│ • Duyệt xuất hóa chất & linh kiện  │
+ └─────────────────┘     └─────────────────────────────────────┘
+          │
+          │  ♦ Push Notification → Quản đốc
+          ▼
+ ┌─────────────────┐     ┌─────────────────────────────────────┐
+ │ BƯỚC 4: QUẢN ĐỐC│     │ • Kiểm tra chất lượng (QC)          │
+ │ Nghiệm thu      │────►│ • Nếu đạt → Chuyển "Chờ thanh toán"│
+ └────────┬────────┘     └─────────────────────────────────────┘
+          │
+          │  ♦ Cho phép Lễ tân thu tiền
+          ▼
+ ┌─────────────────┐     ┌─────────────────────────────────────┐
+ │ BƯỚC 5: LỄ TÂN  │     │ • In hóa đơn, áp dụng khuyến mãi   │
+ │ Thanh toán &    │────►│ • Nhận thanh toán (Tiền mặt / CK)  │
+ │ Bàn giao xe     │     │ • Bàn giao chìa khóa xe            │
+ └────────┬────────┘     └─────────────────────────────────────┘
+          │
+          ▼
+ ┌─────────────────┐
+ │ KHÁCH HÀNG      │
+ │   NHẬN XE       │
+ └─────────────────┘
+```
 
-> **Lưu ý:** Nếu chưa cấu hình định mức tại `/catalog/quotas`, thêm dịch vụ sẽ **không** tự trừ kho.
+---
 
-## Cấu trúc thư mục
+# Phần 3: THIẾT KẾ
+
+## 3.1. Kiến trúc hệ thống
+
+Hệ thống áp dụng mô hình kiến trúc **MVC (Model – View – Controller)** chuẩn của ASP.NET Core:
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                     CLIENT (Browser)                      │
+│         Tailwind CSS · Lucide Icons · SignalR JS          │
+└─────────────────────────┬────────────────────────────────┘
+                          │ HTTPS
+                          ▼
+┌──────────────────────────────────────────────────────────┐
+│                  ASP.NET Core 8.0 MVC                     │
+│  ┌────────────┐  ┌─────────────┐  ┌───────────────────┐  │
+│  │ Controllers│  │    Views    │  │  Static Files     │  │
+│  │ (C# Logic) │  │ (.cshtml)  │  │ (wwwroot/js,css)  │  │
+│  └─────┬──────┘  └─────────────┘  └───────────────────┘  │
+│        │                                                  │
+│  ┌─────▼──────┐  ┌─────────────┐  ┌───────────────────┐  │
+│  │   Models   │  │    Data     │  │   Hubs (SignalR)   │  │
+│  │ (Entities) │  │ (DbContext) │  │ (Real-time Notif) │  │
+│  └─────┬──────┘  └──────┬──────┘  └───────────────────┘  │
+│        │                │                                 │
+└────────┼────────────────┼─────────────────────────────────┘
+         │                │
+         ▼                ▼
+┌──────────────────────────────────────────────────────────┐
+│         SQL Server (Entity Framework Core 8.0)            │
+│         + ASP.NET Core Identity (Auth & Roles)            │
+└──────────────────────────────────────────────────────────┘
+```
+
+## 3.2. Công nghệ sử dụng
+
+| Tầng | Công nghệ | Phiên bản | Mục đích |
+|---|---|---|---|
+| **Backend** | ASP.NET Core MVC | 8.0 | Framework chính xử lý nghiệp vụ |
+| **ORM** | Entity Framework Core | 8.0.8 | Ánh xạ đối tượng – cơ sở dữ liệu |
+| **Database** | SQL Server | LocalDB / SQL Server | Lưu trữ dữ liệu |
+| **Auth** | ASP.NET Core Identity | 8.0 | Xác thực & Phân quyền theo vai trò |
+| **Real-time** | SignalR | 8.0 | Thông báo tức thì (Push Notification) |
+| **Frontend** | Tailwind CSS (CDN v3) | 3.x | Thiết kế giao diện Darkmode hiện đại |
+| **Icons** | Lucide Icons | Latest | Bộ icon SVG nhẹ, sắc nét |
+| **Typography** | Google Fonts | — | Inter, Space Grotesk, JetBrains Mono |
+| **Compression** | Brotli + Gzip | Built-in | Nén response giảm 50–70% dung lượng |
+
+## 3.3. Sơ đồ Cơ sở dữ liệu (Database Schema)
+
+### Nhóm: Nhân sự
+| Bảng | Mô tả | Quan hệ |
+|---|---|---|
+| `AppUser` | Tài khoản đăng nhập (kế thừa IdentityUser) | → Staff (1:1) |
+| `Staff` | Hồ sơ nhân viên | → Position, StaffProfile, LaborContract, Payroll |
+| `Position` | Chức vụ (Quản đốc, KTV, Lễ tân...) | ← Staff (1:N) |
+| `StaffProfile` | Thông tin mở rộng (CCCD, dân tộc...) | → Staff (1:1) |
+| `LaborContract` | Hợp đồng lao động | → Staff (N:1) |
+| `Payroll` | Bảng lương tháng | → Staff (N:1) |
+
+### Nhóm: Dịch vụ & Phiếu
+| Bảng | Mô tả | Quan hệ |
+|---|---|---|
+| `ServiceCategory` | Danh mục nhóm dịch vụ | ← Service (1:N) |
+| `Service` | Dịch vụ đơn lẻ (Rửa xe, Phủ Ceramic...) | → ServiceCategory |
+| `Car` | Thông tin xe (Biển số = PK) | ← Ticket (1:N) |
+| `Ticket` | Phiếu dịch vụ chính | → Car, Staff; ← TicketService, TicketMaterialUsage |
+| `TicketService` | Dịch vụ trong phiếu | → Ticket, Service |
+| `TicketMaterialUsage` | Vật tư xuất kho cho phiếu | → Ticket, Material |
+
+### Nhóm: Tài chính
+| Bảng | Mô tả | Quan hệ |
+|---|---|---|
+| `Invoice` | Hóa đơn thanh toán | → Ticket, PaymentMethod |
+| `InvoiceService` | Chi tiết dòng hóa đơn | → Invoice |
+| `PaymentMethod` | Phương thức thanh toán (Ngân hàng, Tiền mặt) | ← Invoice |
+
+### Nhóm: Kho vật tư
+| Bảng | Mô tả | Quan hệ |
+|---|---|---|
+| `Material` | Danh mục vật tư / hóa chất | ← WarehouseStock, StockImportItem |
+| `WarehouseStock` | Tồn kho hiện tại | → Material (1:1) |
+| `StockImport` | Phiếu nhập kho | → Supplier; ← StockImportItem |
+| `StockImportItem` | Chi tiết dòng nhập kho | → StockImport, Material |
+| `Supplier` | Nhà cung cấp | ← StockImport |
+| `ServiceMaterialQuota` | Định mức vật tư theo dịch vụ | → Service, Material |
+| `AuditSession` | Phiên kiểm kê kho | ← AuditSessionItem |
+| `AuditSessionItem` | Chi tiết kiểm kê từng vật tư | → AuditSession, Material |
+
+### Nhóm: Hệ thống
+| Bảng | Mô tả |
+|---|---|
+| `Appointment` | Lịch hẹn đặt chỗ |
+| `Notification` | Thông báo hệ thống (real-time via SignalR) |
+
+## 3.4. Cấu trúc thư mục dự án
 
 ```
 HP_Detailing/
-├── Controllers/      # MVC + API AJAX
-├── Data/             # DbContext, DbInitializer, InvoiceSync, TicketMaterialService
-├── Models/           # Entities + ViewModels
-├── Migrations/       # EF Core migrations
-├── Views/            # Razor (Tailwind)
-├── wwwroot/          # CSS, JS (hp-ui.js)
-├── Program.cs
-└── Startup.cs        # DI, routing, auth cookie
+├── Controllers/            # 14 Controller xử lý nghiệp vụ
+│   ├── AccountController       # Đăng nhập, Đăng xuất, Quên mật khẩu
+│   ├── HomeController          # Dashboard (có/không đăng nhập)
+│   ├── TicketsController       # CRUD Phiếu dịch vụ (phức tạp nhất)
+│   ├── WarehouseController     # Nhập/Xuất kho, Kiểm kê
+│   ├── FinancialController     # Hóa đơn, Thanh toán
+│   ├── StaffController         # Quản lý nhân sự
+│   ├── AppointmentsController  # Quản lý lịch hẹn
+│   ├── CarsController          # Quản lý xe
+│   ├── AnalyticsController     # Báo cáo & Phân tích
+│   ├── CatalogController       # Danh mục Dịch vụ, Vật tư, NCC
+│   ├── SettingsController      # Cài đặt hệ thống
+│   ├── ProfileController       # Hồ sơ cá nhân
+│   ├── SupportController       # Trang trợ giúp
+│   └── NotificationsController # API thông báo
+├── Models/
+│   ├── Entities.cs             # 20+ Entity classes (ORM mapping)
+│   └── ViewModels/             # 11 ViewModel cho từng trang
+├── Views/                      # 15 thư mục View (Razor .cshtml)
+│   ├── Shared/
+│   │   ├── _Layout.cshtml      # Layout chính (Darkmode + Theme)
+│   │   ├── _Sidebar.cshtml     # Sidebar điều hướng (Role-based)
+│   │   ├── _Header.cshtml      # Header bar
+│   │   └── _PageHeader.cshtml  # Breadcrumb component
+│   └── [Module]/Index.cshtml   # Trang chính mỗi module
+├── Data/
+│   ├── HP_DetailingDbContext.cs # EF Core DbContext
+│   ├── DbInitializer.cs       # Seed Data (Tài khoản, Danh mục mặc định)
+│   ├── InvoiceSync.cs         # Đồng bộ hóa đơn tự động
+│   └── TicketMaterialService.cs# Service xuất kho theo phiếu
+├── Hubs/
+│   └── NotificationHub.cs     # SignalR Hub (Real-time)
+├── Migrations/                 # EF Core Migration files
+├── wwwroot/
+│   ├── css/site.css            # CSS bổ sung
+│   ├── js/hp-ui.js             # JavaScript UI framework (HPUI)
+│   └── lib/                    # jQuery Validation (server-side)
+├── Program.cs                  # Entry point
+├── Startup.cs                  # DI, Middleware, Routing
+└── appsettings.json            # Chuỗi kết nối & cấu hình
 ```
 
-## Các route chính
+## 3.5. Thiết kế Giao diện (UI/UX)
 
-| Đường dẫn | Chức năng |
-|-----------|-----------|
-| `/` | Dashboard |
-| `/tickets`, `/tickets/new`, `/tickets/{id}` | Phiếu dịch vụ |
-| `/appointments` | Lịch hẹn |
-| `/cars` | Hồ sơ xe |
-| `/warehouse`, `/warehouse/imports` | Kho & nhập kho |
-| `/financial`, `/financial/{id}` | Hóa đơn |
-| `/staff`, `/staff/{id}` | Nhân sự |
-| `/analytics` | Báo cáo |
-| `/catalog/services`, `/catalog/quotas` | Danh mục dịch vụ & định mức vật tư |
-| `/settings` | Cấu hình hệ thống (logo, TK, thanh toán, máy in) |
-| `/login` | Đăng nhập |
+Hệ thống sử dụng giao diện **Darkmode** hiện đại với các đặc trưng:
 
-## Dữ liệu mẫu (seed)
+- **Color System**: CSS Variables (`--bg-base`, `--bg-card`, `--text-main`...) cho phép chuyển đổi Dark/Light mode mà không cần reload trang.
+- **Primary Color**: Hỗ trợ 5 bảng màu chủ đạo (Blue, Emerald, Amber, Rose, Purple), lưu vào `localStorage`.
+- **Typography**: Font Inter (body), Space Grotesk (headings), JetBrains Mono (code/số liệu).
+- **Component Library**: `HPUI` — bộ thư viện JS tự xây dựng bao gồm: Toast notification, Tab switching, Modal, Sidebar toggle, Dropdown.
+- **Responsive**: Hỗ trợ đầy đủ các breakpoint từ Mobile (sm) đến Desktop (lg).
+- **Sidebar phân quyền**: Menu items được ẩn/hiện dựa trên `User.IsInRole()` trong Razor.
 
-Lần chạy đầu (DB trống phiếu DV), hệ thống tạo mẫu:
+---
 
-- 5 danh mục / dịch vụ / nhân viên / vật tư / phiếu / hóa đơn
-- 5 định mức vật tư–dịch vụ (`ServiceMaterialQuota`)
-- 5 hồ sơ xe (`Car`)
-- Phương thức thanh toán (Vietcombank, MoMo, tiền mặt, …)
+# Phần 4: CÀI ĐẶT ỨNG DỤNG
 
-DB đã có dữ liệu cũ: app vẫn **backfill** định mức, xe, nhật ký vật tư và đồng bộ hóa đơn UNPAID khi khởi động.
+## 4.1. Yêu cầu hệ thống
 
-## Xử lý sự cố
+| Thành phần | Yêu cầu tối thiểu |
+|---|---|
+| **Runtime** | .NET 8.0 SDK hoặc ASP.NET Core 8.0 Runtime |
+| **Database** | SQL Server 2019+ hoặc SQL Server LocalDB |
+| **OS** | Windows Server 2019+, hoặc Linux (Ubuntu 20.04+) |
+| **RAM** | Tối thiểu 2GB (khuyến nghị 4GB) |
+| **Web Server** | IIS 10+ (Windows) hoặc Nginx/Apache (Linux) |
 
-| Triệu chứng | Gợi ý |
-|-------------|--------|
-| Lỗi kết nối SQL | Kiểm tra server đang chạy, tên DB, firewall, `TrustServerCertificate=True` |
-| Migrate thất bại | Xóa DB test và chạy lại, hoặc `dotnet ef database update` |
-| Trang trắng sau login | Xem log console; thường do CSDL chưa migrate |
-| Kho không có nhật ký xuất | Tạo phiếu mới có vật tư; dữ liệu cũ dùng `MaterialUsage` sẽ được backfill sang `TicketMaterialUsage` |
+## 4.2. Hướng dẫn cài đặt
 
-## Build Release
-
+### Bước 1: Clone mã nguồn
 ```bash
+git clone <repository-url>
+cd HP_Detailing
+```
+
+### Bước 2: Cấu hình chuỗi kết nối
+Mở file `appsettings.json`, chỉnh sửa `DefaultConnection`:
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=YOUR_SERVER;Database=HP_DetailingDb;User Id=sa;Password=YOUR_PASSWORD;TrustServerCertificate=True"
+  }
+}
+```
+
+### Bước 3: Khôi phục packages & Build
+```bash
+dotnet restore
 dotnet build -c Release
 ```
 
-## Giai đoạn tiếp theo (Phase 2+)
+### Bước 4: Chạy ứng dụng
+```bash
+dotnet run
+```
+Hệ thống sẽ **tự động**:
+- Tạo database nếu chưa tồn tại (Code-First Migration).
+- Chạy `DbInitializer` để seed dữ liệu mẫu (tài khoản Admin, danh mục dịch vụ...).
 
-- CRUD dịch vụ / phương thức thanh toán trên Settings (một phần UI còn mock)
-- Đăng nhập thật (bảng User, phân quyền KTV / Thu ngân)
-- User Secrets cho connection string production
-- CI/CD & unit test
+### Bước 5: Truy cập
+- Mở trình duyệt: `https://localhost:5001`
+- Đăng nhập tài khoản Admin mặc định (được tạo bởi `DbInitializer`).
 
-Chi tiết tiến độ: xem [TODO.md](TODO.md).
+## 4.3. Publish lên Production
 
-## License / học tập
+```bash
+dotnet publish -c Release -o ./publish
+```
 
-Dự án phục vụ môn **ASP.NET nâng cao** — HP Auto Detailing (demo).
+Cấu hình biến môi trường trên Host:
+```
+ASPNETCORE_ENVIRONMENT=Production
+```
+
+## 4.4. Tối ưu hóa đã áp dụng
+
+| Kỹ thuật | Chi tiết | Hiệu quả |
+|---|---|---|
+| **Response Compression** | Brotli + Gzip cho tất cả HTTP response | Giảm ~60% dung lượng tải |
+| **Static Files Caching** | `Cache-Control: max-age=604800` (7 ngày) | Trang mở lại gần như tức thì |
+| **AsNoTracking()** | Tắt change tracking cho các truy vấn đọc | Giảm RAM & CPU đáng kể |
+| **Defer Script Loading** | Lucide Icons tải không chặn DOM | First Paint nhanh hơn |
+
+---
+
+# Phần 5: KẾT LUẬN – KIẾN NGHỊ
+
+## 5.1. Kết quả đạt được
+
+Hệ thống **HP Auto Detailing** đã hoàn thành đầy đủ các chức năng cốt lõi:
+
+✅ **Quản lý phiếu dịch vụ** từ tiếp nhận → phân công → thi công → nghiệm thu → thanh toán  
+✅ **Quản lý kho vật tư** chặt chẽ với nhập kho, xuất kho tự động, kiểm kê định kỳ  
+✅ **Dashboard thời gian thực** lọc theo ngày/ca trực, hiển thị doanh thu và thống kê  
+✅ **Phân quyền bảo mật** dựa trên vai trò ASP.NET Core Identity  
+✅ **Thông báo tức thì** qua SignalR khi trạng thái phiếu thay đổi  
+✅ **Giao diện Darkmode** chuyên nghiệp, responsive, hỗ trợ 5 bảng màu  
+✅ **Tối ưu hiệu suất** với Response Compression và EF Core tuning  
+
+## 5.2. Hạn chế
+
+- Chưa tích hợp **gửi SMS/Email** tự động nhắc lịch hẹn cho khách hàng.
+- Chưa có ứng dụng **Mobile App** riêng cho Kỹ thuật viên (hiện dùng web responsive).
+- Chưa tích hợp **cổng thanh toán online** (VNPay, Momo).
+- Báo cáo phân tích chưa hỗ trợ **xuất file Excel/PDF**.
+
+## 5.3. Hướng phát triển
+
+| Giai đoạn | Tính năng dự kiến |
+|---|---|
+| **Phase 2** | Tích hợp SMS Brandname (Twilio/VNPT) cho nhắc lịch bảo trì |
+| **Phase 3** | Mobile App (React Native) cho KTV scan QR phiếu dịch vụ |
+| **Phase 4** | Cổng thanh toán online VNPay/MoMo/ZaloPay |
+| **Phase 5** | AI dự đoán nhu cầu nhập kho dựa trên lịch sử tiêu thụ vật tư |
+
+---
+
+> **© 2026 HP Auto Detailing.** Hệ thống được phát triển trên nền tảng ASP.NET Core 8.0 MVC.

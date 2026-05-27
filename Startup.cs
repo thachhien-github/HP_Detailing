@@ -19,6 +19,14 @@ namespace HP_Detailing
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Enable Response Compression (Gzip/Brotli)
+            services.AddResponseCompression(options =>
+            {
+                options.EnableForHttps = true;
+                options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+                options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+            });
+
             services.AddControllersWithViews();
             services.AddSignalR();
 
@@ -67,7 +75,19 @@ namespace HP_Detailing
             }
 
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
+
+            // Enable Response Compression Middleware
+            app.UseResponseCompression();
+
+            // Enable Static Files with Caching
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                OnPrepareResponse = ctx =>
+                {
+                    // Cache static files for 7 days
+                    ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=604800");
+                }
+            });
 
             app.UseRouting();
 

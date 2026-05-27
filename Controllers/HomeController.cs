@@ -89,7 +89,7 @@ namespace HP_Detailing.Controllers
                     FilterTo    = filterTo,
 
                     // 1. Doanh thu: chỉ lấy hóa đơn PAID có PaidAt trong khoảng lọc
-                    TotalRevenue = _context.Invoices
+                    TotalRevenue = _context.Invoices.AsNoTracking()
                         .Where(i => i.Status == "PAID"
                                     && i.PaidAt.HasValue
                                     && i.PaidAt.Value >= filterFrom
@@ -97,26 +97,26 @@ namespace HP_Detailing.Controllers
                         .Sum(i => (decimal?)i.TotalAmount) ?? 0m,
 
                     // 2. Phiếu hoàn thành trong khoảng lọc
-                    CompletedTickets = _context.Tickets
+                    CompletedTickets = _context.Tickets.AsNoTracking()
                         .Count(t => t.Status == "completed"
                                     && t.CreatedAt >= filterFrom
                                     && t.CreatedAt < filterTo),
 
                     // 3. Xe đang thi công: real-time, không lọc theo thời gian
-                    InProgressCars = _context.Tickets
+                    InProgressCars = _context.Tickets.AsNoTracking()
                         .Count(t => t.Status == "in_progress"),
 
                     // 4. Lịch hẹn trong khoảng lọc
-                    TodayAppointmentsCount = _context.Appointments
+                    TodayAppointmentsCount = _context.Appointments.AsNoTracking()
                         .Count(a => a.AppointmentTime >= filterFrom && a.AppointmentTime < filterTo),
 
-                    TodayAppointmentsList = _context.Appointments
+                    TodayAppointmentsList = _context.Appointments.AsNoTracking()
                         .Where(a => a.AppointmentTime >= filterFrom && a.AppointmentTime < filterTo)
                         .OrderBy(a => a.AppointmentTime)
                         .ToList(),
 
                     // 5. Phiếu dịch vụ gần đây trong khoảng ngày đang chọn
-                    RecentTickets = _context.Tickets
+                    RecentTickets = _context.Tickets.AsNoTracking()
                         .Where(t => t.CreatedAt >= filterFrom && t.CreatedAt < filterTo)
                         .OrderByDescending(t => t.CreatedAt)
                         .Take(10)
