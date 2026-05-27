@@ -52,42 +52,42 @@ Hệ thống **HP Auto Detailing** được xây dựng nhằm tin học hóa to
                         │          HỆ THỐNG HP AUTO DETAILING             │
                         │                                                 │
     ┌──────────┐        │  ┌──────────────────────────────────────────┐   │
-    │          │        │  │         QUẢN LÝ PHIẾU DỊCH VỤ           │   │
-    │  KHÁCH   │───────►│  │  • Tạo phiếu mới (Tiếp nhận xe)        │   │
-    │  HÀNG    │        │  │  • Chọn dịch vụ & Báo giá              │   │
-    │ (Guest)  │        │  │  • Theo dõi trạng thái phiếu           │   │
-    └──────────┘        │  │  • In hóa đơn & Thanh toán             │   │
+    │          │        │  │         QUẢN LÝ PHIẾU DỊCH VỤ            │   │
+    │  KHÁCH   │───────►│  │  • Tạo phiếu mới (Tiếp nhận xe)          │   │
+    │  HÀNG    │        │  │  • Chọn dịch vụ & Báo giá                │   │
+    │ (Guest)  │        │  │  • Theo dõi trạng thái phiếu             │   │
+    └──────────┘        │  │  • In hóa đơn & Thanh toán               │   │
          │              │  └──────────────────────────────────────────┘   │
          │ Đặt lịch     │                                                 │
          ▼              │  ┌──────────────────────────────────────────┐   │
-    ┌──────────┐        │  │         QUẢN LÝ LỊCH HẸN                │   │
-    │  LỄ TÂN  │───────►│  │  • Tạo / Sửa / Xóa lịch hẹn          │   │
-    │          │        │  │  • Xác nhận / Hủy lịch hẹn             │   │
-    └──────────┘        │  │  • Xem lịch hẹn theo ngày              │   │
+    ┌──────────┐        │  │         QUẢN LÝ LỊCH HẸN                 │   │
+    │  LỄ TÂN  │───────►│  │  • Tạo / Sửa / Xóa lịch hẹn              │   │
+    │          │        │  │  • Xác nhận / Hủy lịch hẹn               │   │
+    └──────────┘        │  │  • Xem lịch hẹn theo ngày                │   │
          │              │  └──────────────────────────────────────────┘   │
          │              │                                                 │
          ▼              │  ┌──────────────────────────────────────────┐   │
     ┌──────────┐        │  │         PHÂN CÔNG & THI CÔNG             │   │
-    │ QUẢN ĐỐC │───────►│  │  • Phân công KTV cho phiếu             │   │
-    │          │        │  │  • Giám sát tiến độ thi công            │   │
-    └──────────┘        │  │  • Nghiệm thu chất lượng (QC)          │   │
+    │ QUẢN ĐỐC │───────►│  │  • Phân công KTV cho phiếu               │   │
+    │          │        │  │  • Giám sát tiến độ thi công             │   │
+    └──────────┘        │  │  • Nghiệm thu chất lượng (QC)            │   │
          │              │  └──────────────────────────────────────────┘   │
          │              │                                                 │
          ▼              │  ┌──────────────────────────────────────────┐   │
-    ┌──────────┐        │  │         QUẢN LÝ KHO VẬT TƯ              │   │
-    │   KTV    │        │  │  • Nhập kho (PO) từ nhà cung cấp       │   │
-    │  & KHO   │───────►│  │  • Xuất kho tự động theo phiếu DV      │   │
-    │          │        │  │  • Định mức vật tư theo dịch vụ         │   │
-    └──────────┘        │  │  • Kiểm kê kho định kỳ                 │   │
+    ┌──────────┐        │  │         QUẢN LÝ KHO VẬT TƯ               │   │
+    │   KTV    │        │  │  • Nhập kho (PO) từ nhà cung cấp         │   │
+    │  & KHO   │───────►│  │  • Xuất kho tự động theo phiếu DV        │   │
+    │          │        │  │  • Định mức vật tư theo dịch vụ          │   │
+    └──────────┘        │  │  • Kiểm kê kho định kỳ                   │   │
                         │  └──────────────────────────────────────────┘   │
                         │                                                 │
     ┌──────────┐        │  ┌──────────────────────────────────────────┐   │
-    │  ADMIN   │───────►│  │         QUẢN TRỊ HỆ THỐNG               │   │
-    │          │        │  │  • Dashboard doanh thu & thống kê       │   │
-    │          │        │  │  • Quản lý nhân sự & phân quyền        │   │
-    │          │        │  │  • Danh mục dịch vụ & Bảng giá         │   │
-    │          │        │  │  • Phân tích & Báo cáo                 │   │
-    └──────────┘        │  │  • Cài đặt hệ thống                    │   │
+    │  ADMIN   │───────►│  │         QUẢN TRỊ HỆ THỐNG                │   │
+    │          │        │  │  • Dashboard doanh thu & thống kê        │   │
+    │          │        │  │  • Quản lý nhân sự & phân quyền          │   │
+    │          │        │  │  • Danh mục dịch vụ & Bảng giá           │   │
+    │          │        │  │  • Phân tích & Báo cáo                   │   │
+    └──────────┘        │  │  • Cài đặt hệ thống                      │   │
                         │  └──────────────────────────────────────────┘   │
                         └─────────────────────────────────────────────────┘
 ```
@@ -142,7 +142,7 @@ Hệ thống **HP Auto Detailing** được xây dựng nhằm tin học hóa to
           ▼
  ┌─────────────────┐     ┌─────────────────────────────────────┐
  │ BƯỚC 1: LỄ TÂN  │     │ • Chụp ảnh tình trạng xe            │
- │ Tiếp nhận &     │────►│ • Tạo Phiếu dịch vụ (PDV-xxxx)     │
+ │ Tiếp nhận &     │────►│ • Tạo Phiếu dịch vụ (PDV-xxxx)      │
  │ Tạo phiếu       │     │ • Chốt báo giá với khách hàng       │
  └────────┬────────┘     └─────────────────────────────────────┘
           │
@@ -150,7 +150,7 @@ Hệ thống **HP Auto Detailing** được xây dựng nhằm tin học hóa to
           ▼
  ┌─────────────────┐     ┌─────────────────────────────────────┐
  │ BƯỚC 2: QUẢN ĐỐC│     │ • Xem danh sách phiếu mới           │
- │ Phân công       │────►│ • Chọn KTV phù hợp → Giao việc     │
+ │ Phân công       │────►│ • Chọn KTV phù hợp → Giao việc      │
  └────────┬────────┘     └─────────────────────────────────────┘
           │
           │  ♦ Push Notification → KTV & Thủ kho
@@ -162,22 +162,22 @@ Hệ thống **HP Auto Detailing** được xây dựng nhằm tin học hóa to
  └─────────────────┘     └─────────────────────────────────────┘
  ┌─────────────────┐     ┌─────────────────────────────────────┐
  │ BƯỚC 3B: KHO    │     │ • Đối chiếu phiếu DV                │
- │ Xuất vật tư     │────►│ • Duyệt xuất hóa chất & linh kiện  │
+ │ Xuất vật tư     │────►│ • Duyệt xuất hóa chất & linh kiện   │
  └─────────────────┘     └─────────────────────────────────────┘
           │
           │  ♦ Push Notification → Quản đốc
           ▼
  ┌─────────────────┐     ┌─────────────────────────────────────┐
  │ BƯỚC 4: QUẢN ĐỐC│     │ • Kiểm tra chất lượng (QC)          │
- │ Nghiệm thu      │────►│ • Nếu đạt → Chuyển "Chờ thanh toán"│
+ │ Nghiệm thu      │────►│ • Nếu đạt → Chuyển "Chờ thanh toán" │
  └────────┬────────┘     └─────────────────────────────────────┘
           │
           │  ♦ Cho phép Lễ tân thu tiền
           ▼
  ┌─────────────────┐     ┌─────────────────────────────────────┐
- │ BƯỚC 5: LỄ TÂN  │     │ • In hóa đơn, áp dụng khuyến mãi   │
- │ Thanh toán &    │────►│ • Nhận thanh toán (Tiền mặt / CK)  │
- │ Bàn giao xe     │     │ • Bàn giao chìa khóa xe            │
+ │ BƯỚC 5: LỄ TÂN  │     │ • In hóa đơn, áp dụng khuyến mãi    │
+ │ Thanh toán &    │────►│ • Nhận thanh toán (Tiền mặt / CK)   │
+ │ Bàn giao xe     │     │ • Bàn giao chìa khóa xe             │
  └────────┬────────┘     └─────────────────────────────────────┘
           │
           ▼
@@ -197,29 +197,29 @@ Hệ thống áp dụng mô hình kiến trúc **MVC (Model – View – Control
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                     CLIENT (Browser)                      │
-│         Tailwind CSS · Lucide Icons · SignalR JS          │
+│                     CLIENT (Browser)                     │
+│         Tailwind CSS · Lucide Icons · SignalR JS         │
 └─────────────────────────┬────────────────────────────────┘
                           │ HTTPS
                           ▼
 ┌──────────────────────────────────────────────────────────┐
-│                  ASP.NET Core 8.0 MVC                     │
+│                  ASP.NET Core 8.0 MVC                    │
 │  ┌────────────┐  ┌─────────────┐  ┌───────────────────┐  │
 │  │ Controllers│  │    Views    │  │  Static Files     │  │
-│  │ (C# Logic) │  │ (.cshtml)  │  │ (wwwroot/js,css)  │  │
+│  │ (C# Logic) │  │ (.cshtml)   │  │ (wwwroot/js,css)  │  │
 │  └─────┬──────┘  └─────────────┘  └───────────────────┘  │
-│        │                                                  │
+│        │                                                 │
 │  ┌─────▼──────┐  ┌─────────────┐  ┌───────────────────┐  │
-│  │   Models   │  │    Data     │  │   Hubs (SignalR)   │  │
+│  │   Models   │  │    Data     │  │   Hubs (SignalR)  │  │
 │  │ (Entities) │  │ (DbContext) │  │ (Real-time Notif) │  │
 │  └─────┬──────┘  └──────┬──────┘  └───────────────────┘  │
-│        │                │                                 │
-└────────┼────────────────┼─────────────────────────────────┘
+│        │                │                                │
+└────────┼────────────────┼────────────────────────────────┘
          │                │
          ▼                ▼
 ┌──────────────────────────────────────────────────────────┐
-│         SQL Server (Entity Framework Core 8.0)            │
-│         + ASP.NET Core Identity (Auth & Roles)            │
+│         SQL Server (Entity Framework Core 8.0)           │
+│         + ASP.NET Core Identity (Auth & Roles)           │
 └──────────────────────────────────────────────────────────┘
 ```
 
