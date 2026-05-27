@@ -55,11 +55,6 @@
       var data = {};
       new FormData(form).forEach(function(v,k){ data[k]=v; });
 
-      // Convert datetime-local to ISO format for C# model binder if provided
-      if(data.AppointmentTime){
-        try{ data.AppointmentTime = new Date(data.AppointmentTime).toISOString(); }catch(err){}
-      }
-
       fetch('/Appointments/Create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

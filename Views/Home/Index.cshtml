@@ -1,7 +1,7 @@
 @model HP_Detailing.Models.ViewModels.HomeDashboardViewModel
 @{ ViewData["Title"] = "Dashboard"; Layout = "_Layout"; }
 
-<div class="p-4 sm:p-6 lg:p-8 space-y-8 min-h-screen">
+<div id="dashboardSpaContainer" class="p-4 sm:p-6 lg:p-8 space-y-8 min-h-screen">
 
     @* ===== PAGE HEADER ===== *@
     @await Html.PartialAsync("_PageHeader", new HP_Detailing.Models.PageHeaderModel
@@ -343,16 +343,106 @@
             }
 
             window.setToday = function () {
-                document.getElementById('filterDate').value = formatDate(new Date());
-                document.getElementById('dashboardFilterForm').submit();
+                var input = document.getElementById('filterDate');
+                if (input) {
+                    input.value = formatDate(new Date());
+                    submitDashboardAjax();
+                }
             };
 
             window.setYesterday = function () {
-                var d = new Date();
-                d.setDate(d.getDate() - 1);
-                document.getElementById('filterDate').value = formatDate(d);
-                document.getElementById('dashboardFilterForm').submit();
+                var input = document.getElementById('filterDate');
+                if (input) {
+                    var d = new Date();
+                    d.setDate(d.getDate() - 1);
+                    input.value = formatDate(d);
+                    submitDashboardAjax();
+                }
             };
+
+            // ── AJAX SPA Dashboard Filter ───────────────────────────────
+            function submitDashboardAjax() {
+                var form = document.getElementById('dashboardFilterForm');
+                if (!form) return;
+
+                var container = document.getElementById('dashboardSpaContainer');
+                if (container) {
+                    container.style.opacity = '0.5';
+                    container.style.transition = 'opacity 0.15s ease-in-out';
+                }
+
+                var formData = new FormData(form);
+                var params = new URLSearchParams();
+                formData.forEach(function(value, key) {
+                    params.append(key, value);
+                });
+                
+                var targetUrl = form.getAttribute('action') || '/';
+                var fullUrl = targetUrl + '?' + params.toString();
+
+                // Update URL in address bar without reloading
+                window.history.pushState({ path: fullUrl }, '', fullUrl);
+
+                fetch(fullUrl)
+                    .then(function(res) { return res.text(); })
+                    .then(function(html) {
+                        var parser = new DOMParser();
+                        var doc = parser.parseFromString(html, 'text/html');
+                        var newContainer = doc.getElementById('dashboardSpaContainer');
+                        if (newContainer && container) {
+                            container.innerHTML = newContainer.innerHTML;
+                            container.style.opacity = '1';
+                            
+                            // Re-initialize events & Lucide icons
+                            if (window.lucide) {
+                                window.lucide.createIcons();
+                            }
+                            initDashboardEvents();
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error(err);
+                        if (container) {
+                            container.style.opacity = '1';
+                        }
+                        if (window.HPUI && typeof window.HPUI.toast === 'function') {
+                            window.HPUI.toast('Không thể tải dữ liệu bộ lọc!', 'error');
+                        }
+                    });
+            }
+
+            function initDashboardEvents() {
+                var form = document.getElementById('dashboardFilterForm');
+                if (!form) return;
+
+                // Intercept form submit
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitDashboardAjax();
+                });
+
+                // Auto-submit on shift change
+                var shiftSelect = document.getElementById('filterShift');
+                if (shiftSelect) {
+                    shiftSelect.addEventListener('change', function() {
+                        submitDashboardAjax();
+                    });
+                }
+                
+                // Auto-submit on date change
+                var dateInput = document.getElementById('filterDate');
+                if (dateInput) {
+                    dateInput.addEventListener('change', function() {
+                        submitDashboardAjax();
+                    });
+                }
+            }
+
+            // Global exposure for SPA handling
+            window.submitDashboardAjax = submitDashboardAjax;
+
+            // Initialize events on load
+            initDashboardEvents();
 
             // ── QR Payment modal ────────────────────────────────────────
             HPUI.toggleQR = function(val) {

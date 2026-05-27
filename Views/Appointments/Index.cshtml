@@ -135,6 +135,23 @@
                 .replaceAll("'", '&#39;');
         }
 
+        function formatDateTime(isoString) {
+            if (!isoString) return '';
+            var parts = isoString.split('T');
+            if (parts.length < 2) return isoString;
+            var dateParts = parts[0].split('-');
+            var timeParts = parts[1].split(':');
+            if (dateParts.length < 3 || timeParts.length < 2) return isoString;
+            
+            var year = dateParts[0];
+            var month = dateParts[1];
+            var day = dateParts[2];
+            var hour = timeParts[0];
+            var minute = timeParts[1];
+            
+            return `${hour}:${minute} ${day}/${month}/${year}`;
+        }
+
         function getStatusBadge(status) {
             if (status === 'arrived') {
                 return '<span class="inline-flex items-center px-2.5 py-1 rounded-md border text-[11px] font-bold uppercase tracking-widest text-emerald-400 border-emerald-500/20 bg-emerald-500/5">Đã tiếp nhận</span>';
@@ -179,8 +196,7 @@
                 var services = escapeHtml(apt.services || '');
                 var phone = escapeHtml(apt.customerPhone || '');
                 var customer = escapeHtml(apt.customerName || '');
-                var aptTime = new Date(apt.appointmentTime);
-                var timeText = aptTime.toLocaleString('vi-VN', { hour12: false }).replace(',', '');
+                var timeText = formatDateTime(apt.appointmentTime);
 
                 return `
                     <tr class="hover:bg-slate-800/30 transition-colors">
