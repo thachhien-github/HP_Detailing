@@ -5,9 +5,9 @@
 
 <!-- Section 1: Navigation -->
 <nav class="docked full-width top-0 sticky z-50 bg-surface/80 glass-nav border-b border-outline-variant/30 shadow-lg">
-    <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-[1440px] mx-auto">
+    <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-3 md:py-4 max-w-[1440px] mx-auto">
         <a href="/" class="flex items-center">
-            <img src="/images/logo.png" alt="HP Auto Detailing Logo" class="h-10 md:h-12 w-auto object-contain drop-shadow-md hover:scale-105 transition-transform" />
+            <img src="/images/logo.png" alt="HP Auto Detailing Logo" class="h-8 md:h-12 w-auto object-contain drop-shadow-md hover:scale-105 transition-transform" />
         </a>
         <div class="hidden md:flex gap-lg items-center">
             <a class="text-primary font-bold border-b-2 border-primary-container text-label-bold font-label-bold uppercase" href="#services">Dịch vụ</a>
@@ -17,36 +17,59 @@
             <a class="text-on-surface-variant hover:text-on-surface transition-colors text-label-bold font-label-bold uppercase" href="#contact">Về chúng tôi</a>
         </div>
         <div class="flex gap-2 md:gap-4 items-center">
-            <a href="/login" class="text-on-surface hover:text-primary transition-colors text-[12px] md:text-label-bold font-label-bold uppercase tracking-widest border border-outline-variant/30 px-3 md:px-5 py-2 rounded-full text-center hover:bg-white/5">
+            <a href="/login" class="hidden sm:inline-flex text-on-surface hover:text-primary transition-colors text-[12px] md:text-label-bold font-label-bold uppercase tracking-widest border border-outline-variant/30 px-3 md:px-5 py-2 rounded-full text-center hover:bg-white/5">
                 Đăng nhập
             </a>
-            <a href="#booking" class="bg-primary-container text-on-primary-container px-4 md:px-6 py-2 rounded-full text-[12px] md:text-label-bold font-label-bold uppercase tracking-widest btn-primary active:scale-95 transition-all text-center inline-block">
-                Đặt lịch ngay
+            <a href="#booking" class="bg-primary-container text-on-primary-container px-4 md:px-6 py-2 rounded-full text-[11px] md:text-label-bold font-label-bold uppercase tracking-widest btn-primary active:scale-95 transition-all text-center inline-block">
+                Đặt lịch
             </a>
+            <!-- Mobile hamburger menu -->
+            <button id="mobileMenuBtn" class="md:hidden flex items-center justify-center w-10 h-10 rounded-lg border border-outline-variant/30 hover:bg-white/5 transition-colors" aria-label="Menu">
+                <span class="material-symbols-outlined text-on-surface">menu</span>
+            </button>
+        </div>
+    </div>
+    <!-- Mobile slide-down menu -->
+    <div id="mobileMenu" class="md:hidden hidden border-t border-outline-variant/30 bg-surface/95 glass-nav">
+        <div class="flex flex-col px-margin-mobile py-4 gap-1">
+            <a class="text-on-surface-variant hover:text-primary transition-colors text-label-bold font-label-bold uppercase py-3 px-4 rounded-lg hover:bg-white/5" href="#services" onclick="closeMobileMenu()">Dịch vụ</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors text-label-bold font-label-bold uppercase py-3 px-4 rounded-lg hover:bg-white/5" href="#testimonials" onclick="closeMobileMenu()">Đánh giá</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors text-label-bold font-label-bold uppercase py-3 px-4 rounded-lg hover:bg-white/5" href="#gallery" onclick="closeMobileMenu()">Thư viện</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors text-label-bold font-label-bold uppercase py-3 px-4 rounded-lg hover:bg-white/5" href="#news" onclick="closeMobileMenu()">Tin tức</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors text-label-bold font-label-bold uppercase py-3 px-4 rounded-lg hover:bg-white/5" href="#contact" onclick="closeMobileMenu()">Về chúng tôi</a>
+            <a class="sm:hidden text-on-surface-variant hover:text-primary transition-colors text-label-bold font-label-bold uppercase py-3 px-4 rounded-lg hover:bg-white/5" href="/login" onclick="closeMobileMenu()">Đăng nhập</a>
         </div>
     </div>
 </nav>
+<script>
+    function closeMobileMenu() {
+        document.getElementById('mobileMenu').classList.add('hidden');
+    }
+    document.getElementById('mobileMenuBtn')?.addEventListener('click', function() {
+        document.getElementById('mobileMenu').classList.toggle('hidden');
+    });
+</script>
 
 <!-- Section 2: Hero Section -->
-<header class="relative h-[85vh] w-full flex items-center overflow-hidden">
+<header class="relative h-[70vh] md:h-[85vh] w-full flex items-center overflow-hidden">
     <img alt="Hero Image" class="absolute inset-0 w-full h-full object-cover z-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArjD7ZA1e2u-NnhPm0l5OJLsy2CANBciVpIqj3Cvt_uDf_6oeIY6mRUHdDz1oNywsrcBlnvbiK6-HtwGWPS607J2qYHBVKMlQ_Z9Semjm-rpYphx1jVUEkXwbJx1OQOd2Cr-NwB42rABinedBgkc7bCLmfLFeTTasvOXFwA0AuX_ATbp4s6W2sOpsB2g2GPY1l8Yl1s6wnHKGdQNfxzmau4dYLCDOQMlSuuEyYCsyGKktLl92v27q6fNTfkBLTKSNiHuMjBgYSvYKI"/>
     <div class="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent z-10"></div>
     <div class="relative z-20 px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto w-full">
         <div class="max-w-2xl">
             <span class="text-primary font-label-bold text-label-bold uppercase tracking-[0.3em] mb-4 block">Professional Studio</span>
-            <h1 class="text-display-lg-mobile md:text-display-lg font-display-lg text-white mb-6 leading-tight">
+            <h1 class="text-[28px] leading-[34px] sm:text-display-lg-mobile md:text-display-lg font-display-lg text-white mb-4 md:mb-6 leading-tight">
                 Precision in Every Polish.<br/>
                 <span class="text-primary">Premium Car Care</span> in HP Auto Detailing
             </h1>
             <p class="text-body-lg font-body-lg text-on-surface-variant mb-10 max-w-lg">
                 Đẳng cấp chăm sóc xe hơi chuyên nghiệp với công nghệ hàng đầu và đội ngũ kỹ thuật viên tâm huyết.
             </p>
-            <div class="flex flex-wrap gap-md">
-                <a href="#booking" class="btn-primary text-white px-8 py-4 rounded-lg font-label-bold text-label-bold uppercase tracking-widest flex items-center gap-2">
+            <div class="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-md">
+                <a href="#booking" class="btn-primary text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-label-bold text-[12px] md:text-label-bold uppercase tracking-widest flex items-center justify-center gap-2">
                     <span>Đặt lịch ngay</span>
                     <span class="material-symbols-outlined">calendar_today</span>
                 </a>
-                <a href="#services" class="btn-secondary text-white px-8 py-4 rounded-lg font-label-bold text-label-bold uppercase tracking-widest text-center">
+                <a href="#services" class="btn-secondary text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-label-bold text-[12px] md:text-label-bold uppercase tracking-widest text-center">
                     Khám phá dịch vụ
                 </a>
             </div>
@@ -118,12 +141,12 @@
 
 <!-- Section 3: Services Showroom -->
 <section id="services" class="py-xl px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto">
-    <div class="flex justify-between items-end mb-lg">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-lg">
         <div>
-            <h2 class="text-headline-md font-headline-md mb-2">Dịch vụ của chúng tôi</h2>
+            <h2 class="text-headline-sm md:text-headline-md font-headline-md mb-2">Dịch vụ của chúng tôi</h2>
             <div class="w-24 h-1 bg-primary"></div>
         </div>
-        <a class="text-primary font-label-bold text-label-bold uppercase hover:underline" href="#pricing">Xem bảng giá dịch vụ</a>
+        <a class="text-primary font-label-bold text-[12px] md:text-label-bold uppercase hover:underline" href="#pricing">Xem bảng giá dịch vụ</a>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
         <!-- Card 1 -->
@@ -208,11 +231,11 @@
         <div class="relative max-w-5xl mx-auto rounded-2xl overflow-hidden border border-outline-variant/30 shadow-2xl">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-outline-variant/20">
                 <div class="relative">
-                    <img alt="Before Detailing" class="w-full h-[400px] object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0rx-BxnVIMJJIpQWLatLntGy4PMGey6_IMKNoVj_RpxzwVxUEvUeOsK25EVNgrSDgrksxZkMOYvnWMCuYM5HYTzi1mxIXJbp6wbfoWo5l9RBYZlFHCkhM0m5B5DPgzpSy43v5PwuzXqqbIqk_iamsSQYi_Q8fCcKuOZRny2y_8ewIqOUmmxxKKRgRO9ZXNVqPQtLBHfHkX1vzmLpPHLU6DHY8CD0HDUNSdQDkdDut4jbj11-F13_h36zF1MavpHgpbx3IYGvS9aUB"/>
+                    <img alt="Before Detailing" class="w-full h-[200px] md:h-[400px] object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0rx-BxnVIMJJIpQWLatLntGy4PMGey6_IMKNoVj_RpxzwVxUEvUeOsK25EVNgrSDgrksxZkMOYvnWMCuYM5HYTzi1mxIXJbp6wbfoWo5l9RBYZlFHCkhM0m5B5DPgzpSy43v5PwuzXqqbIqk_iamsSQYi_Q8fCcKuOZRny2y_8ewIqOUmmxxKKRgRO9ZXNVqPQtLBHfHkX1vzmLpPHLU6DHY8CD0HDUNSdQDkdDut4jbj11-F13_h36zF1MavpHgpbx3IYGvS9aUB"/>
                     <div class="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm px-4 py-1 rounded-full text-label-bold uppercase text-white">Trước</div>
                 </div>
                 <div class="relative">
-                    <img alt="After Detailing" class="w-full h-[400px] object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArjD7ZA1e2u-NnhPm0l5OJLsy2CANBciVpIqj3Cvt_uDf_6oeIY6mRUHdDz1oNywsrcBlnvbiK6-HtwGWPS607J2qYHBVKMlQ_Z9Semjm-rpYphx1jVUEkXwbJx1OQOd2Cr-NwB42rABinedBgkc7bCLmfLFeTTasvOXFwA0AuX_ATbp4s6W2sOpsB2g2GPY1l8Yl1s6wnHKGdQNfxzmau4dYLCDOQMlSuuEyYCsyGKktLl92v27q6fNTfkBLTKSNiHuMjBgYSvYKI"/>
+                    <img alt="After Detailing" class="w-full h-[200px] md:h-[400px] object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArjD7ZA1e2u-NnhPm0l5OJLsy2CANBciVpIqj3Cvt_uDf_6oeIY6mRUHdDz1oNywsrcBlnvbiK6-HtwGWPS607J2qYHBVKMlQ_Z9Semjm-rpYphx1jVUEkXwbJx1OQOd2Cr-NwB42rABinedBgkc7bCLmfLFeTTasvOXFwA0AuX_ATbp4s6W2sOpsB2g2GPY1l8Yl1s6wnHKGdQNfxzmau4dYLCDOQMlSuuEyYCsyGKktLl92v27q6fNTfkBLTKSNiHuMjBgYSvYKI"/>
                     <div class="absolute bottom-4 right-4 bg-primary px-4 py-1 rounded-full text-label-bold uppercase text-on-primary font-bold">Sau</div>
                 </div>
             </div>
@@ -448,7 +471,7 @@
 <section id="news" class="bg-surface-container-low py-xl px-margin-mobile md:px-margin-desktop">
     <div class="max-w-[1440px] mx-auto">
         <h2 class="text-headline-md font-headline-md mb-lg text-center">Tin tức &amp; Chia sẻ</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-gutter">
             <article class="space-y-4 group cursor-pointer">
                 <div class="aspect-video rounded-lg overflow-hidden border border-outline-variant/20">
                     <img alt="News 1" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDe_HDXK2aS1MnvySXV4gjlZIimnh_hmL2lxqDucEvaGe2Js7qsm5cILGIVkMzD48NMJV8f_aVZVrUW9yFUtVqykTqdyvJWUGiyswgPO7s6HdzjZbSl3DbcYXOfYVkmjK2ijmjPvX9w0tGzPWiz5lWpxazbiv9urYqKahhxFVmTcI6yczSX73oK1jfPqi1OsTdLQXhfGn7KXyUkmKD5MqYKzpbTJVLhvinHL5kqGMCQwUqLnY9_UQaa9TGoeTz4on7XJvxha-PBsX_U"/>
@@ -662,7 +685,7 @@
             </div>
         </div>
         <div class="high-gloss-card p-lg rounded-2xl rim-light text-left">
-            <form id="bookingForm" class="grid grid-cols-1 md:grid-cols-2 gap-md">
+            <form id="bookingForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-md">
                 <div class="space-y-2">
                     <label class="text-caption font-label-bold uppercase text-on-surface-variant">Họ tên</label>
                     <input name="CustomerName" required class="input-dark w-full px-4 py-3 rounded-lg text-white" placeholder="Nguyễn Văn A" type="text"/>
@@ -679,7 +702,7 @@
                     <label class="text-caption font-label-bold uppercase text-on-surface-variant">Thời gian</label>
                     <input name="AppointmentTime" required class="input-dark w-full px-4 py-3 rounded-lg text-white" type="datetime-local"/>
                 </div>
-                <div class="md:col-span-2 space-y-2">
+                <div class="sm:col-span-2 space-y-2">
                     <label class="text-caption font-label-bold uppercase text-on-surface-variant">Dịch vụ yêu cầu</label>
                     <select name="Services" class="input-dark w-full px-4 py-3 rounded-lg text-white bg-black">
                         @if (ViewBag.Services != null)
@@ -691,17 +714,17 @@
                         }
                     </select>
                 </div>
-                <div class="md:col-span-2 space-y-2">
+                <div class="sm:col-span-2 space-y-2">
                     <label class="text-caption font-label-bold uppercase text-on-surface-variant">Ghi chú thêm</label>
                     <textarea name="Note" class="input-dark w-full px-4 py-3 rounded-lg text-white resize-none" placeholder="Yêu cầu đặc biệt cho xế cưng của bạn..." rows="3"></textarea>
                 </div>
-                <div class="md:col-span-2 pt-4">
+                <div class="sm:col-span-2 pt-4">
                     <button class="btn-primary w-full py-4 rounded-lg text-white font-label-bold text-label-bold uppercase tracking-widest flex justify-center items-center gap-2" type="submit">
                         <span>Gửi yêu cầu</span>
                         <span class="material-symbols-outlined">send</span>
                     </button>
                 </div>
-                <div id="bookingMsg" class="md:col-span-2 mt-4 text-center font-bold"></div>
+                <div id="bookingMsg" class="sm:col-span-2 mt-4 text-center font-bold"></div>
             </form>
         </div>
     </div>
@@ -710,7 +733,7 @@
 <!-- Section 7: Location & Contact -->
 <section id="contact" class="py-xl px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto">
     <div class="grid md:grid-cols-3 gap-lg">
-        <div class="md:col-span-2 rounded-2xl overflow-hidden border border-outline-variant/30 h-[450px]">
+        <div class="md:col-span-2 rounded-2xl overflow-hidden border border-outline-variant/30 h-[280px] md:h-[450px]">
             <iframe allowfullscreen="" data-location="Ho Chi Minh City" height="100%" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3546.3982294021025!2d106.63289627451778!3d10.819147058405328!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752943d5fa0ff9%3A0x87a88cf260642f55!2sTeratron%20Laptop!5e1!3m2!1svi!2s!4v1779690992315!5m2!1svi!2s" style="border:0;" width="100%"></iframe>
         </div>
         <div class="space-y-8 flex flex-col justify-center text-left">
