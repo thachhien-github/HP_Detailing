@@ -69,11 +69,11 @@ namespace HP_Detailing.Data
                 // ----------------------------------------------------
                 var materials = new Material[]
                 {
-                    new Material { MaterialCode = "VT001", Name = "Dung dịch rửa xe bọt tuyết Meguiar's", Unit = "Chai", UnitPrice = 350000, IsActive = true },
-                    new Material { MaterialCode = "VT002", Name = "Hóa chất bảo dưỡng da cao cấp Leather Care", Unit = "Chai", UnitPrice = 580000, IsActive = true },
-                    new Material { MaterialCode = "VT003", Name = "Dung dịch phủ Ceramic 9H CarPro Quartz", Unit = "Hộp", UnitPrice = 2200000, IsActive = true },
-                    new Material { MaterialCode = "VT004", Name = "Phim cách nhiệt 3M Crystalline (Met)", Unit = "Mét", UnitPrice = 450000, IsActive = true },
-                    new Material { MaterialCode = "VT005", Name = "Xi đánh bóng phá xước Sonax CutMax", Unit = "Chai", UnitPrice = 650000, IsActive = true }
+                    new Material { MaterialCode = "VT001", Name = "Dung dịch rửa xe bọt tuyết Meguiar's", Unit = "Chai", UnitPrice = 350000, ImageUrl = "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=500&auto=format&fit=crop&q=60", IsActive = true },
+                    new Material { MaterialCode = "VT002", Name = "Hóa chất bảo dưỡng da cao cấp Leather Care", Unit = "Chai", UnitPrice = 580000, ImageUrl = "https://images.unsplash.com/photo-1618220179428-22790b461013?w=500&auto=format&fit=crop&q=60", IsActive = true },
+                    new Material { MaterialCode = "VT003", Name = "Dung dịch phủ Ceramic 9H CarPro Quartz", Unit = "Hộp", UnitPrice = 2200000, ImageUrl = "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500&auto=format&fit=crop&q=60", IsActive = true },
+                    new Material { MaterialCode = "VT004", Name = "Phim cách nhiệt 3M Crystalline (Met)", Unit = "Mét", UnitPrice = 450000, ImageUrl = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&auto=format&fit=crop&q=60", IsActive = true },
+                    new Material { MaterialCode = "VT005", Name = "Xi đánh bóng phá xước Sonax CutMax", Unit = "Chai", UnitPrice = 650000, ImageUrl = "https://images.unsplash.com/photo-1563720223185-11003d516935?w=500&auto=format&fit=crop&q=60", IsActive = true }
                 };
                 context.Materials.AddRange(materials);
                 context.SaveChanges();

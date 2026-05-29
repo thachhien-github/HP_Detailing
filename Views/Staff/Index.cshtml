@@ -253,13 +253,15 @@
                     } else {
                         btnCreate.disabled = false;
                         btnCreate.innerHTML = 'Tạo nhân viên';
-                        HPUI.toast(data.message, 'error');
+                        // Hiển thị lỗi chi tiết từ server
+                        HPUI.toast(data.message || 'Không thể thêm nhân viên. Vui lòng thử lại!', 'error');
                     }
                 })
                 .catch(err => {
                     btnCreate.disabled = false;
                     btnCreate.innerHTML = 'Tạo nhân viên';
-                    HPUI.toast('Lỗi kết nối!', 'error');
+                    console.error('Lỗi fetch:', err);
+                    HPUI.toast('Lỗi kết nối server. Vui lòng kiểm tra kết nối mạng!', 'error');
                 });
             });
         }

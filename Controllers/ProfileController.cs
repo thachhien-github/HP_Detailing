@@ -1,7 +1,9 @@
 using HP_Detailing.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace HP_Detailing.Controllers
@@ -10,10 +12,12 @@ namespace HP_Detailing.Controllers
     public class ProfileController : Controller
     {
         private readonly UserManager<AppUser> _userManager;
+        private readonly IWebHostEnvironment _env;
 
-        public ProfileController(UserManager<AppUser> userManager)
+        public ProfileController(UserManager<AppUser> userManager, IWebHostEnvironment env)
         {
             _userManager = userManager;
+            _env = env;
         }
 
         public async Task<IActionResult> Index(bool mustChangePassword = false)
@@ -36,16 +40,38 @@ namespace HP_Detailing.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateProfile(string FullName, string PhoneNumber, string AvatarUrl)
+        public async Task<IActionResult> UpdateProfile(string FullName, string PhoneNumber, IFormFile? AvatarFile)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
 
             user.FullName = FullName;
             user.PhoneNumber = PhoneNumber;
-            if (!string.IsNullOrEmpty(AvatarUrl))
+
+            // Handle avatar file upload
+            if (AvatarFile != null && AvatarFile.Length > 0)
             {
-                user.AvatarUrl = AvatarUrl;
+                var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
+                if (!Array.Exists(allowedTypes, t => t == AvatarFile.ContentType.ToLower()))
+                {
+                    TempData["ToastMessage"] = "Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)!";
+                    TempData["ToastType"] = "error";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var uploadFolder = Path.Combine(_env.WebRootPath, "images", "upload");
+                Directory.CreateDirectory(uploadFolder);
+
+                var ext = Path.GetExtension(AvatarFile.FileName);
+                var fileName = $"avatar_{user.Id}_{Guid.NewGuid():N}{ext}";
+                var filePath = Path.Combine(uploadFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await AvatarFile.CopyToAsync(stream);
+                }
+
+                user.AvatarUrl = $"/images/upload/{fileName}";
             }
 
             var result = await _userManager.UpdateAsync(user);

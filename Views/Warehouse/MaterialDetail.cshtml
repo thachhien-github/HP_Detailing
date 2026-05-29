@@ -22,8 +22,12 @@
         <div class="space-y-6">
             @* Stock Summary *@
             <div class="bg-[#122131] border border-slate-800 rounded-xl p-6 text-center space-y-4">
-                <div class="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto">
-                    <i data-lucide="package" class="w-8 h-8 text-blue-400"></i>
+                <div class="w-20 h-20 rounded-2xl bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center mx-auto shadow-lg">
+                    @if (!string.IsNullOrEmpty(m.ImageUrl)) {
+                        <img src="@m.ImageUrl" class="w-full h-full object-cover" alt="@m.Name" />
+                    } else {
+                        <i data-lucide="package" class="w-8 h-8 text-blue-400"></i>
+                    }
                 </div>
                 <div>
                     <p class="font-mono text-xs font-bold text-slate-500 mb-1">@m.MaterialCode</p>
@@ -100,6 +104,16 @@
                         <input type="number" id="editReorder" value="@Model.ReorderLevel" min="0" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 font-mono focus:border-blue-500 outline-none transition-all" />
                         <p class="text-[10px] text-slate-500">Khi tồn kho xuống dưới con số này → hiện cảnh báo màu vàng.</p>
                     </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tải ảnh mới (File)</label>
+                            <input type="file" id="editImageFile" accept="image/*" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-1.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all file:bg-blue-600 file:hover:bg-blue-500 file:border-none file:text-white file:text-[10px] file:font-bold file:px-2.5 file:py-1 file:rounded file:cursor-pointer file:mr-2" />
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Hoặc Link ảnh mới (URL)</label>
+                            <input type="text" id="editImageUrl" value="@(m.ImageUrl ?? "")" placeholder="https://images.unsplash.com/..." class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" />
+                        </div>
+                    </div>
 
                     @* Giá trị tồn kho tính toán *@
                     <div class="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 flex justify-between items-center">
@@ -130,15 +144,27 @@
         var unit    = document.getElementById('editUnit').value.trim();
         var price   = parseFloat(document.getElementById('editPrice').value) || 0;
         var reorder = parseFloat(document.getElementById('editReorder').value) || 5;
+        var imageUrl = document.getElementById('editImageUrl').value.trim();
+        var fileInput = document.getElementById('editImageFile');
         if (!name) { HPUI.toast('Tên vật tư không được để trống!', 'warning'); return; }
 
         var btn = document.getElementById('btnUpdate');
         btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Đang lưu...'; lucide.createIcons();
 
+        var formData = new FormData();
+        formData.append('Id', id);
+        formData.append('Name', name);
+        formData.append('Unit', unit);
+        formData.append('UnitPrice', price);
+        formData.append('ReorderLevel', reorder);
+        formData.append('ImageUrl', imageUrl);
+        if (fileInput && fileInput.files.length > 0) {
+            formData.append('ImageFile', fileInput.files[0]);
+        }
+
         fetch('/warehouse/materials/update', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ Id: id, Name: name, Unit: unit, UnitPrice: price, ReorderLevel: reorder })
+            body: formData
         }).then(r => r.json()).then(data => {
             btn.disabled = false; btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Lưu thay đổi'; lucide.createIcons();
             if (data.success) { HPUI.toast('Đã cập nhật vật tư thành công!', 'success'); }

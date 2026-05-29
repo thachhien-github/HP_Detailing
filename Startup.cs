@@ -2,6 +2,7 @@ using HP_Detailing.Data;
 using HP_Detailing.Models;
 using HP_Detailing.Hubs;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,7 +28,11 @@ namespace HP_Detailing
                 options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
             });
 
-            services.AddControllersWithViews();
+            services.AddControllersWithViews()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                });
             services.AddSignalR();
 
             // Configure Entity Framework Core with SQL Server
@@ -64,13 +69,37 @@ namespace HP_Detailing
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Global exception handler - phải được đặt ĐẦU TIÊN
+            app.UseExceptionHandler(exceptionHandlerApp =>
+            {
+                exceptionHandlerApp.Run(async context =>
+                {
+                    context.Response.StatusCode = 500;
+                    context.Response.ContentType = "application/json";
+                    
+                    var exceptionHandlerPathFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+                    var exception = exceptionHandlerPathFeature?.Error;
+                    
+                    var errorResponse = new
+                    {
+                        success = false,
+                        message = env.IsDevelopment() 
+                            ? $"Lỗi: {exception?.InnerException?.Message ?? exception?.Message}"
+                            : "Lỗi hệ thống. Vui lòng thử lại!"
+                    };
+                    
+                    System.Diagnostics.Debug.WriteLine($"Exception: {exception}");
+                    await context.Response.WriteAsJsonAsync(errorResponse);
+                });
+            });
+
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                // Không dùng UseDeveloperExceptionPage() vì nó return HTML
+                // Dùng exception handler ở trên thay vào đó
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
 

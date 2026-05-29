@@ -62,6 +62,7 @@
                     <table class="w-full text-left min-w-[640px]">
                         <thead><tr class="bg-[#1c2b3c]/30 border-b border-slate-800">
                             <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mã</th>
+                            <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest w-16 text-center">Ảnh</th>
                             <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tên vật tư</th>
                             <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">ĐVT</th>
                             <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Tồn / Định mức</th>
@@ -70,7 +71,7 @@
                             <th class="px-5 py-4 w-10"></th>
                         </tr></thead>
                         <tbody id="whTableBody" class="divide-y divide-slate-800/50">
-                            <tr><td colspan="7" class="px-5 py-16 text-center text-slate-500 text-sm">Đang tải dữ liệu...</td></tr>
+                            <tr><td colspan="8" class="px-5 py-16 text-center text-slate-500 text-sm">Đang tải dữ liệu...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -143,6 +144,16 @@
                         <input type="number" id="newMatPrice" placeholder="0" min="0" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-blue-400 font-mono font-bold focus:border-blue-500 outline-none transition-all" />
                     </div>
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tải ảnh lên (File)</label>
+                        <input type="file" id="newMatImageFile" accept="image/*" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-1.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all file:bg-blue-600 file:hover:bg-blue-500 file:border-none file:text-white file:text-[10px] file:font-bold file:px-2.5 file:py-1 file:rounded file:cursor-pointer file:mr-2" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Hoặc Link ảnh (URL)</label>
+                        <input type="text" id="newMatImageUrl" placeholder="https://images.unsplash.com/..." class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" />
+                    </div>
+                </div>
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Định mức cảnh báo (Reorder Level)</label>
                     <input type="number" id="newMatReorder" placeholder="5" min="0" value="5" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 font-mono focus:border-blue-500 outline-none transition-all" />
@@ -184,14 +195,14 @@
                 if (cEl) cEl.textContent = data.totalCount;
             })
             .catch(() => {
-                document.getElementById('whTableBody').innerHTML = '<tr><td colspan="7" class="px-5 py-16 text-center text-rose-400 text-sm">Lỗi tải dữ liệu</td></tr>';
+                document.getElementById('whTableBody').innerHTML = '<tr><td colspan="8" class="px-5 py-16 text-center text-rose-400 text-sm">Lỗi tải dữ liệu</td></tr>';
             });
     }
 
     function renderTable(data) {
         var tbody = document.getElementById('whTableBody');
         if (!data.items || data.items.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="px-5 py-16 text-center text-slate-500 text-sm">Chưa có vật tư nào. <button onclick="HPUI.openModal(\'addMaterialModal\')" class="text-blue-400 hover:underline">Thêm ngay</button></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="px-5 py-16 text-center text-slate-500 text-sm">Chưa có vật tư nào. <button onclick="HPUI.openModal(\'addMaterialModal\')" class="text-blue-400 hover:underline">Thêm ngay</button></td></tr>';
             return;
         }
         var html = '';
@@ -205,8 +216,11 @@
             var idClass = isOut ? "text-rose-400" : isLow ? "text-amber-400" : "text-blue-400";
             var alertIcon = (isLow || isOut) ? `<i data-lucide="alert-triangle" class="w-3.5 h-3.5 inline mr-0.5 ${isOut ? 'text-rose-400' : 'text-amber-400'}"></i>` : '';
             
+            var imgHtml = s.imageUrl ? `<img src="${s.imageUrl}" class="w-10 h-10 rounded-lg object-cover bg-slate-800 border border-slate-700/50 shadow-sm" />` : `<div class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700/50 flex items-center justify-center shadow-sm"><i data-lucide="package" class="w-5 h-5 text-slate-600"></i></div>`;
+
             html += `<tr class="${rowClass} transition-colors cursor-pointer" onclick="HPUI.loadPage('/warehouse/materials/${s.materialId}')">
                 <td class="px-5 py-4 font-mono text-xs font-bold ${idClass}">${s.materialCode}</td>
+                <td class="px-5 py-4 text-center w-16" onclick="event.stopPropagation()">${imgHtml}</td>
                 <td class="px-5 py-4 font-bold text-sm text-slate-200">${s.name}</td>
                 <td class="px-5 py-4 text-center text-xs text-slate-400">${s.unit}</td>
                 <td class="px-5 py-4 text-center font-bold font-mono ${qtyClass}">
@@ -281,14 +295,27 @@
             var unit    = (document.getElementById('newMatUnit').value || '').trim();
             var price   = parseFloat(document.getElementById('newMatPrice').value) || 0;
             var reorder = parseFloat(document.getElementById('newMatReorder').value) || 5;
+            var imageUrl = (document.getElementById('newMatImageUrl').value || '').trim();
+            var fileInput = document.getElementById('newMatImageFile');
             if (!code || !name) { HPUI.toast('Mã và Tên vật tư là bắt buộc!', 'warning'); return; }
             btnSave.disabled = true;
             btnSave.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Đang lưu...';
             lucide.createIcons();
+
+            var formData = new FormData();
+            formData.append('MaterialCode', code);
+            formData.append('Name', name);
+            formData.append('Unit', unit);
+            formData.append('UnitPrice', price);
+            formData.append('ReorderLevel', reorder);
+            formData.append('ImageUrl', imageUrl);
+            if (fileInput && fileInput.files.length > 0) {
+                formData.append('ImageFile', fileInput.files[0]);
+            }
+
             fetch('/warehouse/materials/create', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ MaterialCode: code, Name: name, Unit: unit, UnitPrice: price, ReorderLevel: reorder })
+                body: formData
             }).then(r => r.json()).then(data => {
                 if (data.success) {
                     HPUI.toast('Đã thêm vật tư thành công!', 'success');

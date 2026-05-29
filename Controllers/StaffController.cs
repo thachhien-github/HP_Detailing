@@ -105,50 +105,59 @@ namespace HP_Detailing.Controllers
         [HttpPost]
         public IActionResult CreateAjax([FromBody] CreateStaffRequest model)
         {
-            if (string.IsNullOrWhiteSpace(model.StaffCode) || string.IsNullOrWhiteSpace(model.FullName))
+            try
             {
-                return Json(new { success = false, message = "Mã NV và Họ Tên là bắt buộc." });
+                if (string.IsNullOrWhiteSpace(model.StaffCode) || string.IsNullOrWhiteSpace(model.FullName))
+                {
+                    return Json(new { success = false, message = "Mã NV và Họ Tên là bắt buộc." });
+                }
+
+                if (_context.Staff.Any(s => s.StaffCode == model.StaffCode))
+                {
+                    return Json(new { success = false, message = "Mã nhân viên đã tồn tại." });
+                }
+
+                var newStaff = new Staff
+                {
+                    StaffCode = model.StaffCode,
+                    FullName = model.FullName,
+                    Phone = model.Phone,
+                    Gender = model.Gender,
+                    Address = model.Address,
+                    HireDate = model.HireDate ?? DateTime.Now,
+                    Position = model.Position,
+                    Specialty = model.Specialty,
+                    IsActive = true,
+                    Status = "Hoạt động"
+                };
+
+                _context.Staff.Add(newStaff);
+                _context.SaveChanges(); // ← Lưu Staff trước để tạo ID
+
+                // Bây giờ newStaff.Id đã có giá trị
+                var profile = new StaffProfile { StaffId = newStaff.Id };
+                _context.StaffProfiles.Add(profile);
+
+                var contract = new LaborContract
+                {
+                    ContractCode = $"HDLD-{model.StaffCode}-{DateTime.Now:yyMM}",
+                    StaffId = newStaff.Id,
+                    StartDate = newStaff.HireDate,
+                    BasicSalary = model.BasicSalary > 0 ? model.BasicSalary : 0,
+                    ContractType = "Thử việc / Toàn thời gian",
+                    Status = "Hiệu lực"
+                };
+                _context.LaborContracts.Add(contract);
+
+                _context.SaveChanges(); // Lưu Profile & Contract
+
+                return Json(new { success = true, data = newStaff });
             }
-
-            if (_context.Staff.Any(s => s.StaffCode == model.StaffCode))
+            catch (Exception ex)
             {
-                return Json(new { success = false, message = "Mã nhân viên đã tồn tại." });
+                System.Diagnostics.Debug.WriteLine($"CreateAjax Error: {ex}");
+                return Json(new { success = false, message = $"Lỗi: {ex.InnerException?.Message ?? ex.Message}" });
             }
-
-            var newStaff = new Staff
-            {
-                StaffCode = model.StaffCode,
-                FullName = model.FullName,
-                Phone = model.Phone,
-                Gender = model.Gender,
-                Address = model.Address,
-                HireDate = model.HireDate ?? DateTime.Now,
-                Position = model.Position,
-                Specialty = model.Specialty,
-                IsActive = true,
-                Status = "Hoạt động"
-            };
-
-            _context.Staff.Add(newStaff);
-            _context.SaveChanges(); 
-
-            var profile = new StaffProfile { StaffId = newStaff.Id };
-            _context.StaffProfiles.Add(profile);
-
-            var contract = new LaborContract
-            {
-                ContractCode = $"HDLD-{newStaff.StaffCode}-{DateTime.Now:yyMM}",
-                StaffId = newStaff.Id,
-                StartDate = newStaff.HireDate,
-                BasicSalary = model.BasicSalary > 0 ? model.BasicSalary : 0,
-                ContractType = "Thử việc / Toàn thời gian",
-                Status = "Hiệu lực"
-            };
-            _context.LaborContracts.Add(contract);
-
-            _context.SaveChanges();
-
-            return Json(new { success = true, data = newStaff });
         }
 
         public class UpdateProfileRequest
@@ -176,95 +185,119 @@ namespace HP_Detailing.Controllers
         [HttpPost]
         public IActionResult UpdateFullProfileAjax([FromBody] UpdateProfileRequest model)
         {
-            var staff = _context.Staff.Include(s => s.Profile).FirstOrDefault(s => s.Id == model.StaffId);
-            if (staff == null)
+            try
             {
-                return Json(new { success = false, message = "Không tìm thấy nhân viên." });
-            }
+                var staff = _context.Staff.Include(s => s.Profile).FirstOrDefault(s => s.Id == model.StaffId);
+                if (staff == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy nhân viên." });
+                }
 
-            if (staff.StaffCode != model.StaffCode && _context.Staff.Any(s => s.StaffCode == model.StaffCode))
+                if (staff.StaffCode != model.StaffCode && _context.Staff.Any(s => s.StaffCode == model.StaffCode))
+                {
+                    return Json(new { success = false, message = "Mã nhân viên mới đã tồn tại." });
+                }
+
+                // Update Staff
+                staff.StaffCode = model.StaffCode;
+                staff.FullName = model.FullName;
+                staff.Phone = model.Phone;
+                staff.Specialty = model.Specialty;
+                staff.Position = model.Position;
+                staff.Address = model.Address;
+                staff.DateOfBirth = model.DateOfBirth;
+                staff.Gender = model.Gender;
+                staff.HireDate = model.HireDate;
+
+                // Update Profile
+                if (staff.Profile == null)
+                {
+                    staff.Profile = new StaffProfile { StaffId = staff.Id };
+                    _context.StaffProfiles.Add(staff.Profile);
+                }
+                staff.Profile.IdentityCard = model.IdentityCard;
+                staff.Profile.IssueDate = model.IssueDate;
+                staff.Profile.IssuePlace = model.IssuePlace;
+                staff.Profile.Ethnicity = model.Ethnicity;
+                staff.Profile.Religion = model.Religion;
+                staff.Profile.MaritalStatus = model.MaritalStatus;
+
+                _context.SaveChanges();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
             {
-                return Json(new { success = false, message = "Mã nhân viên mới đã tồn tại." });
+                System.Diagnostics.Debug.WriteLine($"Lỗi khi cập nhật hồ sơ: {ex.Message}");
+                return Json(new { success = false, message = $"Lỗi hệ thống: {ex.Message}" });
             }
-
-            // Update Staff
-            staff.StaffCode = model.StaffCode;
-            staff.FullName = model.FullName;
-            staff.Phone = model.Phone;
-            staff.Specialty = model.Specialty;
-            staff.Position = model.Position;
-            staff.Address = model.Address;
-            staff.DateOfBirth = model.DateOfBirth;
-            staff.Gender = model.Gender;
-            staff.HireDate = model.HireDate;
-
-            // Update Profile
-            if (staff.Profile == null)
-            {
-                staff.Profile = new StaffProfile { StaffId = staff.Id };
-                _context.StaffProfiles.Add(staff.Profile);
-            }
-            staff.Profile.IdentityCard = model.IdentityCard;
-            staff.Profile.IssueDate = model.IssueDate;
-            staff.Profile.IssuePlace = model.IssuePlace;
-            staff.Profile.Ethnicity = model.Ethnicity;
-            staff.Profile.Religion = model.Religion;
-            staff.Profile.MaritalStatus = model.MaritalStatus;
-
-            _context.SaveChanges();
-
-            return Json(new { success = true });
         }
 
         [HttpPost]
         public IActionResult AddPayrollAjax([FromBody] Payroll model)
         {
-            if (model.StaffId <= 0 || model.Month <= 0 || model.Year <= 0)
-                return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
-
-            var existing = _context.Payrolls.FirstOrDefault(p => p.StaffId == model.StaffId && p.Month == model.Month && p.Year == model.Year);
-            if (existing != null)
+            try
             {
-                existing.Bonus += model.Bonus;
-                existing.Deduction += model.Deduction;
-                existing.Notes = model.Notes ?? existing.Notes;
-            }
-            else
-            {
-                var staffCode = _context.Staff.Where(s => s.Id == model.StaffId).Select(s => s.StaffCode).FirstOrDefault();
-                model.PayrollCode = $"BL-{staffCode}-{model.Month:D2}{model.Year}";
-                _context.Payrolls.Add(model);
-            }
+                if (model.StaffId <= 0 || model.Month <= 0 || model.Year <= 0)
+                    return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
 
-            _context.SaveChanges();
-            return Json(new { success = true });
+                var existing = _context.Payrolls.FirstOrDefault(p => p.StaffId == model.StaffId && p.Month == model.Month && p.Year == model.Year);
+                if (existing != null)
+                {
+                    existing.Bonus += model.Bonus;
+                    existing.Deduction += model.Deduction;
+                    existing.Notes = model.Notes ?? existing.Notes;
+                }
+                else
+                {
+                    var staffCode = _context.Staff.Where(s => s.Id == model.StaffId).Select(s => s.StaffCode).FirstOrDefault();
+                    model.PayrollCode = $"BL-{staffCode}-{model.Month:D2}{model.Year}";
+                    _context.Payrolls.Add(model);
+                }
+
+                _context.SaveChanges();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi khi thêm bảng lương: {ex.Message}");
+                return Json(new { success = false, message = $"Lỗi hệ thống: {ex.Message}" });
+            }
         }
 
         [HttpPost]
         public IActionResult ToggleActive([FromBody] Staff toggleRequest)
         {
-            var existing = _context.Staff.FirstOrDefault(s => s.Id == toggleRequest.Id);
-            if (existing == null)
+            try
             {
-                return Json(new { success = false, message = "Không tìm thấy nhân viên." });
-            }
-
-            existing.IsActive = !existing.IsActive;
-            existing.Status = existing.IsActive ? "Hoạt động" : "Nghỉ việc";
-            
-            if (!existing.IsActive)
-            {
-                var activeContracts = _context.LaborContracts.Where(c => c.StaffId == existing.Id && c.Status == "Hiệu lực").ToList();
-                foreach (var c in activeContracts)
+                var existing = _context.Staff.FirstOrDefault(s => s.Id == toggleRequest.Id);
+                if (existing == null)
                 {
-                    c.Status = "Hết hiệu lực";
-                    c.EndDate = DateTime.Now;
+                    return Json(new { success = false, message = "Không tìm thấy nhân viên." });
                 }
+
+                existing.IsActive = !existing.IsActive;
+                existing.Status = existing.IsActive ? "Hoạt động" : "Nghỉ việc";
+                
+                if (!existing.IsActive)
+                {
+                    var activeContracts = _context.LaborContracts.Where(c => c.StaffId == existing.Id && c.Status == "Hiệu lực").ToList();
+                    foreach (var c in activeContracts)
+                    {
+                        c.Status = "Hết hiệu lực";
+                        c.EndDate = DateTime.Now;
+                    }
+                }
+
+                _context.SaveChanges();
+
+                return Json(new { success = true, isActive = existing.IsActive });
             }
-
-            _context.SaveChanges();
-
-            return Json(new { success = true, isActive = existing.IsActive });
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi khi thay đổi trạng thái nhân viên: {ex.Message}");
+                return Json(new { success = false, message = $"Lỗi hệ thống: {ex.Message}" });
+            }
         }
     }
 }

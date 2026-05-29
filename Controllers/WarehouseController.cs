@@ -7,6 +7,8 @@ using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
 using HP_Detailing.Hubs;
 using HP_Detailing.Extensions;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace HP_Detailing.Controllers
 {
@@ -15,11 +17,13 @@ namespace HP_Detailing.Controllers
     {
         private readonly HP_DetailingDbContext _context;
         private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public WarehouseController(HP_DetailingDbContext context, IHubContext<NotificationHub> hubContext)
+        public WarehouseController(HP_DetailingDbContext context, IHubContext<NotificationHub> hubContext, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
             _hubContext = hubContext;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET /warehouse
@@ -106,11 +110,13 @@ namespace HP_Detailing.Controllers
             public string Name { get; set; } = string.Empty;
             public string? Unit { get; set; }
             public decimal UnitPrice { get; set; }
+            public string? ImageUrl { get; set; }
+            public IFormFile? ImageFile { get; set; }
             public decimal ReorderLevel { get; set; } = 5;
         }
 
         [HttpPost("warehouse/materials/create")]
-        public IActionResult CreateMaterial([FromBody] CreateMaterialRequest model)
+        public async Task<IActionResult> CreateMaterial([FromForm] CreateMaterialRequest model)
         {
             if (string.IsNullOrWhiteSpace(model.MaterialCode) || string.IsNullOrWhiteSpace(model.Name))
                 return Json(new { success = false, message = "Mã và Tên vật tư là bắt buộc." });
@@ -118,7 +124,31 @@ namespace HP_Detailing.Controllers
             if (_context.Materials.Any(m => m.MaterialCode == model.MaterialCode))
                 return Json(new { success = false, message = "Mã vật tư đã tồn tại." });
 
-            var mat = new Material { MaterialCode = model.MaterialCode, Name = model.Name, Unit = model.Unit, UnitPrice = model.UnitPrice, IsActive = true };
+            string? imageUrl = model.ImageUrl;
+            if (model.ImageFile != null && model.ImageFile.Length > 0)
+            {
+                try
+                {
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "upload");
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+                    var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(model.ImageFile.FileName)}";
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.ImageFile.CopyToAsync(fileStream);
+                    }
+                    imageUrl = $"/images/upload/{uniqueFileName}";
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = "Lỗi lưu file ảnh: " + ex.Message });
+                }
+            }
+
+            var mat = new Material { MaterialCode = model.MaterialCode, Name = model.Name, Unit = model.Unit, UnitPrice = model.UnitPrice, ImageUrl = imageUrl, IsActive = true };
             _context.Materials.Add(mat);
             _context.SaveChanges();
 
@@ -154,14 +184,39 @@ namespace HP_Detailing.Controllers
 
         // POST /warehouse/materials/update
         [HttpPost("warehouse/materials/update")]
-        public IActionResult UpdateMaterial([FromBody] UpdateMaterialRequest req)
+        public async Task<IActionResult> UpdateMaterial([FromForm] UpdateMaterialRequest req)
         {
             var mat = _context.Materials.Find(req.Id);
             if (mat == null) return Json(new { success = false, message = "Không tìm thấy vật tư." });
 
+            string? imageUrl = req.ImageUrl;
+            if (req.ImageFile != null && req.ImageFile.Length > 0)
+            {
+                try
+                {
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "upload");
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+                    var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(req.ImageFile.FileName)}";
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await req.ImageFile.CopyToAsync(fileStream);
+                    }
+                    imageUrl = $"/images/upload/{uniqueFileName}";
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = "Lỗi lưu file ảnh: " + ex.Message });
+                }
+            }
+
             mat.Name = req.Name;
             mat.Unit = req.Unit;
             mat.UnitPrice = req.UnitPrice;
+            mat.ImageUrl = imageUrl;
 
             var stock = _context.WarehouseStocks.FirstOrDefault(s => s.MaterialId == req.Id);
             if (stock != null) stock.ReorderLevel = req.ReorderLevel;
@@ -175,6 +230,8 @@ namespace HP_Detailing.Controllers
             public string Name { get; set; } = string.Empty;
             public string? Unit { get; set; }
             public decimal UnitPrice { get; set; }
+            public string? ImageUrl { get; set; }
+            public IFormFile? ImageFile { get; set; }
             public decimal ReorderLevel { get; set; }
         }
 
@@ -430,6 +487,7 @@ namespace HP_Detailing.Controllers
                     name = w.Material.Name,
                     unit = w.Material.Unit ?? "—",
                     unitPrice = w.Material.UnitPrice,
+                    imageUrl = w.Material.ImageUrl ?? "",
                     quantityOnHand = w.QuantityOnHand,
                     reorderLevel = w.ReorderLevel,
                     status = w.QuantityOnHand == 0 ? "out" : w.QuantityOnHand <= w.ReorderLevel ? "low" : "ok"
