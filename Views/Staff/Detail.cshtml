@@ -34,7 +34,7 @@
                     </div>
                     <h2 class="text-xl font-bold text-white mb-1">@Model.FullName</h2>
                     <p class="text-sm font-mono text-blue-400 font-medium mb-3">@Model.StaffCode</p>
-                    <span class="px-3 py-1 bg-slate-900 border border-slate-800 rounded-full text-[11px] font-bold uppercase tracking-widest text-slate-400">@(Model.Position ?? "Nhân viên")</span>
+                    <span class="px-3 py-1 bg-slate-900 border border-slate-800 rounded-full text-[11px] font-bold uppercase tracking-widest text-slate-400">@(Model.PositionEntity?.Name ?? Model.Position ?? "Nhân viên")</span>
                 </div>
                 <div class="p-6 space-y-4">
                     <div class="flex items-center gap-3 text-sm">
@@ -103,10 +103,14 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Chức vụ / Vị trí</label>
                                 <select id="editStaffPosition" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all">
-                                    <!option value="Kỹ thuật viên" @(Model.Position == "Kỹ thuật viên" ? "selected" : "")>Kỹ thuật viên</!option>
-                                    <!option value="Cố vấn dịch vụ" @(Model.Position == "Cố vấn dịch vụ" ? "selected" : "")>Cố vấn dịch vụ</!option>
-                                    <!option value="Kế toán / Lễ tân" @(Model.Position == "Kế toán / Lễ tân" ? "selected" : "")>Kế toán / Lễ tân</!option>
-                                    <!option value="Quản lý / Quản đốc" @(Model.Position == "Quản lý / Quản đốc" ? "selected" : "")>Quản lý / Quản đốc</!option>
+                                    @if (ViewBag.Positions != null)
+                                    {
+                                        foreach (var pos in (List<HP_Detailing.Models.Position>)ViewBag.Positions)
+                                        {
+                                            var isSelected = Model.PositionId == pos.Id || (Model.PositionId == null && Model.Position == pos.Name);
+                                            <!option value="@pos.Id" @(isSelected ? "selected" : "")>@pos.Name</!option>
+                                        }
+                                    }
                                 </select>
                             </div>
                             <div class="space-y-2"><label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Chuyên môn</label><input type="text" id="editStaffSpecialty" value="@Model.Specialty" class="w-full bg-[#0B101D] border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-300 focus:border-blue-500 outline-none transition-all" /></div>
@@ -264,12 +268,13 @@
                 var orgHtml = btnSave.innerHTML;
                 btnSave.innerHTML = 'Đang lưu...';
 
+                var positionIdVal = document.getElementById('editStaffPosition').value;
                 var payload = {
                     StaffId: staffId,
                     StaffCode: code,
                     FullName: name,
                     Phone: document.getElementById('editStaffPhone').value.trim(),
-                    Position: document.getElementById('editStaffPosition').value,
+                    PositionId: positionIdVal ? parseInt(positionIdVal) : null,
                     Specialty: document.getElementById('editStaffSpecialty').value.trim(),
                     Address: document.getElementById('editStaffAddress').value.trim(),
                     DateOfBirth: document.getElementById('editStaffDOB').value || null,

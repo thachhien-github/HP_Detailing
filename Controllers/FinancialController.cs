@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,31 @@ namespace HP_Detailing.Controllers
     public class FinancialController : Controller
     {
         private readonly HP_Detailing.Data.HP_DetailingDbContext _context;
+
+        private List<PaymentMethod> GetActivePaymentMethods()
+        {
+            var methods = _context.PaymentMethods
+                .Where(p => p.IsActive)
+                .OrderByDescending(p => p.IsDefault)
+                .ThenBy(p => p.BankShortName)
+                .ToList();
+
+            if (methods.Count == 0)
+            {
+                methods = new List<PaymentMethod>
+                {
+                    new PaymentMethod { BankFullName = "Ngân hàng Thương mại Cổ phần Ngoại thương Việt Nam", BankShortName = "Vietcombank", AccountNumber = "1012345678", Owner = "CÔNG TY HP DETAILING", IsDefault = true, IsActive = true },
+                    new PaymentMethod { BankFullName = "Ngân hàng TMCP Kỹ thương Việt Nam", BankShortName = "Techcombank", AccountNumber = "190333444555", Owner = "CÔNG TY HP DETAILING", IsDefault = false, IsActive = true },
+                    new PaymentMethod { BankFullName = "Ví điện tử MoMo Business", BankShortName = "Ví MoMo", AccountNumber = "0909876543", Owner = "VŨ ĐỨC TRỌNG", IsDefault = false, IsActive = true },
+                    new PaymentMethod { BankFullName = "Thanh toán bằng Tiền mặt tại Quầy", BankShortName = "Tiền mặt", AccountNumber = "", Owner = "Thu ngân HP", IsDefault = false, IsActive = true }
+                };
+
+                _context.PaymentMethods.AddRange(methods);
+                _context.SaveChanges();
+            }
+
+            return methods;
+        }
 
         public FinancialController(HP_Detailing.Data.HP_DetailingDbContext context)
         {
@@ -75,11 +101,13 @@ namespace HP_Detailing.Controllers
                     }).ToList()
                 };
 
-                ViewBag.DefaultPaymentMethodId = _context.PaymentMethods
-                    .Where(p => p.IsActive && p.IsDefault)
+                var methods = GetActivePaymentMethods();
+
+                ViewBag.DefaultPaymentMethodId = methods
+                    .Where(p => p.IsDefault)
                     .Select(p => (int?)p.Id)
                     .FirstOrDefault()
-                    ?? _context.PaymentMethods.Where(p => p.IsActive).Select(p => (int?)p.Id).FirstOrDefault();
+                    ?? methods.Select(p => (int?)p.Id).FirstOrDefault();
 
                 return View(vm);
             }
@@ -110,11 +138,7 @@ namespace HP_Detailing.Controllers
                 if (invoice == null)
                     return NotFound("Không tìm thấy hóa đơn yêu cầu!");
 
-                ViewBag.PaymentMethods = _context.PaymentMethods
-                    .Where(p => p.IsActive)
-                    .OrderByDescending(p => p.IsDefault)
-                    .ThenBy(p => p.BankShortName)
-                    .ToList();
+                ViewBag.PaymentMethods = GetActivePaymentMethods();
 
                 ViewData["InvoiceId"] = invoice.InvoiceCode;
                 return View(invoice);
@@ -146,17 +170,19 @@ namespace HP_Detailing.Controllers
                 if (invoice.Status == "CANCELLED")
                     return Json(new { success = false, message = "Không thể thanh toán hóa đơn đã hủy." });
 
+                var methods = GetActivePaymentMethods();
+
                 PaymentMethod? method = null;
                 if (request.PaymentMethodId > 0)
                 {
-                    method = _context.PaymentMethods.FirstOrDefault(p => p.Id == request.PaymentMethodId && p.IsActive);
+                    method = methods.FirstOrDefault(p => p.Id == request.PaymentMethodId && p.IsActive);
                     if (method == null)
                         return Json(new { success = false, message = "Phương thức thanh toán không hợp lệ." });
                 }
                 else
                 {
-                    method = _context.PaymentMethods.FirstOrDefault(p => p.IsDefault && p.IsActive)
-                        ?? _context.PaymentMethods.FirstOrDefault(p => p.IsActive);
+                    method = methods.FirstOrDefault(p => p.IsDefault && p.IsActive)
+                        ?? methods.FirstOrDefault(p => p.IsActive);
                     if (method == null)
                         return Json(new { success = false, message = "Chưa cấu hình phương thức thanh toán trong hệ thống." });
                 }

@@ -1,0 +1,286 @@
+<!-- Position Manager Modal -->
+@{
+    var positions = ViewBag.Positions as List<HP_Detailing.Models.Position> ?? new List<HP_Detailing.Models.Position>();
+}
+
+<!-- Main Position Manager Modal -->
+<div id="positionManagerModal" class="fixed inset-0 bg-black/50 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-[#122131] border border-slate-700 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <!-- Header -->
+            <div class="sticky top-0 p-6 border-b border-slate-700 bg-slate-900/50 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-slate-200">Quản lý Vị trí / Chức vụ</h2>
+                <button onclick="HPUI.closeModal('positionManagerModal')" class="text-slate-400 hover:text-slate-200">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6 space-y-6">
+                <!-- Add New Position Form -->
+                <div class="space-y-4 pb-6 border-b border-slate-700">
+                    <h3 class="font-bold text-slate-300">Thêm vị trí mới</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <input type="text" id="positionCode" placeholder="Mã chức vụ (CV01)" 
+                               class="px-4 py-2 bg-[#0B101D] border border-slate-700 rounded-lg text-slate-200 text-sm outline-none focus:border-blue-500" />
+                        <input type="text" id="positionName" placeholder="Tên chức vụ" 
+                               class="px-4 py-2 bg-[#0B101D] border border-slate-700 rounded-lg text-slate-200 text-sm outline-none focus:border-blue-500" />
+                        <input type="text" id="positionDesc" placeholder="Mô tả (tùy chọn)" 
+                               class="px-4 py-2 bg-[#0B101D] border border-slate-700 rounded-lg text-slate-200 text-sm outline-none focus:border-blue-500" />
+                    </div>
+                    <button onclick="addNewPosition()" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                        <i data-lucide="plus" class="w-4 h-4 inline mr-2"></i> Thêm vị trí
+                    </button>
+                </div>
+
+                <!-- Positions List -->
+                <div class="space-y-3">
+                    <h3 class="font-bold text-slate-300">Danh sách vị trí hiện tại</h3>
+                    <div id="positionsList" class="space-y-2 max-h-[400px] overflow-y-auto">
+                        @if (positions.Any())
+                        {
+                            @foreach (var position in positions)
+                            {
+                                <div class="position-item p-4 bg-slate-800/30 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors group">
+                                    <div class="flex justify-between items-start gap-4">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-3">
+                                                <span class="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs font-mono rounded">@position.PositionCode</span>
+                                                <span class="font-bold text-slate-200">@position.Name</span>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(position.Description))
+                                            {
+                                                <p class="text-xs text-slate-500 mt-1">@position.Description</p>
+                                            }
+                                        </div>
+                                        <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onclick="editPosition(@position.Id, '@position.PositionCode', '@position.Name', '@(position.Description ?? "")')" 
+                                                    class="p-2 bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 rounded transition-colors">
+                                                <i data-lucide="edit" class="w-4 h-4"></i>
+                                            </button>
+                                            <button onclick="deletePosition(@position.Id)" 
+                                                    class="p-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition-colors">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-slate-500 text-sm text-center py-4">Chưa có vị trí nào. Tạo vị trí mới để bắt đầu.</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Data Reset Section -->
+                <div class="space-y-3 pt-6 border-t border-slate-700">
+                    <h3 class="font-bold text-red-400 text-sm">⚠ Vùng Nguy hiểm</h3>
+                    <button onclick="openResetConfirmation()" class="w-full px-4 py-2 bg-red-600/20 hover:bg-red-600/40 border border-red-600/50 text-red-400 font-medium rounded-lg transition-colors">
+                        <i data-lucide="trash-2" class="w-4 h-4 inline mr-2"></i> Xóa toàn bộ dữ liệu & khởi tạo lại
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Position Modal -->
+<div id="editPositionModal" class="fixed inset-0 bg-black/50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-[#122131] border border-slate-700 rounded-xl shadow-2xl max-w-md w-full">
+            <div class="p-6 border-b border-slate-700">
+                <h2 class="text-lg font-bold text-slate-200">Chỉnh sửa vị trí</h2>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="editPositionId" />
+                <div>
+                    <label class="text-sm text-slate-400 block mb-2">Mã chức vụ</label>
+                    <input type="text" id="editPositionCode" placeholder="CV01" 
+                           class="w-full px-4 py-2 bg-[#0B101D] border border-slate-700 rounded-lg text-slate-200 text-sm outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-2">Tên chức vụ</label>
+                    <input type="text" id="editPositionName" placeholder="Tên chức vụ" 
+                           class="w-full px-4 py-2 bg-[#0B101D] border border-slate-700 rounded-lg text-slate-200 text-sm outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-2">Mô tả</label>
+                    <textarea id="editPositionDesc" placeholder="Mô tả chi tiết" rows="3"
+                              class="w-full px-4 py-2 bg-[#0B101D] border border-slate-700 rounded-lg text-slate-200 text-sm outline-none focus:border-blue-500"></textarea>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button onclick="HPUI.closeModal('editPositionModal')" class="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors">
+                        Hủy
+                    </button>
+                    <button onclick="saveEditPosition()" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        Lưu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Confirmation Modal -->
+<div id="resetConfirmationModal" class="fixed inset-0 bg-black/50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-[#122131] border border-red-700 rounded-xl shadow-2xl max-w-md w-full">
+            <div class="p-6 border-b border-red-700 bg-red-950/20">
+                <h2 class="text-lg font-bold text-red-400">⚠ Xác nhận xóa dữ liệu</h2>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-slate-300">
+                    <strong>Cảnh báo:</strong> Hành động này sẽ <strong>xóa toàn bộ dữ liệu cũ</strong> bao gồm:
+                </p>
+                <ul class="list-disc list-inside text-sm text-slate-400 space-y-1 pl-2">
+                    <li>Tất cả nhân viên, vị trí, hợp đồng, lương</li>
+                    <li>Tất cả phiếu dịch vụ, hóa đơn, thanh toán</li>
+                    <li>Tất cả lịch đặt hẹn, vật tư, kho hàng</li>
+                </ul>
+                <p class="text-red-400 font-bold">Hành động này <u>không thể hoàn tác</u>!</p>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-2">Nhập mã xác nhận: <strong>XOA_HAY_DU_LIEU</strong></label>
+                    <input type="text" id="confirmationCode" placeholder="Nhập mã xác nhận..." 
+                           class="w-full px-4 py-2 bg-[#0B101D] border border-red-700 rounded-lg text-slate-200 text-sm outline-none focus:border-red-500" />
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button onclick="HPUI.closeModal('resetConfirmationModal')" class="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors">
+                        Hủy
+                    </button>
+                    <button onclick="confirmResetData()" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                        Xóa toàn bộ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript Functions -->
+<script>
+    async function addNewPosition() {
+        const code = document.getElementById('positionCode').value.trim();
+        const name = document.getElementById('positionName').value.trim();
+        const desc = document.getElementById('positionDesc').value.trim();
+
+        if (!code || !name) {
+            HPUI.toast('Vui lòng nhập Mã chức vụ và Tên chức vụ', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/positions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ positionCode: code, name: name, description: desc })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                HPUI.toast(result.message, 'success');
+                document.getElementById('positionCode').value = '';
+                document.getElementById('positionName').value = '';
+                document.getElementById('positionDesc').value = '';
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                HPUI.toast(result.message, 'error');
+            }
+        } catch (error) {
+            HPUI.toast('Lỗi: ' + error.message, 'error');
+        }
+    }
+
+    function editPosition(id, code, name, desc) {
+        document.getElementById('editPositionId').value = id;
+        document.getElementById('editPositionCode').value = code;
+        document.getElementById('editPositionName').value = name;
+        document.getElementById('editPositionDesc').value = desc;
+        HPUI.openModal('editPositionModal');
+    }
+
+    async function saveEditPosition() {
+        const id = document.getElementById('editPositionId').value;
+        const code = document.getElementById('editPositionCode').value.trim();
+        const name = document.getElementById('editPositionName').value.trim();
+        const desc = document.getElementById('editPositionDesc').value.trim();
+
+        if (!code || !name) {
+            HPUI.toast('Vui lòng nhập Mã chức vụ và Tên chức vụ', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/positions/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ positionCode: code, name: name, description: desc })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                HPUI.toast(result.message, 'success');
+                HPUI.closeModal('editPositionModal');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                HPUI.toast(result.message, 'error');
+            }
+        } catch (error) {
+            HPUI.toast('Lỗi: ' + error.message, 'error');
+        }
+    }
+
+    async function deletePosition(id) {
+        if (!confirm('Bạn có chắc muốn xóa vị trí này?')) return;
+
+        try {
+            const response = await fetch(`/api/positions/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+
+            if (result.success) {
+                HPUI.toast(result.message, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                HPUI.toast(result.message, 'error');
+            }
+        } catch (error) {
+            HPUI.toast('Lỗi: ' + error.message, 'error');
+        }
+    }
+
+    function openResetConfirmation() {
+        document.getElementById('confirmationCode').value = '';
+        HPUI.openModal('resetConfirmationModal');
+    }
+
+    async function confirmResetData() {
+        const code = document.getElementById('confirmationCode').value;
+
+        if (code !== 'XOA_HAY_DU_LIEU') {
+            HPUI.toast('Mã xác nhận không chính xác', 'error');
+            return;
+        }
+
+        try {
+            HPUI.toast('Đang xóa toàn bộ dữ liệu...', 'info');
+            
+            const response = await fetch('/staff/reset-all-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ confirmed: true, confirmationCode: code })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                HPUI.toast('✓ Xóa thành công! Trang sẽ tải lại...', 'success');
+                HPUI.closeModal('resetConfirmationModal');
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                HPUI.toast(result.message, 'error');
+            }
+        } catch (error) {
+            HPUI.toast('Lỗi: ' + error.message, 'error');
+        }
+    }
+</script>

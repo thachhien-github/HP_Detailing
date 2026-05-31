@@ -15,10 +15,18 @@ namespace HP_Detailing.Data
         // NGHIỆP VỤ: Tạo đúng 5 dòng dữ liệu liên kết chặt chẽ cho toàn bộ 12 bảng trong CSDL
         // BẮT LỖI: Try-catch toàn bộ tiến trình để đảm bảo không lỗi khi cập nhật DB
         // ==========================================
-        public static async Task Initialize(HP_DetailingDbContext context, IServiceProvider serviceProvider)
+        public static async Task Initialize(HP_DetailingDbContext context, IServiceProvider serviceProvider, bool clearOldData = false)
         {
             try
             {
+                // Clear all old data if requested
+                if (clearOldData)
+                {
+                    ClearAllData(context);
+                }
+
+                EnsureDefaultPaymentMethods(context);
+
                 // Chỉ seed bộ dữ liệu mẫu đầy đủ khi chưa có phiếu dịch vụ
                 if (!context.Tickets.Any())
                 {
@@ -51,15 +59,30 @@ namespace HP_Detailing.Data
                 context.SaveChanges();
 
                 // ----------------------------------------------------
+                // BẢNG: Position (Vị trí / Chức vụ - 6 Dòng)
+                // ----------------------------------------------------
+                var positions = new Position[]
+                {
+                    new Position { PositionCode = "CV01", Name = "Kỹ thuật viên", Description = "Nhân viên kỹ thuật thi công dịch vụ detailing" },
+                    new Position { PositionCode = "CV02", Name = "Cố vấn dịch vụ", Description = "Tư vấn dịch vụ, tiếp khách và báo giá" },
+                    new Position { PositionCode = "CV03", Name = "Thu ngân", Description = "Thu ngân, thanh toán và xuất hóa đơn" },
+                    new Position { PositionCode = "CV04", Name = "Kế toán / Lễ tân", Description = "Kế toán tài chính và lễ tân tiếp khách" },
+                    new Position { PositionCode = "CV05", Name = "Quản lý vận hành", Description = "Giám sát vận hành, điều phối nhân sự" },
+                    new Position { PositionCode = "CV06", Name = "Quản lý / Quản đốc", Description = "Quản đốc xưởng, phụ trách kỹ thuật tổng" }
+                };
+                context.Positions.AddRange(positions);
+                context.SaveChanges();
+
+                // ----------------------------------------------------
                 // 3. BẢNG: Staff (Kỹ thuật viên & Nhân viên - 5 Dòng)
                 // ----------------------------------------------------
                 var staffs = new Staff[]
                 {
-                    new Staff { StaffCode = "NV001", FullName = "Nguyễn Hoàng Hải", Position = "Kỹ thuật viên", Specialty = "Detailing chuyên sâu", Phone = "0901234567", IsActive = true },
-                    new Staff { StaffCode = "NV002", FullName = "Trần Minh Quân", Position = "Kỹ thuật viên", Specialty = "Rửa & Đánh bóng", Phone = "0909876543", IsActive = true },
-                    new Staff { StaffCode = "NV003", FullName = "Lê Thanh Sơn", Position = "Kỹ thuật viên", Specialty = "Ceramic & Phim cách nhiệt", Phone = "0987654321", IsActive = true },
-                    new Staff { StaffCode = "NV004", FullName = "Phạm Thuỳ Linh", Position = "Thu ngân", Specialty = "Kế toán & CSKH", Phone = "0944556677", IsActive = true },
-                    new Staff { StaffCode = "NV005", FullName = "Vũ Đức Trọng", Position = "Quản lý vận hành", Specialty = "Giám sát & Kỹ thuật", Phone = "0911223344", IsActive = true }
+                    new Staff { StaffCode = "NV001", FullName = "Nguyễn Hoàng Hải", PositionId = positions[0].Id, Position = positions[0].Name, Specialty = "Detailing chuyên sâu", Phone = "0901234567", IsActive = true },
+                    new Staff { StaffCode = "NV002", FullName = "Trần Minh Quân", PositionId = positions[0].Id, Position = positions[0].Name, Specialty = "Rửa & Đánh bóng", Phone = "0909876543", IsActive = true },
+                    new Staff { StaffCode = "NV003", FullName = "Lê Thanh Sơn", PositionId = positions[0].Id, Position = positions[0].Name, Specialty = "Ceramic & Phim cách nhiệt", Phone = "0987654321", IsActive = true },
+                    new Staff { StaffCode = "NV004", FullName = "Phạm Thuỳ Linh", PositionId = positions[2].Id, Position = positions[2].Name, Specialty = "Kế toán & CSKH", Phone = "0944556677", IsActive = true },
+                    new Staff { StaffCode = "NV005", FullName = "Vũ Đức Trọng", PositionId = positions[4].Id, Position = positions[4].Name, Specialty = "Giám sát & Kỹ thuật", Phone = "0911223344", IsActive = true }
                 };
                 context.Staff.AddRange(staffs);
                 context.SaveChanges();
@@ -107,7 +130,7 @@ namespace HP_Detailing.Data
                 context.SaveChanges();
 
                 // ----------------------------------------------------
-                // 7. BẢNG: Ticket (Phiếu dịch vụ - 5 Dòng)
+                // 7. BẢNG: Ticket (Phiếu dịch vụ - 5 Dòng) & Car
                 // ----------------------------------------------------
                 var tickets = new Ticket[]
                 {
@@ -117,10 +140,8 @@ namespace HP_Detailing.Data
                     new Ticket { TicketCode = "PDV2405-004", CustomerName = "Anh Phạm Hồng Quân", CustomerPhone = "0904556677", Plate = "30H-567.89", CarModel = "Ford Everest", Status = "completed", CreatedAt = DateTime.UtcNow.AddDays(-1) },
                     new Ticket { TicketCode = "PDV2405-005", CustomerName = "Anh Hoàng Văn Nam", CustomerPhone = "0966778899", Plate = "15A-111.11", CarModel = "Hyundai SantaFe", Status = "cancelled", CreatedAt = DateTime.UtcNow.AddDays(-2) }
                 };
-                context.Tickets.AddRange(tickets);
-                context.SaveChanges();
 
-                // 7b. BẢNG: Car (Hồ sơ xe — khóa chính Plate)
+                // Seed Cars first because Ticket has a foreign key referencing Car.Plate
                 var seedCars = tickets.Select(t => new Car
                 {
                     Plate = t.Plate!,
@@ -130,6 +151,9 @@ namespace HP_Detailing.Data
                     CreatedAt = t.CreatedAt
                 }).ToArray();
                 context.Cars.AddRange(seedCars);
+                context.SaveChanges();
+
+                context.Tickets.AddRange(tickets);
                 context.SaveChanges();
 
                 // ----------------------------------------------------
@@ -175,21 +199,7 @@ namespace HP_Detailing.Data
                 context.SaveChanges();
 
                 // ----------------------------------------------------
-                // 11. BẢNG: PaymentMethod (Phương thức thanh toán - 5 Dòng)
-                // ----------------------------------------------------
-                var paymentMethods = new PaymentMethod[]
-                {
-                    new PaymentMethod { BankFullName = "Ngân hàng Thương mại Cổ phần Ngoại thương Việt Nam", BankShortName = "Vietcombank", AccountNumber = "1012345678", Owner = "CONG TY HP DETAILING", IsDefault = true, IsActive = true },
-                    new PaymentMethod { BankFullName = "Ngân hàng TMCP Kỹ thương Việt Nam", BankShortName = "Techcombank", AccountNumber = "190333444555", Owner = "CONG TY HP DETAILING", IsDefault = false, IsActive = true },
-                    new PaymentMethod { BankFullName = "Ví điện tử MoMo Business", BankShortName = "Ví MoMo", AccountNumber = "0909876543", Owner = "VŨ ĐỨC TRỌNG", IsDefault = false, IsActive = true },
-                    new PaymentMethod { BankFullName = "Thanh toán bằng Tiền mặt tại Quầy", BankShortName = "Tiền mặt", AccountNumber = "", Owner = "Thu ngân HP", IsDefault = false, IsActive = true },
-                    new PaymentMethod { BankFullName = "Thanh toán quẹt thẻ máy POS di động", BankShortName = "Thẻ POS", AccountNumber = "", Owner = "Thu ngân HP", IsDefault = false, IsActive = false }
-                };
-                context.PaymentMethods.AddRange(paymentMethods);
-                context.SaveChanges();
-
-                // ----------------------------------------------------
-                // 12. BẢNG: MaterialUsage (Tiêu hao vật tư thi công - 5 Dòng)
+                // 11. BẢNG: MaterialUsage (Tiêu hao vật tư thi công - 5 Dòng)
                 // ----------------------------------------------------
                 var usages = new MaterialUsage[]
                 {
@@ -264,6 +274,24 @@ namespace HP_Detailing.Data
                 // Ghi chú lỗi ra console hoặc logger nếu tiến trình Seeding gặp lỗi
                 Console.WriteLine("LỖI KHỞI TẠO SEED DATA: " + ex.Message);
             }
+        }
+
+        private static void EnsureDefaultPaymentMethods(HP_DetailingDbContext context)
+        {
+            if (context.PaymentMethods.Any())
+                return;
+
+            var paymentMethods = new PaymentMethod[]
+            {
+                new PaymentMethod { BankFullName = "Ngân hàng Thương mại Cổ phần Ngoại thương Việt Nam", BankShortName = "Vietcombank", AccountNumber = "1012345678", Owner = "CÔNG TY HP DETAILING", IsDefault = true, IsActive = true },
+                new PaymentMethod { BankFullName = "Ngân hàng TMCP Kỹ thương Việt Nam", BankShortName = "Techcombank", AccountNumber = "190333444555", Owner = "CÔNG TY HP DETAILING", IsDefault = false, IsActive = true },
+                new PaymentMethod { BankFullName = "Ví điện tử MoMo Business", BankShortName = "Ví MoMo", AccountNumber = "0909876543", Owner = "VŨ ĐỨC TRỌNG", IsDefault = false, IsActive = true },
+                new PaymentMethod { BankFullName = "Thanh toán bằng Tiền mặt tại Quầy", BankShortName = "Tiền mặt", AccountNumber = "", Owner = "Thu ngân HP", IsDefault = false, IsActive = true },
+                new PaymentMethod { BankFullName = "Thanh toán quẹt thẻ máy POS di động", BankShortName = "Thẻ POS", AccountNumber = "", Owner = "Thu ngân HP", IsDefault = false, IsActive = false }
+            };
+
+            context.PaymentMethods.AddRange(paymentMethods);
+            context.SaveChanges();
         }
 
         /// <summary>
@@ -411,6 +439,95 @@ namespace HP_Detailing.Data
             {
                 context.Cars.AddRange(toAdd);
                 context.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// Xóa tất cả dữ liệu cũ từ các bảng quan trọng để khởi tạo lại
+        /// </summary>
+        private static void ClearAllData(HP_DetailingDbContext context)
+        {
+            var isSqlServer = context.Database.IsSqlServer();
+            try
+            {
+                if (isSqlServer)
+                {
+                    // Disable all constraints in SQL Server
+                    context.Database.ExecuteSqlRaw("EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';");
+                }
+                else
+                {
+                    // Disable all constraints in MySQL
+                    context.Database.ExecuteSqlRaw("SET FOREIGN_KEY_CHECKS = 0;");
+                }
+
+                // Delete data from all tables (MySQL and SQL Server compatible DELETE statements)
+                string[] tables = new string[]
+                {
+                    "MaterialUsages", "TicketMaterialUsages", "InvoiceServices", "Invoices",
+                    "TicketServices", "Tickets", "Appointments", "WarehouseStocks",
+                    "StockImportItems", "StockImports", "Materials", "ServiceMaterialQuotas",
+                    "Services", "ServiceCategories", "Payrolls", "LaborContracts",
+                    "StaffProfiles", "Staff", "Positions", "Cars",
+                    "AuditSessionItems", "AuditSessions", "Notifications", "PaymentMethods"
+                };
+
+                foreach (var table in tables)
+                {
+                    try
+                    {
+                        context.Database.ExecuteSqlRaw($"DELETE FROM {table};");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠ Không thể xóa bảng {table}: {ex.Message}");
+                    }
+                }
+
+                if (isSqlServer)
+                {
+                    // Enable constraints in SQL Server
+                    context.Database.ExecuteSqlRaw("EXEC sp_MSforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL';");
+
+                    // Reset Identity Seeds in SQL Server
+                    string[] identityTables = new string[] { "Positions", "Staff", "StaffProfiles", "LaborContracts", "Payrolls" };
+                    foreach (var table in identityTables)
+                    {
+                        try
+                        {
+                            context.Database.ExecuteSqlRaw($"DBCC CHECKIDENT ('{table}', RESEED, 0);");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"⚠ Không thể reset identity bảng {table}: {ex.Message}");
+                        }
+                    }
+                }
+                else
+                {
+                    // Enable constraints in MySQL
+                    context.Database.ExecuteSqlRaw("SET FOREIGN_KEY_CHECKS = 1;");
+
+                    // Reset Identity Seeds in MySQL
+                    string[] identityTables = new string[] { "Positions", "Staff", "StaffProfiles", "LaborContracts", "Payrolls" };
+                    foreach (var table in identityTables)
+                    {
+                        try
+                        {
+                            context.Database.ExecuteSqlRaw($"ALTER TABLE {table} AUTO_INCREMENT = 1;");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"⚠ Không thể reset identity bảng {table}: {ex.Message}");
+                        }
+                    }
+                }
+
+                Console.WriteLine("✓ Đã xóa sạch tất cả dữ liệu cũ");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠ Lỗi khi xóa dữ liệu cũ: {ex.Message}");
             }
         }
     }

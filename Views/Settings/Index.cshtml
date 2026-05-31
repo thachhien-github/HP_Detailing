@@ -426,84 +426,134 @@
                     <h3 class="text-xl font-bold text-white mb-1 font-display">Cấu hình Thanh toán</h3>
                     <p class="text-slate-400 text-sm">Quản lý các tài khoản ngân hàng và phương thức nhận thanh toán từ khách hàng.</p>
                 </div>
-                <button onclick="HPUI.openModal('payModal')" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors whitespace-nowrap">
+                <button onclick="HPPayments.openAddModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors whitespace-nowrap">
                     <i data-lucide="plus" class="w-4 h-4"></i> Thêm phương thức
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-[#122131]/80 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                            <i data-lucide="banknote" class="w-6 h-6"></i>
+            @{
+                var cashAndWallets = Model.PaymentMethods
+                    .Where(p => p.BankShortName == "Tiền mặt" || p.BankShortName == "Ví MoMo" || p.BankShortName == "Thẻ POS")
+                    .ToList();
+
+                var bankAccounts = Model.PaymentMethods
+                    .Where(p => p.BankShortName != "Tiền mặt" && p.BankShortName != "Ví MoMo" && p.BankShortName != "Thẻ POS")
+                    .ToList();
+            }
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                @foreach (var method in cashAndWallets)
+                {
+                    var isCash = method.BankShortName == "Tiền mặt";
+                    var isMoMo = method.BankShortName == "Ví MoMo";
+                    
+                    var iconColor = isCash ? "text-emerald-500 bg-emerald-500/10" :
+                                    isMoMo ? "text-rose-500 bg-rose-500/10" : "text-purple-500 bg-purple-500/10";
+                    var iconName = isCash ? "banknote" : isMoMo ? "smartphone" : "credit-card";
+                    var opacityClass = method.IsActive ? "" : "opacity-60";
+                    
+                    <div class="bg-[#122131]/80 border border-slate-800 p-5 rounded-xl flex items-center justify-between @opacityClass">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl @iconColor flex items-center justify-center">
+                                <i data-lucide="@iconName" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-white uppercase tracking-tight">@method.BankShortName</h4>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">@method.BankFullName</p>
+                                @if (!string.IsNullOrEmpty(method.AccountNumber))
+                                {
+                                    <p class="text-[10px] font-mono text-slate-400 mt-0.5">SĐT: @method.AccountNumber</p>
+                                }
+                            </div>
                         </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white uppercase tracking-tight">Tiền mặt</h4>
-                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Thanh toán trực tiếp tại quầy</p>
+                        <div class="flex items-center gap-3">
+                            @if (method.IsDefault)
+                            {
+                                <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Mặc định</span>
+                                <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                            }
+                            else if (method.IsActive)
+                            {
+                                <button onclick="HPPayments.setDefault(@method.Id)" class="text-xs font-bold text-blue-400 hover:underline font-display tracking-wide">Mặc định</button>
+                            }
+                            
+                            <div class="flex items-center gap-1 ml-2">
+                                <button onclick="HPPayments.openEditModal(@method.Id, '@method.BankShortName', '@method.BankFullName', '@method.AccountNumber', '@method.Owner', @(method.IsDefault ? "true" : "false"), @(method.IsActive ? "true" : "false"))" class="text-slate-400 hover:text-white p-1" title="Chỉnh sửa">
+                                    <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="HPPayments.toggleActive(@method.Id)" class="text-slate-400 hover:text-white p-1" title="@(method.IsActive ? "Khóa" : "Kích hoạt")">
+                                    <i data-lucide="@(method.IsActive ? "lock" : "unlock")" class="w-4 h-4 text-@(method.IsActive ? "amber" : "emerald")-500"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Mặc định</span>
-                        <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                    </div>
-                </div>
-                <div class="bg-[#122131]/80 border border-slate-800 p-5 rounded-xl flex items-center justify-between opacity-60">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
-                            <i data-lucide="smartphone" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white uppercase tracking-tight">Ví điện tử (Momo/VNPay)</h4>
-                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Chưa cấu hình API</p>
-                        </div>
-                    </div>
-                    <button class="text-xs font-bold text-blue-400 hover:underline">Thiết lập</button>
-                </div>
+                }
             </div>
 
             <div class="mt-8">
                 <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 ml-1">Tài khoản Ngân hàng (Chuyển khoản)</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @{
-                        var banks = new[] {
-                            new { name = "Techcombank", no = "1903.8888.9999", owner = "HP AUTO DETAILING", branch = "Hà Nội", color = "bg-rose-600", isDefault = true },
-                            new { name = "Vietcombank", no = "0011.0000.2222", owner = "NGUYEN VAN ANH", branch = "Sở Giao Dịch", color = "bg-emerald-600", isDefault = false }
-                        };
-                    }
-                    @foreach (var bank in banks)
-                    {
-                        <div class="bg-[#122131]/80 border border-slate-800 rounded-2xl overflow-hidden group hover:border-blue-500/30 transition-all">
-                            <div class="p-5">
-                                <div class="flex justify-between items-start mb-4">
-                                    <div class="w-12 h-8 rounded-md @bank.color flex items-center justify-center text-[10px] font-black text-white italic">@bank.name.Substring(0,3).ToUpper()</div>
-                                    <div class="flex gap-1">
-                                        <button onclick="HPUI.toast('Đang mở QR Code', 'info')" class="p-1.5 text-slate-400 hover:text-white bg-slate-800/50 rounded-lg border border-slate-700/50 transition-all"><i data-lucide="qr-code" class="w-4 h-4"></i></button>
-                                        <button onclick="HPUI.openModal('payModal')" class="p-1.5 text-slate-400 hover:text-white bg-slate-800/50 rounded-lg border border-slate-700/50 transition-all"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                @if (!bankAccounts.Any())
+                {
+                    <div class="bg-[#122131]/40 border border-dashed border-slate-800 rounded-2xl p-8 text-center text-slate-500">
+                        <i data-lucide="bank" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
+                        <p class="text-sm font-medium">Chưa có tài khoản ngân hàng nào được thiết lập.</p>
+                        <button onclick="HPPayments.openAddModal()" class="text-xs font-bold text-blue-400 hover:underline mt-2">Thêm tài khoản ngay</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @foreach (var bank in bankAccounts)
+                        {
+                            var bankColor = bank.BankShortName.ToLower().Contains("vcb") || bank.BankShortName.ToLower().Contains("vietcom") ? "bg-emerald-600" :
+                                            bank.BankShortName.ToLower().Contains("tcb") || bank.BankShortName.ToLower().Contains("techcom") ? "bg-rose-600" :
+                                            bank.BankShortName.ToLower().Contains("mb") ? "bg-blue-600" : "bg-slate-700";
+                            var shortDisplay = bank.BankShortName.Length >= 3 ? bank.BankShortName.Substring(0, 3).ToUpper() : bank.BankShortName.ToUpper();
+                            var opacityClass = bank.IsActive ? "" : "opacity-60";
+                            
+                            <div class="bg-[#122131]/80 border border-slate-800 rounded-2xl overflow-hidden group hover:border-blue-500/30 transition-all @opacityClass">
+                                <div class="p-5">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div class="w-12 h-8 rounded-md @bankColor flex items-center justify-center text-[10px] font-black text-white italic">@shortDisplay</div>
+                                        <div class="flex gap-1">
+                                            <button onclick="HPPayments.showQR('@bank.BankShortName', '@bank.AccountNumber', '@bank.Owner')" class="p-1.5 text-slate-400 hover:text-white bg-slate-800/50 rounded-lg border border-slate-700/50 transition-all" title="Xem mã QR thanh toán"><i data-lucide="qr-code" class="w-4 h-4"></i></button>
+                                            <button onclick="HPPayments.openEditModal(@bank.Id, '@bank.BankShortName', '@bank.BankFullName', '@bank.AccountNumber', '@bank.Owner', @(bank.IsDefault ? "true" : "false"), @(bank.IsActive ? "true" : "false"))" class="p-1.5 text-slate-400 hover:text-white bg-slate-800/50 rounded-lg border border-slate-700/50 transition-all" title="Chỉnh sửa"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <h5 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Số tài khoản</h5>
+                                        <p class="text-lg font-bold text-white font-mono tracking-wider">@bank.AccountNumber</p>
+                                    </div>
+                                    <div class="mt-4 pt-4 border-t border-slate-800/50 space-y-1">
+                                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Chủ tài khoản: <span class="text-slate-300">@bank.Owner</span></p>
+                                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Ngân hàng: <span class="text-slate-300">@bank.BankFullName</span></p>
                                     </div>
                                 </div>
-                                <div class="space-y-1">
-                                    <h5 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Số tài khoản</h5>
-                                    <p class="text-lg font-bold text-white font-mono tracking-wider">@bank.no</p>
-                                </div>
-                                <div class="mt-4 pt-4 border-t border-slate-800/50 space-y-1">
-                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Chủ tài khoản: <span class="text-slate-300">@bank.owner</span></p>
-                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Chi nhánh: <span class="text-slate-300">@bank.branch</span></p>
+                                <div class="px-5 py-3 bg-[#0B101D]/50 border-t border-slate-800 flex justify-between items-center">
+                                    @if (bank.IsDefault)
+                                    {
+                                        <span class="text-[9px] font-black uppercase text-emerald-400 tracking-[0.15em] flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Mặc định trên hóa đơn</span>
+                                    }
+                                    else if (bank.IsActive)
+                                    {
+                                        <button onclick="HPPayments.setDefault(@bank.Id)" class="text-[9px] font-bold uppercase text-slate-500 hover:text-blue-400 tracking-[0.15em] transition-colors">Đặt làm mặc định</button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[9px] font-bold uppercase text-slate-600 tracking-[0.15em]">Đang khóa</span>
+                                    }
+                                    
+                                    <div class="flex gap-2">
+                                        <button onclick="HPPayments.toggleActive(@bank.Id)" class="text-slate-500 hover:text-amber-400 transition-colors" title="@(bank.IsActive ? "Khóa phương thức" : "Kích hoạt phương thức")">
+                                            <i data-lucide="@(bank.IsActive ? "lock" : "unlock")" class="w-4 h-4"></i>
+                                        </button>
+                                        <button onclick="HPPayments.deleteMethod(@bank.Id)" class="text-slate-600 hover:text-rose-400 transition-colors" title="Xóa phương thức"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="px-5 py-3 bg-[#0B101D]/50 border-t border-slate-800 flex justify-between items-center">
-                                @if (bank.isDefault)
-                                {
-                                    <span class="text-[9px] font-black uppercase text-emerald-400 tracking-[0.15em] flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Mặc định trên hóa đơn</span>
-                                }
-                                else
-                                {
-                                    <button onclick="HPUI.toast('Đã đặt làm mặc định', 'success')" class="text-[9px] font-bold uppercase text-slate-500 hover:text-blue-400 tracking-[0.15em] transition-colors">Đặt làm mặc định</button>
-                                }
-                                <button class="text-slate-600 hover:text-rose-400 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                            </div>
-                        </div>
-                    }
-                </div>
+                        }
+                    </div>
+                }
             </div>
         </div>
 
@@ -512,7 +562,7 @@
             <div class="hp-modal-content bg-[#122131] border border-slate-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-zoom-in">
                 <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-[#0B101D]/50">
                     <div>
-                        <h3 class="text-lg font-bold text-white font-display">Thêm tài khoản Ngân hàng</h3>
+                        <h3 class="text-lg font-bold text-white font-display">Thêm phương thức thanh toán</h3>
                         <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Payment Configuration</p>
                     </div>
                     <button onclick="HPUI.closeModal('payModal')" class="text-slate-500 hover:text-white p-1 transition-colors">
@@ -520,32 +570,31 @@
                     </button>
                 </div>
                 <div class="p-6 space-y-5">
+                    <input type="hidden" id="payId" value="0" />
                     <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tên Ngân hàng</label>
-                        <select class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all appearance-none">
-                            <option>Techcombank</option><option>Vietcombank</option><option>MB Bank</option><option>VietinBank</option><option>BIDV</option>
-                        </select>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tên viết tắt (VD: Techcombank, Tiền mặt, Ví MoMo)</label>
+                        <input type="text" id="payBankShortName" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="Techcombank">
                     </div>
                     <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Số tài khoản</label>
-                        <input type="text" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:border-blue-500/50 outline-none transition-all" placeholder="0001xxxxxxxx">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tên đầy đủ phương thức</label>
+                        <input type="text" id="payBankFullName" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="Ngân hàng TMCP Kỹ thương Việt Nam">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Số tài khoản / Số điện thoại</label>
+                        <input type="text" id="payAccountNumber" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:border-blue-500/50 outline-none transition-all" placeholder="1903xxxxxxxx">
                     </div>
                     <div class="space-y-2">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Họ tên chủ tài khoản</label>
-                        <input type="text" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="NGUYEN VAN A">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Chi nhánh</label>
-                        <input type="text" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="Chi nhánh Hà Nội">
+                        <input type="text" id="payOwner" class="w-full bg-[#0B101D] border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all" placeholder="NGUYEN VAN A">
                     </div>
                     <div class="flex items-center gap-3 p-3 bg-[#0B101D]/50 rounded-xl border border-slate-800/50 mt-2">
-                        <input type="checkbox" id="chkDefault" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-0">
-                        <label for="chkDefault" class="text-xs text-slate-300 cursor-pointer">Đặt làm mặc định để hiển thị trên hóa đơn và QR</label>
+                        <input type="checkbox" id="payIsDefault" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-0">
+                        <label for="payIsDefault" class="text-xs text-slate-300 cursor-pointer">Đặt làm mặc định để hiển thị trên hóa đơn và QR</label>
                     </div>
                 </div>
                 <div class="px-6 py-4 bg-[#0B101D]/80 border-t border-slate-800 flex justify-end gap-3">
                     <button onclick="HPUI.closeModal('payModal')" class="px-5 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors">Hủy</button>
-                    <button onclick="HPUI.toast('Đã lưu thông tin tài khoản ngân hàng', 'success'); HPUI.closeModal('payModal')" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">Lưu phương thức</button>
+                    <button id="btnSavePaymentMethod" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">Lưu phương thức</button>
                 </div>
             </div>
         </div>
@@ -809,6 +858,133 @@
                     }
                 } catch (e) { HPUI.toast('Lỗi kết nối máy chủ', 'error'); }
             });
+        }
+
+        // ─── HPPayments Object to handle Payment Methods ───
+        window.HPPayments = {
+            openAddModal: function() {
+                document.getElementById('payId').value = '0';
+                document.getElementById('payBankShortName').value = '';
+                document.getElementById('payBankFullName').value = '';
+                document.getElementById('payAccountNumber').value = '';
+                document.getElementById('payOwner').value = '';
+                document.getElementById('payIsDefault').checked = false;
+                
+                const modalTitle = document.querySelector('#payModal h3.font-display');
+                if (modalTitle) modalTitle.textContent = "Thêm phương thức thanh toán";
+                HPUI.openModal('payModal');
+            },
+            openEditModal: function(id, shortName, fullName, accNumber, owner, isDefault, isActive) {
+                document.getElementById('payId').value = id;
+                document.getElementById('payBankShortName').value = shortName || '';
+                document.getElementById('payBankFullName').value = fullName || '';
+                document.getElementById('payAccountNumber').value = accNumber || '';
+                document.getElementById('payOwner').value = owner || '';
+                document.getElementById('payIsDefault').checked = isDefault;
+                
+                const modalTitle = document.querySelector('#payModal h3.font-display');
+                if (modalTitle) modalTitle.textContent = "Chỉnh sửa phương thức thanh toán";
+                HPUI.openModal('payModal');
+            },
+            save: async function() {
+                const data = {
+                    id: parseInt(document.getElementById('payId').value || '0', 10),
+                    bankShortName: document.getElementById('payBankShortName').value,
+                    bankFullName: document.getElementById('payBankFullName').value,
+                    accountNumber: document.getElementById('payAccountNumber').value,
+                    owner: document.getElementById('payOwner').value,
+                    isDefault: document.getElementById('payIsDefault').checked,
+                    isActive: true
+                };
+                if (!data.bankShortName) {
+                    HPUI.toast('Tên viết tắt không được để trống', 'error');
+                    return;
+                }
+                if (!data.bankFullName) {
+                    HPUI.toast('Tên đầy đủ không được để trống', 'error');
+                    return;
+                }
+                try {
+                    const res = await fetch('/settings/payments/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        HPUI.toast(result.message, 'success');
+                        HPUI.closeModal('payModal');
+                        setTimeout(() => window.location.href = '/settings?tab=payments', 800);
+                    } else {
+                        HPUI.toast(result.message, 'error');
+                    }
+                } catch (e) {
+                    HPUI.toast('Lỗi kết nối máy chủ', 'error');
+                }
+            },
+            setDefault: async function(id) {
+                if (!confirm('Đặt phương thức này làm mặc định khi thanh toán?')) return;
+                try {
+                    const res = await fetch('/settings/payments/set-default/' + id, { method: 'POST' });
+                    const result = await res.json();
+                    HPUI.toast(result.message, result.success ? 'success' : 'error');
+                    if (result.success) setTimeout(() => window.location.href = '/settings?tab=payments', 800);
+                } catch (e) { HPUI.toast('Lỗi kết nối máy chủ', 'error'); }
+            },
+            toggleActive: async function(id) {
+                try {
+                    const res = await fetch('/settings/payments/toggle-active/' + id, { method: 'POST' });
+                    const result = await res.json();
+                    HPUI.toast(result.message, result.success ? 'success' : 'error');
+                    if (result.success) setTimeout(() => window.location.href = '/settings?tab=payments', 800);
+                } catch (e) { HPUI.toast('Lỗi kết nối máy chủ', 'error'); }
+            },
+            deleteMethod: async function(id) {
+                if (!confirm('Bạn có chắc chắn muốn xóa phương thức thanh toán này?')) return;
+                try {
+                    const res = await fetch('/settings/payments/delete/' + id, { method: 'POST' });
+                    const result = await res.json();
+                    HPUI.toast(result.message, result.success ? 'success' : 'error');
+                    if (result.success) setTimeout(() => window.location.href = '/settings?tab=payments', 800);
+                } catch (e) { HPUI.toast('Lỗi kết nối máy chủ', 'error'); }
+            },
+            showQR: function(shortName, accNumber, owner) {
+                let bankId = shortName.toUpperCase().replace(/\s/g, '');
+                if (bankId === 'TECHCOMBANK') bankId = 'TCB';
+                if (bankId === 'VIETCOMBANK') bankId = 'VCB';
+                if (bankId === 'MBBANK') bankId = 'MB';
+                
+                const qrUrl = `https://img.vietqr.io/image/${bankId}-${accNumber}-compact.jpg?accountName=${encodeURIComponent(owner || '')}&addInfo=HPDetailing%20Thanh%20Toan`;
+                
+                let qrModal = document.getElementById('qrModal');
+                if (!qrModal) {
+                    qrModal = document.createElement('div');
+                    qrModal.id = 'qrModal';
+                    qrModal.className = 'hp-modal-overlay fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm';
+                    qrModal.innerHTML = `
+                        <div class="hp-modal-content bg-[#122131] border border-slate-800 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 text-center space-y-4">
+                            <h3 class="text-lg font-bold text-white font-display">Mã QR Thanh Toán</h3>
+                            <p class="text-xs text-slate-400 font-mono" id="qrModalText"></p>
+                            <div class="bg-white p-3 rounded-xl inline-block">
+                                <img id="qrModalImg" src="" class="w-60 h-60 object-contain mx-auto" />
+                            </div>
+                            <div class="flex justify-center gap-3">
+                                <button onclick="document.getElementById('qrModal').classList.add('hidden')" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all w-full">Đóng</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(qrModal);
+                }
+                document.getElementById('qrModalText').textContent = `${shortName} - ${accNumber}`;
+                document.getElementById('qrModalImg').src = qrUrl;
+                qrModal.classList.remove('hidden');
+            }
+        };
+
+        // Bind Save button inside payModal
+        const btnSavePay = document.getElementById('btnSavePaymentMethod');
+        if (btnSavePay) {
+            btnSavePay.addEventListener('click', HPPayments.save);
         }
 
         if (window.lucide) lucide.createIcons();

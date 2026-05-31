@@ -1,9 +1,12 @@
+using HP_Detailing.Models;
+
 namespace HP_Detailing.Models.ViewModels
 {
     public class SettingsViewModel
     {
         public List<UserAccountViewModel> Accounts { get; set; } = new List<UserAccountViewModel>();
         public List<string> AvailableRoles { get; set; } = new List<string>();
+        public List<PaymentMethod> PaymentMethods { get; set; } = new List<PaymentMethod>();
     }
 
     public class UserAccountViewModel

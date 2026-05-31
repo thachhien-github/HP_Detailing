@@ -25,6 +25,7 @@ namespace HP_Detailing.Controllers
             var staffList = _context.Staff
                 .Include(s => s.LaborContracts)
                 .Include(s => s.Payrolls)
+                .Include(s => s.PositionEntity)
                 .OrderBy(s => s.StaffCode)
                 .ToList();
 
@@ -60,6 +61,7 @@ namespace HP_Detailing.Controllers
             ViewBag.TotalDeduct = totalDeduct;
             ViewBag.TotalPayroll = totalBasic + totalBonus - totalDeduct;
             ViewBag.RecentActivity = recentActivity;
+            ViewBag.Positions = _context.Positions.OrderBy(p => p.Id).ToList();
 
             return View(staffList);
         }
@@ -71,6 +73,7 @@ namespace HP_Detailing.Controllers
                 .Include(s => s.Profile)
                 .Include(s => s.LaborContracts)
                 .Include(s => s.Payrolls)
+                .Include(s => s.PositionEntity)
                 .FirstOrDefault(s => s.Id == id);
                 
             if (staff == null)
@@ -85,6 +88,7 @@ namespace HP_Detailing.Controllers
                 .ToList();
 
             ViewBag.RecentTickets = recentTickets;
+            ViewBag.Positions = _context.Positions.OrderBy(p => p.Id).ToList();
 
             return View(staff);
         }
@@ -94,7 +98,7 @@ namespace HP_Detailing.Controllers
             public string StaffCode { get; set; } = string.Empty;
             public string FullName { get; set; } = string.Empty;
             public string? Phone { get; set; }
-            public string? Position { get; set; }
+            public int? PositionId { get; set; }
             public string? Specialty { get; set; }
             public bool Gender { get; set; }
             public string? Address { get; set; }
@@ -117,6 +121,16 @@ namespace HP_Detailing.Controllers
                     return Json(new { success = false, message = "Mã nhân viên đã tồn tại." });
                 }
 
+                // Lookup Position name từ DB
+                string? positionName = null;
+                if (model.PositionId.HasValue)
+                {
+                    positionName = _context.Positions
+                        .Where(p => p.Id == model.PositionId.Value)
+                        .Select(p => p.Name)
+                        .FirstOrDefault();
+                }
+
                 var newStaff = new Staff
                 {
                     StaffCode = model.StaffCode,
@@ -125,7 +139,8 @@ namespace HP_Detailing.Controllers
                     Gender = model.Gender,
                     Address = model.Address,
                     HireDate = model.HireDate ?? DateTime.Now,
-                    Position = model.Position,
+                    PositionId = model.PositionId,
+                    Position = positionName,
                     Specialty = model.Specialty,
                     IsActive = true,
                     Status = "Hoạt động"
@@ -166,7 +181,7 @@ namespace HP_Detailing.Controllers
             public string StaffCode { get; set; } = string.Empty;
             public string FullName { get; set; } = string.Empty;
             public string? Phone { get; set; }
-            public string? Position { get; set; }
+            public int? PositionId { get; set; }
             public string? Specialty { get; set; }
             public string? Address { get; set; }
             public DateTime? DateOfBirth { get; set; }
@@ -203,7 +218,19 @@ namespace HP_Detailing.Controllers
                 staff.FullName = model.FullName;
                 staff.Phone = model.Phone;
                 staff.Specialty = model.Specialty;
-                staff.Position = model.Position;
+                staff.PositionId = model.PositionId;
+                // Sync Position string từ bảng Positions
+                if (model.PositionId.HasValue)
+                {
+                    staff.Position = _context.Positions
+                        .Where(p => p.Id == model.PositionId.Value)
+                        .Select(p => p.Name)
+                        .FirstOrDefault();
+                }
+                else
+                {
+                    staff.Position = null;
+                }
                 staff.Address = model.Address;
                 staff.DateOfBirth = model.DateOfBirth;
                 staff.Gender = model.Gender;
@@ -298,6 +325,264 @@ namespace HP_Detailing.Controllers
                 System.Diagnostics.Debug.WriteLine($"Lỗi khi thay đổi trạng thái nhân viên: {ex.Message}");
                 return Json(new { success = false, message = $"Lỗi hệ thống: {ex.Message}" });
             }
+        }
+
+        [HttpPost]
+        public IActionResult SavePositionAjax([FromBody] Position model)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(model.Name) || string.IsNullOrWhiteSpace(model.PositionCode))
+                {
+                    return Json(new { success = false, message = "Mã vị trí và Tên vị trí là bắt buộc." });
+                }
+
+                if (model.Id == 0)
+                {
+                    // Add new
+                    if (_context.Positions.Any(p => p.PositionCode == model.PositionCode))
+                    {
+                        return Json(new { success = false, message = "Mã vị trí đã tồn tại." });
+                    }
+                    _context.Positions.Add(model);
+                }
+                else
+                {
+                    // Edit existing
+                    var existing = _context.Positions.FirstOrDefault(p => p.Id == model.Id);
+                    if (existing == null)
+                    {
+                        return Json(new { success = false, message = "Không tìm thấy vị trí." });
+                    }
+
+                    if (existing.PositionCode != model.PositionCode && _context.Positions.Any(p => p.PositionCode == model.PositionCode))
+                    {
+                        return Json(new { success = false, message = "Mã vị trí mới đã tồn tại." });
+                    }
+
+                    // Sync old position name in staff records if name has changed
+                    if (existing.Name != model.Name)
+                    {
+                        var relatedStaff = _context.Staff.Where(s => s.PositionId == existing.Id).ToList();
+                        foreach (var s in relatedStaff)
+                        {
+                            s.Position = model.Name;
+                        }
+                    }
+
+                    existing.PositionCode = model.PositionCode;
+                    existing.Name = model.Name;
+                    existing.Description = model.Description;
+                }
+
+                _context.SaveChanges();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi khi lưu vị trí: {ex.Message}");
+                return Json(new { success = false, message = $"Lỗi hệ thống: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeletePositionAjax(int id)
+        {
+            try
+            {
+                var existing = _context.Positions.FirstOrDefault(p => p.Id == id);
+                if (existing == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy vị trí." });
+                }
+
+                var hasStaff = _context.Staff.Any(s => s.PositionId == id);
+                if (hasStaff)
+                {
+                    return Json(new { success = false, message = "Không thể xóa vị trí này vì đang có nhân viên đảm nhiệm." });
+                }
+
+                _context.Positions.Remove(existing);
+                _context.SaveChanges();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi khi xóa vị trí: {ex.Message}");
+                return Json(new { success = false, message = $"Lỗi hệ thống: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Lấy danh sách tất cả vị trí để dropdown
+        /// GET: /staff/positions-list
+        /// </summary>
+        [HttpGet("staff/positions-list")]
+        public IActionResult PositionsList()
+        {
+            try
+            {
+                var positions = _context.Positions
+                    .OrderBy(p => p.PositionCode)
+                    .Select(p => new { p.Id, p.PositionCode, p.Name, p.Description })
+                    .ToList();
+
+                return Json(new { success = true, data = positions });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật vị trí cho nhân viên
+        /// POST: /staff/update-position/{staffId}
+        /// </summary>
+        [HttpPost("staff/update-position")]
+        public IActionResult UpdateStaffPositionAjax([FromBody] UpdateStaffPositionRequest request)
+        {
+            try
+            {
+                if (request.StaffId <= 0 || request.PositionId <= 0)
+                {
+                    return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
+                }
+
+                var staff = _context.Staff.Include(s => s.PositionEntity).FirstOrDefault(s => s.Id == request.StaffId);
+                if (staff == null)
+                {
+                    return Json(new { success = false, message = "Nhân viên không tồn tại." });
+                }
+
+                var position = _context.Positions.FirstOrDefault(p => p.Id == request.PositionId);
+                if (position == null)
+                {
+                    return Json(new { success = false, message = "Vị trí không tồn tại." });
+                }
+
+                var oldPosition = staff.PositionEntity?.Name ?? "Không xác định";
+                staff.PositionId = request.PositionId;
+                staff.PositionEntity = position;
+                staff.Position = position.Name; // Sync legacy field
+
+                _context.SaveChanges();
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Cập nhật vị trí từ '{oldPosition}' thành '{position.Name}' thành công.",
+                    data = new { staffId = staff.Id, positionId = position.Id, positionName = position.Name }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateStaffPosition Error: {ex}");
+                return Json(new { success = false, message = $"Lỗi: {ex.InnerException?.Message ?? ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Reassign positions - gán lại vị trí cho nhân viên từ vị trí cũ sang vị trí mới
+        /// POST: /staff/reassign-position
+        /// </summary>
+        [HttpPost("staff/reassign-position")]
+        public IActionResult ReassignPositionAjax([FromBody] ReassignPositionRequest request)
+        {
+            try
+            {
+                if (request.FromPositionId <= 0 || request.ToPositionId <= 0)
+                {
+                    return Json(new { success = false, message = "Dữ liệu vị trí không hợp lệ." });
+                }
+
+                var fromPosition = _context.Positions.FirstOrDefault(p => p.Id == request.FromPositionId);
+                var toPosition = _context.Positions.FirstOrDefault(p => p.Id == request.ToPositionId);
+
+                if (fromPosition == null || toPosition == null)
+                {
+                    return Json(new { success = false, message = "Vị trí không tồn tại." });
+                }
+
+                var staffList = _context.Staff.Where(s => s.PositionId == request.FromPositionId).ToList();
+                if (!staffList.Any())
+                {
+                    return Json(new { success = false, message = $"Không có nhân viên nào giữ vị trí '{fromPosition.Name}'." });
+                }
+
+                foreach (var staff in staffList)
+                {
+                    staff.PositionId = request.ToPositionId;
+                    staff.Position = toPosition.Name; // Sync legacy field
+                }
+
+                _context.SaveChanges();
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Đã gán lại {staffList.Count} nhân viên từ vị trí '{fromPosition.Name}' sang vị trí '{toPosition.Name}'.",
+                    data = new { staffCount = staffList.Count }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ReassignPosition Error: {ex}");
+                return Json(new { success = false, message = $"Lỗi: {ex.InnerException?.Message ?? ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Xóa toàn bộ dữ liệu và khởi tạo lại (yêu cầu xác nhận)
+        /// POST: /staff/reset-all-data
+        /// </summary>
+        [HttpPost("staff/reset-all-data")]
+        public IActionResult ResetAllDataAjax([FromBody] ResetDataRequest request)
+        {
+            try
+            {
+                if (!request.Confirmed)
+                {
+                    return Json(new { success = false, message = "Bạn phải xác nhận hành động này." });
+                }
+
+                if (request.ConfirmationCode != "XOA_HAY_DU_LIEU")
+                {
+                    return Json(new { success = false, message = "Mã xác nhận không chính xác." });
+                }
+
+                // Call the clear data method from DbInitializer
+                DbInitializer.Initialize(_context, HttpContext.RequestServices, clearOldData: true).GetAwaiter().GetResult();
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Đã xóa sạch dữ liệu cũ và khởi tạo dữ liệu mới thành công!"
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ResetAllData Error: {ex}");
+                return Json(new { success = false, message = $"Lỗi: {ex.InnerException?.Message ?? ex.Message}" });
+            }
+        }
+
+        public class UpdateStaffPositionRequest
+        {
+            public int StaffId { get; set; }
+            public int PositionId { get; set; }
+        }
+
+        public class ReassignPositionRequest
+        {
+            public int FromPositionId { get; set; }
+            public int ToPositionId { get; set; }
+        }
+
+        public class ResetDataRequest
+        {
+            public bool Confirmed { get; set; }
+            public string ConfirmationCode { get; set; } = string.Empty;
         }
     }
 }

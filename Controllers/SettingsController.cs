@@ -13,11 +13,13 @@ namespace HP_Detailing.Controllers
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly HP_DetailingDbContext _context;
 
-        public SettingsController(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
+        public SettingsController(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, HP_DetailingDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _context = context;
         }
 
         [HttpGet("settings")]
@@ -26,6 +28,7 @@ namespace HP_Detailing.Controllers
             var users = await _userManager.Users.ToListAsync();
             var model = new SettingsViewModel();
             model.AvailableRoles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+            model.PaymentMethods = await _context.PaymentMethods.ToListAsync();
 
             foreach (var u in users)
             {
@@ -156,5 +159,143 @@ namespace HP_Detailing.Controllers
 
         [HttpGet("settings/quotas-ui")]
         public IActionResult QuotasUi() => RedirectPermanent("/catalog/quotas");
+
+        // ─── PHƯƠNG THỨC THANH TOÁN ─────────────────────────────────
+
+        [HttpPost("settings/payments/save")]
+        public async Task<IActionResult> SavePaymentMethod([FromBody] PaymentMethodInputModel input)
+        {
+            if (string.IsNullOrWhiteSpace(input.BankShortName))
+                return Json(new { success = false, message = "Tên viết tắt không được để trống" });
+            if (string.IsNullOrWhiteSpace(input.BankFullName))
+                return Json(new { success = false, message = "Tên đầy đủ không được để trống" });
+
+            PaymentMethod method;
+            bool isNew = input.Id == 0;
+
+            if (isNew)
+            {
+                method = new PaymentMethod
+                {
+                    BankFullName = input.BankFullName,
+                    BankShortName = input.BankShortName,
+                    AccountNumber = input.AccountNumber,
+                    Owner = input.Owner,
+                    IsActive = input.IsActive,
+                    IsDefault = input.IsDefault
+                };
+                _context.PaymentMethods.Add(method);
+            }
+            else
+            {
+                method = await _context.PaymentMethods.FindAsync(input.Id);
+                if (method == null) return Json(new { success = false, message = "Phương thức thanh toán không tồn tại" });
+
+                method.BankFullName = input.BankFullName;
+                method.BankShortName = input.BankShortName;
+                method.AccountNumber = input.AccountNumber;
+                method.Owner = input.Owner;
+                method.IsActive = input.IsActive;
+                method.IsDefault = input.IsDefault;
+            }
+
+            if (method.IsDefault)
+            {
+                // Tắt các mặc định khác
+                var defaults = await _context.PaymentMethods.Where(p => p.IsDefault && p.Id != method.Id).ToListAsync();
+                foreach (var d in defaults)
+                {
+                    d.IsDefault = false;
+                }
+            }
+            else
+            {
+                // Nếu đây là cái mặc định duy nhất được sửa thành false, ta cần đảm bảo có ít nhất 1 mặc định hoạt động
+                var anyOtherDefault = await _context.PaymentMethods.AnyAsync(p => p.IsDefault && p.Id != method.Id && p.IsActive);
+                if (!anyOtherDefault && method.IsActive)
+                {
+                    method.IsDefault = true; // Ép buộc giữ lại mặc định
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = isNew ? "Thêm phương thức thành công" : "Cập nhật phương thức thành công" });
+        }
+
+        [HttpPost("settings/payments/delete/{id}")]
+        public async Task<IActionResult> DeletePaymentMethod(int id)
+        {
+            var method = await _context.PaymentMethods.FindAsync(id);
+            if (method == null) return Json(new { success = false, message = "Không tìm thấy phương thức thanh toán" });
+
+            if (method.IsDefault)
+            {
+                return Json(new { success = false, message = "Không thể xóa phương thức thanh toán mặc định" });
+            }
+
+            var hasInvoices = await _context.Invoices.AnyAsync(i => i.PaymentMethodId == id);
+            if (hasInvoices)
+            {
+                method.IsActive = false;
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Đã khóa phương thức thanh toán này (do đã có hóa đơn liên kết)" });
+            }
+            else
+            {
+                _context.PaymentMethods.Remove(method);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Đã xóa phương thức thanh toán thành công" });
+            }
+        }
+
+        [HttpPost("settings/payments/toggle-active/{id}")]
+        public async Task<IActionResult> TogglePaymentMethodActive(int id)
+        {
+            var method = await _context.PaymentMethods.FindAsync(id);
+            if (method == null) return Json(new { success = false, message = "Không tìm thấy phương thức thanh toán" });
+
+            if (method.IsDefault && method.IsActive)
+            {
+                return Json(new { success = false, message = "Không thể khóa phương thức thanh toán mặc định" });
+            }
+
+            method.IsActive = !method.IsActive;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = method.IsActive ? "Đã kích hoạt phương thức thanh toán" : "Đã khóa phương thức thanh toán" });
+        }
+
+        [HttpPost("settings/payments/set-default/{id}")]
+        public async Task<IActionResult> SetDefaultPaymentMethod(int id)
+        {
+            var method = await _context.PaymentMethods.FindAsync(id);
+            if (method == null) return Json(new { success = false, message = "Không tìm thấy phương thức thanh toán" });
+
+            if (!method.IsActive)
+            {
+                return Json(new { success = false, message = "Không thể đặt phương thức đang bị khóa làm mặc định" });
+            }
+
+            method.IsDefault = true;
+
+            var otherDefaults = await _context.PaymentMethods.Where(p => p.IsDefault && p.Id != id).ToListAsync();
+            foreach (var od in otherDefaults)
+            {
+                od.IsDefault = false;
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã đặt làm mặc định thành công" });
+        }
+    }
+
+    public class PaymentMethodInputModel
+    {
+        public int Id { get; set; }
+        public string BankFullName { get; set; }
+        public string BankShortName { get; set; }
+        public string? AccountNumber { get; set; }
+        public string? Owner { get; set; }
+        public bool IsDefault { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }
