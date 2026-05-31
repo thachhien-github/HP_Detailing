@@ -128,7 +128,7 @@
                             <div class="absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 text-[9px] font-bold text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-20">@revM M</div>
                             @if (isCurrentMonth) { <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-blue-400 whitespace-nowrap animate-pulse">H.Nay</span> }
                         </div>
-                        <p class="text-[9px] text-slate-500 text-center mt-1.5 font-bold">T@month</p>
+                        <p class="text-[9px] text-slate-500 text-center mt-1.5 font-bold" title="@(new DateTime(year, month, 1).ToString("MMM yyyy"))">@($"T{month}")</p>
                     </div>
                 }
             </div>

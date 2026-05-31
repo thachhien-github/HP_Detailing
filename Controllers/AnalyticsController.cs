@@ -46,7 +46,7 @@ namespace HP_Detailing.Controllers
 
             // ── Invoices ──────────────────────────────────────────────
             var paidInvoices = _context.Invoices
-                .Where(i => i.Status == "PAID")
+                .Where(i => i.Status != null && i.Status.ToUpper() == "PAID")
                 .ToList();
 
             var thisPeriodRevenue = paidInvoices
@@ -62,7 +62,7 @@ namespace HP_Detailing.Controllers
             var thisMonthTickets = _context.Tickets.Count(t => t.CreatedAt >= startDate && t.CreatedAt <= endDate);
 
             // ── Revenue last 12 months (bar chart) ───────────────────
-            var barChartEndMonth = new DateTime(now.Year, now.Month, 1);
+            var barChartEndMonth = new DateTime(endDate.Year, endDate.Month, 1);
             var revenueByMonth = new List<(int Month, int Year, decimal Revenue)>();
             for (int i = 11; i >= 0; i--)
             {
